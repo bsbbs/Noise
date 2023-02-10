@@ -2,10 +2,13 @@
 %% defiine directories
 Glgdir = '/Volumes/GoogleDrive/My Drive';
 Gitdir = '/home/bo/Documents/Noise';
+Gitdir = '~/Documents/Noise';
 addpath(genpath(Gitdir));
 plot_dir = fullfile(Glgdir, 'Noise','Prediction');
+plot_dir = '/Users/bs3667/Dropbox (NYU Langone Health)/CESS-Bo/Prediction';
 %% where is the data?
-datdir = '/gpfs/data/glimcherlab/BoShen/Noise/CESS-Bo_Nov2022/TaskProgram/log/txtDat';
+% datdir = '/gpfs/data/glimcherlab/BoShen/Noise/CESS-Bo_Nov2022/TaskProgram/log/txtDat';
+datdir = '/Volumes/BoShen/Noise/CESS-Bo_Nov2022/TaskProgram/log/txtDat';
 filelist = dir(fullfile(datdir, 'MainTask*.txt'));
 N = numel(filelist);
 VtrgtPool = nan(N*360*2,1);
@@ -50,6 +53,7 @@ V3 = V3_scl2min(valid);
 M = mean([V1; V2; V3]);
 V3 = 0:.05:1;
 NV3 = numel(V3);
+plot(V1,V2,'.');
 %% Representational noise only
 sgm1 = 1;
 sgm2 = 1;
