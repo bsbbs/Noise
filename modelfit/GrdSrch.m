@@ -121,7 +121,7 @@ else
 end
 eta = x(1);
 data = dat(:, {'V1', 'V2', 'V3', 'chosenItem'});
-num_samples = 50000;
+num_samples = 20000;
 Ntrl = size(dat,1);
 samples = [];
 for ci = 1:3
@@ -158,7 +158,7 @@ else
 end
 eta = x(1);
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem'});
-num_samples = 50000;
+num_samples = 20000;
 Ntrl = size(dat,1);
 samples = [];
 for ci = 1:3
@@ -199,7 +199,7 @@ end
 Mp = x(1);
 wp = x(2);
 data = dat(:, {'V1', 'V2', 'V3', 'chosenItem'});
-num_samples = 50000;
+num_samples = 20000;
 Ntrl = size(dat,1);
 samples = [];
 for ci = 1:3
@@ -241,7 +241,7 @@ end
 Mp = x(1);
 wp = x(2);
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem'});
-num_samples = 50000;
+num_samples = 20000;
 Ntrl = size(dat,1);
 if strcmp(mode, 'absorb')
     samples = [];
@@ -287,7 +287,7 @@ end
 Mp = x(1);
 wp = x(2);
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem'});
-num_samples = 50000;
+num_samples = 20000;
 Ntrl = size(dat,1);
 if strcmp(mode, 'absorb')
     samples = [];
@@ -345,7 +345,7 @@ end
 Mp = x(1);
 wp = x(2);
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem'});
-num_samples = 50000;
+num_samples = 20000;
 Ntrl = size(dat,1);
 samples = [];
 for ci = 1:3
@@ -391,7 +391,7 @@ end
 Mp = x(1);
 wp = x(2);
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem'});
-num_samples = 50000;
+num_samples = 20000;
 Ntrl = size(dat,1);
 samples = [];
 for ci = 1:3
