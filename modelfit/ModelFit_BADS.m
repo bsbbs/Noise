@@ -29,7 +29,7 @@ sublist = unique(mt.subID);
 Rslts = table('Size', [0 9], 'VariableTypes', {'double', 'string', 'double', 'double', 'double', 'double', 'double', 'logical', 'double'}, 'VariableNames', {'subID', 'Model', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations'});
 fp = fopen(fullfile(svdir, AnalysName, 'Rslts_BADS_Test.txt'), 'w+');
 fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', 'subID', 'Model', 'randi', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations');
-Npar = 20;
+Npar = 40;
 mypool = parpool(Npar);
 subj = 1;
 while subj <= length(sublist)
@@ -76,7 +76,7 @@ while subj <= length(sublist)
         parfor i = 1:Npar
             x0 = PLB + (PUB - PLB) .* rand(size(PLB));
             [xOpt,fval,exitflag,output] = bads(nLLfunc,x0,LB,UB,PLB,PUB,[],options);
-            disp(output);
+            disp(output)
             if modeli <= 2
                 fprintf(fp, '%i\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%i\t%i\n', subj, model, i, xOpt, NaN, NaN, fval, output.fvalsd, exitflag, output.iterations);
             elseif modeli >= 3

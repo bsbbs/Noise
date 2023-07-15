@@ -1,0 +1,6 @@
+#!/bin/bash
+cd /gpfs/data/glimcherlab/BoShen/Noise/modelfit
+module load cuda/11.8
+module load matlab/R2021b
+matlab -nodisplay -r ModelFit_BADS
+
