@@ -27,6 +27,8 @@ testfile = fullfile(svdir, AnalysName, 'Rslts_GrdSrch.txt');
 fp = fopen(testfile, 'w+');
 fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\n', 'subID', 'Model', 'eta', 'Mp', 'wp', 'nll');
 fclose(fp);
+Npar = 40;
+mypool = parpool(Npar);
 for subj = 1:length(sublist)
     fprintf('Subj %i ', subj);
     dat = mt(mt.subID == sublist(subj), :);
