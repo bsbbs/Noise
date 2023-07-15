@@ -76,11 +76,10 @@ while subj <= length(sublist)
         parfor i = 1:Npar
             x0 = PLB + (PUB - PLB) .* rand(size(PLB));
             [xOpt,fval,exitflag,output] = bads(nLLfunc,x0,LB,UB,PLB,PUB,[],options);
-            disp(output)
             if modeli <= 2
-                fprintf(fp, '%i\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%i\t%i\n', subj, model, i, xOpt, NaN, NaN, fval, output.fvalsd, exitflag, output.iterations);
+                fprintf(fp, '%i\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%i\t%i\n', subj, model, i, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations);
             elseif modeli >= 3
-                fprintf(fp, '%i\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%i\t%i\n', subj, model, i, 1, xOpt(1), xOpt(2), fval, output.fvalsd, exitflag, output.iterations);
+                fprintf(fp, '%i\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%i\t%i\n', subj, model, i, 1, xOpt(1), xOpt(2), fval, output.fsd, exitflag, output.iterations);
             end
             params{i} = xOpt;
             nLL(i) = fval;
@@ -95,9 +94,9 @@ while subj <= length(sublist)
         filename = fullfile(modeldir, sprintf('BADS_subj%02i.mat', subj));
         save(filename, 'xOpt', 'fval', 'exitflag', 'output');
         if modeli <= 2
-            new_row = table(subj, {model}, xOpt, NaN, NaN, fval, output.fvalsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(subj, {model}, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         elseif modeli >= 3
-            new_row = table(subj, {model}, 1, xOpt(1), xOpt(2), fval, output.fvalsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(subj, {model}, 1, xOpt(1), xOpt(2), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         end
         Rslts = [Rslts; new_row];
         writetable(Rslts, fullfile(svdir, AnalysName, 'Rslts_BADS_Best.txt'), 'Delimiter', '\t');
