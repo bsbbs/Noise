@@ -13,7 +13,7 @@ end
 addpath(genpath('/gpfs/data/glimcherlab/BoShen/bads'));
 %% load data
 load(fullfile(datadir, 'TrnsfrmData.mat'));
-disp(mt);
+%disp(mt);
 
 %% Maximum likelihood fitting to the choice behavior
 AnalysName = 'BADS_Mtlb';
@@ -36,7 +36,6 @@ while subj <= length(sublist)
     fprintf('Subject %d:\t', subj);
     dat = mt(mt.subID == sublist(subj), :);
     for modeli = 3:5
-        fprintf('Model %s nll=', model);
         switch modeli
             case 1
                 model = '1';
@@ -54,6 +53,7 @@ while subj <= length(sublist)
                 model = '4b';
                 nLLfunc = @(y) neg_ll_indv4b(y, dat);
         end
+        fprintf('Model %s nll=', model);
         if modeli <= 2
             LB = 0;
             UB = 1000;
