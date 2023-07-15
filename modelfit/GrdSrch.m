@@ -93,10 +93,9 @@ parfor subj = 1:length(sublist)
             zlabel('nLL');
         end
         title(sprintf('SubID %i\n%s',sublist(subj), name));
-        filename = sprintf('Gridsrch_Subj%02i_Mdl%i', subj, modeli);
+        filename = sprintf('Gridsrch_Subj%02i', subj);
         mysavefig(h, filename, outdir, 14, [8,11]);
         if modeli <= 2
-            writematrix(M2,'M.xls','WriteMode','append');
             dlmwrite(testfile, [subj, modeli, xOpt, NaN, NaN, fval],'delimiter','\t','precision','%d%i%.6f%.6f%.6f%.6f','-append');
         elseif modeli >= 3
             dlmwrite(testfile, [subj, modeli, 1, xOpt(1), xOpt(2), fval],'delimiter','\t','precision','%d%i%.6f%.6f%.6f%.6f','-append');
