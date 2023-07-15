@@ -22,8 +22,8 @@ if ~exist(fullfile(svdir, AnalysName), 'dir')
 end
 
 options = bads('defaults');     % Default options
-options.Display = 'None';
-options.UncertaintyHandling = true;    % Function is stochastic
+options.Display = 'iter';
+options.UncertaintyHandling = true;    %s Function is stochastic
 options.NoiseFinalSamples = 30;
 sublist = unique(mt.subID);
 Rslts = table('Size', [0 9], 'VariableTypes', {'double', 'string', 'double', 'double', 'double', 'double', 'double', 'logical', 'double'}, 'VariableNames', {'subID', 'Model', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations'});

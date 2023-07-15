@@ -10,3 +10,7 @@ For product information, visit www.mathworks.com.
  
 Starting parallel pool (parpool) using the 'local' profile ...
 Connected to the parallel pool (number of workers: 40).
+{Error using ModelFit_BADS (line 76)
+Invalid file identifier.  Use fopen to generate a valid file identifier.
+} 
+Subject 1:	Model 3 nll=
