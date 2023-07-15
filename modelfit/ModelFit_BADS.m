@@ -1,19 +1,22 @@
 %% define directoriress
 % Switch to the working directory
-rtdir = '/Users/bs3667/Dropbox (NYU Langone Health)/CESS-Bo/';
+rtdir = '/gpfs/data/glimcherlab/BoShen/Noise/modelfit';
 cd(rtdir);
 
 % Define I/O directories
-datadir = fullfile(rtdir, 'TaskProgram/log/txtDat');
-svdir = fullfile(rtdir, 'pyResults');
+datadir = rtdir;
+svdir = fullfile(rtdir, 'Results');
+if ~exist(svdir, 'dir')
+    mkdir(svdir);
+end
 % load packages
-addpath(genpath('C:\Users\Bo\Documents\bads'));
+addpath(genpath('/gpfs/data/glimcherlab/BoShen/bads'));
 %% load data
-load(fullfile(rtdir, 'myData', 'TrnsfrmData.mat'));
+load(fullfile(datadir, 'TrnsfrmData.mat'));
 disp(mt);
 
 %% Maximum likelihood fitting to the choice behavior
-AnalysName = 'ModelFitting_Mtlb';
+AnalysName = 'BADS_Mtlb';
 if ~exist(fullfile(svdir, AnalysName), 'dir')
     mkdir(fullfile(svdir, AnalysName));
 end
