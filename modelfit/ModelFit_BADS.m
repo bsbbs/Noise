@@ -27,8 +27,10 @@ options.UncertaintyHandling = true;    % Function is stochastic
 options.NoiseFinalSamples = 30;
 sublist = unique(mt.subID);
 Rslts = table('Size', [0 9], 'VariableTypes', {'double', 'string', 'double', 'double', 'double', 'double', 'double', 'logical', 'double'}, 'VariableNames', {'subID', 'Model', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations'});
-fp = fopen(fullfile(svdir, AnalysName, 'Rslts_BADS_Test.txt'), 'w+');
+testfile = fullfile(svdir, AnalysName, 'Rslts_BADS_Test.txt');
+fp = fopen(testfile, 'w+');
 fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', 'subID', 'Model', 'randi', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations');
+fclose(fp);
 Npar = 40;
 mypool = parpool(Npar);
 subj = 1;
@@ -77,9 +79,11 @@ while subj <= length(sublist)
             x0 = PLB + (PUB - PLB) .* rand(size(PLB));
             [xOpt,fval,exitflag,output] = bads(nLLfunc,x0,LB,UB,PLB,PUB,[],options);
             if modeli <= 2
-                fprintf(fp, '%i\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%i\t%i\n', subj, model, i, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations);
+                dlmwrite(testfile, [subj, modeli, i, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                %fprintf(fp, '%i\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%i\t%i\n', subj, model, i, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations);
             elseif modeli >= 3
-                fprintf(fp, '%i\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%i\t%i\n', subj, model, i, 1, xOpt(1), xOpt(2), fval, output.fsd, exitflag, output.iterations);
+                dlmwrite(testfile, [subj, modeli, i, 1, xOpt(1), xOpt(2), fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                %fprintf(fp, '%i\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%i\t%i\n', subj, model, i, 1, xOpt(1), xOpt(2), fval, output.fsd, exitflag, output.iterations);
             end
             params{i} = xOpt;
             nLL(i) = fval;
