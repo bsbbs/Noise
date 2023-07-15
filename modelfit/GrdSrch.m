@@ -18,16 +18,16 @@ load(fullfile(datadir, 'TrnsfrmData.mat'));
 % disp(head(mt));
 %%
 mode = 'absorb';
-eta = linspace(-20,20,41); % range of eta
-wp = linspace(-1,1,21);
-Mp = linspace(-20,20,41); % range of Mp and wp
+eta = linspace(-8,8,40); % range of eta
+wp = linspace(-.5,.5,20);
+Mp = linspace(-8,8,40); % range of Mp and wp
 sublist = unique(mt.subID);
 % Rslts = table('Size', [0 6], 'VariableTypes', {'double', 'string', 'double', 'double', 'double', 'double'}, 'VariableNames', {'subID', 'Model', 'eta', 'Mp', 'wp', 'nll'});
 testfile = fullfile(svdir, AnalysName, 'Rslts_GrdSrch.txt');
 fp = fopen(testfile, 'w+');
 fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\n', 'subID', 'Model', 'eta', 'Mp', 'wp', 'nll');
 fclose(fp);
-parfor subj = 1:length(sublist)
+for subj = 1:length(sublist)
     fprintf('Subj %i ', subj);
     dat = mt(mt.subID == sublist(subj), :);
     h = figure;
@@ -63,7 +63,7 @@ parfor subj = 1:length(sublist)
         subplot(3,3,modeli);
         if modeli <= 2
             nlls = [];
-            for i = 1:numel(eta)
+            parfor i = 1:numel(eta)
                 nlls(i) = nLLfunc(eta(i));
             end
             plot(eta, nlls, '-');
@@ -74,7 +74,7 @@ parfor subj = 1:length(sublist)
         elseif modeli >= 3
             nlls = [];
             [X, Y] = meshgrid(wp, Mp);
-            for k = 1:numel(X)
+            parfor k = 1:numel(X)
                 nlls(k) = nLLfunc([Y(k), X(k)]);
             end
             [minVal, Idx] = min(nlls);
