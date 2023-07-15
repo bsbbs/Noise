@@ -22,8 +22,12 @@ eta = linspace(-20,20,41); % range of eta
 wp = linspace(-1,1,21);
 Mp = linspace(-20,20,41); % range of Mp and wp
 sublist = unique(mt.subID);
-% mypool = parpool(7);
-for subj = 1:length(sublist)
+% Rslts = table('Size', [0 6], 'VariableTypes', {'double', 'string', 'double', 'double', 'double', 'double'}, 'VariableNames', {'subID', 'Model', 'eta', 'Mp', 'wp', 'nll'});
+testfile = fullfile(svdir, AnalysName, 'Rslts_GrdSrch.txt');
+fp = fopen(testfile, 'w+');
+fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\n', 'subID', 'Model', 'eta', 'Mp', 'wp', 'nll');
+fclose(fp);
+parfor subj = 1:length(sublist)
     fprintf('Subj %i ', subj);
     dat = mt(mt.subID == sublist(subj), :);
     h = figure;
@@ -59,21 +63,25 @@ for subj = 1:length(sublist)
         subplot(3,3,modeli);
         if modeli <= 2
             nlls = [];
-            parfor i = 1:numel(eta)
+            for i = 1:numel(eta)
                 nlls(i) = nLLfunc(eta(i));
             end
-            plot(eta, nlls);
+            plot(eta, nlls, '-');
             xlabel('\eta');
             ylabel('nLL');
+            xOpt = eta(nlls == min(nlls));
+            fval = min(nlls);
         elseif modeli >= 3
             nlls = [];
             [X, Y] = meshgrid(wp, Mp);
-            parfor k = 1:numel(X)
+            for k = 1:numel(X)
                 nlls(k) = nLLfunc([Y(k), X(k)]);
             end
             [minVal, Idx] = min(nlls);
             Mpbst = Y(Idx);
             wpbst = X(Idx);
+            xOpt = [Mpbst, wpbst];
+            fval = minVal;
             nlls = reshape(nlls, size(X));
             surf(X, Y, nlls);
             hold on;
@@ -87,7 +95,20 @@ for subj = 1:length(sublist)
         title(sprintf('SubID %i\n%s',sublist(subj), name));
         filename = sprintf('Gridsrch_Subj%02i_Mdl%i', subj, modeli);
         mysavefig(h, filename, outdir, 14, [8,11]);
-        save(fullfile(outdir, [filename, '.mat']), 'nlls', 'modeli', 'eta', 'Mp', 'wp');
+        if modeli <= 2
+            writematrix(M2,'M.xls','WriteMode','append');
+            dlmwrite(testfile, [subj, modeli, xOpt, NaN, NaN, fval],'delimiter','\t','precision','%d%i%.6f%.6f%.6f%.6f','-append');
+        elseif modeli >= 3
+            dlmwrite(testfile, [subj, modeli, 1, xOpt(1), xOpt(2), fval],'delimiter','\t','precision','%d%i%.6f%.6f%.6f%.6f','-append');
+        end
+        % save(fullfile(outdir, [filename, '.mat']), 'nlls', 'modeli', 'eta', 'Mp', 'wp');
+        % if modeli <= 2
+        %     new_row = table(subj, {name}, xOpt, NaN, NaN, fval, 'VariableNames', Rslts.Properties.VariableNames);
+        % elseif modeli >= 3
+        %     new_row = table(subj, {name}, 1, xOpt(1), xOpt(2), fval, 'VariableNames', Rslts.Properties.VariableNames);
+        % end
+        % Rslts = [Rslts; new_row];
+        % writetable(Rslts, fullfile(svdir, AnalysName, 'Rslts_GrdSrch_Best.txt'), 'Delimiter', '\t');
     end
 end
 
