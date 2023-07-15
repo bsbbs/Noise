@@ -1,0 +1,13 @@
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2021 The MathWorks, Inc.
+                  R2021b (9.11.0.1769968) 64-bit (glnxa64)
+                             September 17, 2021
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+Starting parallel pool (parpool) using the 'local' profile ...
+Connected to the parallel pool (number of workers: 40).
+Subject 1:	Model 3 nll=241.344553	Model 4 nll=6005.239559	Model 4b nll=241.056842	Subject 2:	Model 3 nll=342.326475	Model 4 nll=339.362837	Model 4b nll=341.989587	Subject 3:	Model 3 nll=180.301452	Model 4 nll=5415.458006	Model 4b nll=189.192356	Subject 4:	Model 3 nll=124.519761	Model 4 nll=124.630517	Model 4b nll=124.515597	Subject 5:	Model 3 nll=148.365450	Model 4 nll=147.041058	Model 4b nll=148.998987	Subject 6:	Model 3 nll=239.137156	Model 4 nll=237.733194	Model 4b nll=238.553554	Subject 7:	Model 3 nll=284.868551	Model 4 nll=285.605540	Model 4b nll=285.231067	Subject 8:	Model 3 nll=165.917462	Model 4 nll=165.273633	Model 4b nll=165.191248	Subject 9:	Model 3 nll=189.757175	Model 4 nll=2843.609344	Model 4b nll=185.873328	Subject 10:	Model 3 nll=352.673959	Model 4 nll=354.946848	Model 4b nll=353.699160	Subject 11:	Model 3 nll=373.222285	Model 4 nll=8258.527771	Model 4b nll=375.330453	Subject 12:	Model 3 nll=368.315922	Model 4 nll=368.954792	Model 4b nll=367.954580	Subject 13:	Model 3 nll=351.229070	Model 4 nl

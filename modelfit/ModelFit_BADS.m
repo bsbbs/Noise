@@ -22,7 +22,7 @@ if ~exist(fullfile(svdir, AnalysName), 'dir')
 end
 
 options = bads('defaults');     % Default options
-options.Display = 'iter';
+options.Display = 'None';
 options.UncertaintyHandling = true;    %s Function is stochastic
 options.NoiseFinalSamples = 30;
 sublist = unique(mt.subID);
@@ -108,7 +108,7 @@ while subj <= length(sublist)
     end
     subj = subj + 1;
 end
-fclose(fp);
+%fclose(fp);
 %%
 function nll = neg_ll_indv4b(y, dat)
 % Let's assume the bid value with bid variance is divisively normalized
