@@ -15,7 +15,7 @@ if ~exist(outdir, 'dir')
 end
 %% load data
 load(fullfile(datadir, 'TrnsfrmData.mat'));
-disp(head(mt));
+% disp(head(mt));
 %%
 mode = 'absorb';
 eta = linspace(-20,20,41); % range of eta
