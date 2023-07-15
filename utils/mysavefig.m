@@ -12,4 +12,4 @@ set(yAX,'FontSize', fontsize-2)
 set(yl, 'FontSize', fontsize);
 h.PaperUnits = 'inches';
 h.PaperPosition = [0 0 aspect];
-saveas(h,fullfile(outdir,sprintf('%s.eps',filename)),'epsc2');
+saveas(h,fullfile(outdir,sprintf('%s.pdf',filename)),'pdf');
