@@ -54,6 +54,10 @@ while subj <= length(sublist)
                 nLLfunc = @(y) neg_ll_indv4b(y, dat);
         end
         fprintf('Model %s nll=', model);
+        modeldir = fullfile(svdir, AnalysName, sprintf('Model%s', model));
+        if ~exist(modeldir, 'dir')
+            mkdir(modeldir);
+        end
         if modeli <= 2
             LB = 0;
             UB = 1000;
@@ -72,6 +76,7 @@ while subj <= length(sublist)
         parfor i = 1:Npar
             x0 = PLB + (PUB - PLB) .* rand(size(PLB));
             [xOpt,fval,exitflag,output] = bads(nLLfunc,x0,LB,UB,PLB,PUB,[],options);
+            disp(output);
             if modeli <= 2
                 fprintf(fp, '%i\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%i\t%i\n', subj, model, i, xOpt, NaN, NaN, fval, output.fvalsd, exitflag, output.iterations);
             elseif modeli >= 3
@@ -87,6 +92,8 @@ while subj <= length(sublist)
         fval = nLL(besti);
         exitflag = success(besti);
         output = res{besti};
+        filename = fullfile(modeldir, sprintf('BADS_subj%02i.mat', subj));
+        save(filename, 'xOpt', 'fval', 'exitflag', 'output');
         if modeli <= 2
             new_row = table(subj, {model}, xOpt, NaN, NaN, fval, output.fvalsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         elseif modeli >= 3
@@ -94,12 +101,6 @@ while subj <= length(sublist)
         end
         Rslts = [Rslts; new_row];
         writetable(Rslts, fullfile(svdir, AnalysName, 'Rslts_BADS_Best.txt'), 'Delimiter', '\t');
-        modeldir = fullfile(svdir, AnalysName, sprintf('Model%s', model));
-        if ~exist(modeldir, 'dir')
-            mkdir(modeldir);
-        end
-        filename = fullfile(modeldir, sprintf('BADS_subj%02i.mat', subj));
-        save(filename, 'xOpt', 'fval', 'exitflag', 'output');
         fprintf('%f\t', fval);
     end
     subj = subj + 1;
