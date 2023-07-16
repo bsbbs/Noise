@@ -73,7 +73,7 @@ for subj = 1:length(sublist)
                 nLLfunc = @(x) dDNd(x, dat, mode);
                 name = 'dDNd, cut SIGMA, independent';
         end
-        subplot(4,3,modeli);
+        subplot(4,2,modeli);
         if modeli <= 2
             nlls = [];
             parfor i = 1:numel(eta)
