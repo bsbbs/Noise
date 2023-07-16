@@ -1,47 +1,63 @@
-% Code for Grid search visualization
-% rtdir = '/Users/bs3667/Noise/modelfit';
-rtdir = '/gpfs/data/glimcherlab/BoShen/Noise/modelfit';
+%% define directoriress
+% Switch to the working directory
+rtdir = '/Users/bs3667/Noise/modelfit';
+% rtdir = '/gpfs/data/glimcherlab/BoShen/Noise/modelfit';
 cd(rtdir);
-addpath('../utils');
+
+% Define I/O directories
 datadir = rtdir;
 svdir = fullfile(rtdir, 'Results');
 if ~exist(svdir, 'dir')
     mkdir(svdir);
 end
-AnalysName = 'GridSearch_Mtlb';
-outdir = fullfile(svdir, AnalysName);
-if ~exist(outdir, 'dir')
-    mkdir(outdir);
-end
+% load packages
+addpath(genpath('/Users/bs3667/Library/vbmc'));
 %% load data
 load(fullfile(datadir, 'TrnsfrmData.mat'));
-% blacklist = [22102401, 22102405, 22110306]; % these subjects report they aimed to choose smaller-value items.
-% mt = mt(~ismember(mt.subID, blacklist),:);
+%disp(mt);
 sublist = unique(mt.subID);
-% disp(head(mt));
-%%
-mode = 'absorb';
-eta = [-flip(logspace(-2, 3, 40)) logspace(-2, 3, 40)]; % range of eta
-wp = linspace(-2, 2, 80);
-Mp = [-flip(logspace(-2, 3, 40)) logspace(-2, 3, 40)];  % range of Mp and wp
+%% Maximum likelihood fitting to the choice behavior
+AnalysName = 'vbmc_Mtlb';
+if ~exist(fullfile(svdir, AnalysName), 'dir')
+    mkdir(fullfile(svdir, AnalysName));
+end
+dat = mt(mt.subID == sublist(6), :);
+LB = [0, -1];
+UB = [1000, 1];
+PLB = [1.4, 0.1];
+PUB = [100, 0.5];
+nLLfunc = @(x) McFadden(x, dat);
+name = 'DN';
+lpriorfun = @(x) msplinetrapezlogpdf(x,LB,PLB,PUB,UB);
+fun = @(x) lpostfun(x,nLLfunc,lpriorfun);     % Log joint
 
-% Rslts = table('Size', [0 6], 'VariableTypes', {'double', 'string', 'double', 'double', 'double', 'double'}, 'VariableNames', {'subID', 'Model', 'eta', 'Mp', 'wp', 'nll'});
-testfile = fullfile(svdir, AnalysName, 'Rslts_GrdSrch.txt');
+options = vbmc('defaults');
+options.Plot = true;        % Plot iterations
+options.SpecifyTargetNoise = true;  % Noisy function evaluations
+% Run VBMC
+x0 = 0.5*(PLB+PUB);
+[vp,elbo,elbo_sd] = vbmc(fun,x0,LB,UB,PLB,PUB,options);
+
+%%
+
+options = bads('defaults');     % Default options
+options.Display = 'None';
+options.UncertaintyHandling = true;    %s Function is stochastic
+options.NoiseFinalSamples = 30;
+
+Rslts = table('Size', [0 9], 'VariableTypes', {'double', 'string', 'double', 'double', 'double', 'double', 'double', 'logical', 'double'}, 'VariableNames', {'subID', 'Model', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations'});
+testfile = fullfile(svdir, AnalysName, 'Rslts_vbmc_Test.txt');
 fp = fopen(testfile, 'w+');
-fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\n', 'subID', 'Model', 'eta', 'Mp', 'wp', 'nll');
+fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', 'subID', 'Model', 'randi', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations');
 fclose(fp);
 Npar = 40;
 mypool = parpool(Npar);
-for subj = 1:length(sublist)
-    fprintf('Subj %i ', subj);
+sublist = unique(mt.subID);
+subj = 1;
+while subj <= length(sublist)
+    fprintf('Subject %d:\t', subj);
     dat = mt(mt.subID == sublist(subj), :);
-    h = figure;
     for modeli = 1:7
-        fprintf('Mdl%i ', modeli);
-        % if mod(subj-1, 12) == 0
-        %     h(modeli) = figure;
-        %     fprintf('\n');
-        % end
         switch modeli
             case 1
                 nLLfunc = @(x) McFadden(x, dat);
@@ -65,58 +81,60 @@ for subj = 1:length(sublist)
                 nLLfunc = @(x) dDNd(x, dat, mode);
                 name = 'dDNd, cut SIGMA, independent';
         end
-        subplot(4,3,modeli);
-        if modeli <= 2
-            nlls = [];
-            parfor i = 1:numel(eta)
-                nlls(i) = nLLfunc(eta(i));
-            end
-            plot(eta, nlls, '-');
-            hold on;
-            xlabel('\eta');
-            ylabel('nLL');
-            xOpt = eta(nlls == min(nlls));
-            fval = min(nlls);
-            plot(xOpt, fval, 'm.', 'MarkerSize', 18);
-        elseif modeli >= 3
-            nlls = [];
-            [X, Y] = meshgrid(wp, Mp);
-            parfor k = 1:numel(X)
-                nlls(k) = nLLfunc([Y(k), X(k)]);
-            end
-            [minVal, Idx] = min(nlls);
-            Mpbst = Y(Idx);
-            wpbst = X(Idx);
-            xOpt = [Mpbst, wpbst];
-            fval = minVal;
-            nlls = reshape(nlls, size(X));
-            imagesc(wp,Mp, nlls);
-            hold on;
-            c = colorbar;
-            title(c, 'nLL');
-            contour(X, Y, nlls, 20, 'c');
-            plot(wpbst, Mpbst, 'm.', "MarkerSize", 18);
-            xlabel('wp');
-            ylabel('Mp');
+        fprintf('Model %s nll=', model);
+        modeldir = fullfile(svdir, AnalysName, sprintf('Model%s', model));
+        if ~exist(modeldir, 'dir')
+            mkdir(modeldir);
         end
-        title(sprintf('SubID %i\n%s',sublist(subj), name));
-        filename = sprintf('Gridsrch_Subj%02i', subj);
-        mysavefig(h, filename, outdir, 11, [8,11]);
         if modeli <= 2
-            dlmwrite(testfile, [subj, modeli, xOpt, NaN, NaN, fval],'delimiter','\t','precision','%d%i%.6f%.6f%.6f%.6f','-append');
-        elseif modeli >= 3
-            dlmwrite(testfile, [subj, modeli, 1, xOpt(1), xOpt(2), fval],'delimiter','\t','precision','%d%i%.6f%.6f%.6f%.6f','-append');
+            LB = 0;
+            UB = 1000;
+            PLB = 1.4;
+            PUB = 100;
+        else
+            LB = [0, -1];
+            UB = [1000, 1];
+            PLB = [1.4, 0.1];
+            PUB = [100, 0.5];
         end
-        % save(fullfile(outdir, [filename, '.mat']), 'nlls', 'modeli', 'eta', 'Mp', 'wp');
-        % if modeli <= 2
-        %     new_row = table(subj, {name}, xOpt, NaN, NaN, fval, 'VariableNames', Rslts.Properties.VariableNames);
-        % elseif modeli >= 3
-        %     new_row = table(subj, {name}, 1, xOpt(1), xOpt(2), fval, 'VariableNames', Rslts.Properties.VariableNames);
-        % end
-        % Rslts = [Rslts; new_row];
-        % writetable(Rslts, fullfile(svdir, AnalysName, 'Rslts_GrdSrch_Best.txt'), 'Delimiter', '\t');
+        nLL = [];
+        params = {};
+        success = [];
+        res = {};
+        parfor i = 1:Npar
+            x0 = PLB + (PUB - PLB) .* rand(size(PLB));
+            [xOpt,fval,exitflag,output] = bads(nLLfunc,x0,LB,UB,PLB,PUB,[],options);
+            if modeli <= 2
+                dlmwrite(testfile, [subj, modeli, i, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                %fprintf(fp, '%i\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%i\t%i\n', subj, model, i, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations);
+            elseif modeli >= 3
+                dlmwrite(testfile, [subj, modeli, i, 1, xOpt(1), xOpt(2), fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                %fprintf(fp, '%i\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%i\t%i\n', subj, model, i, 1, xOpt(1), xOpt(2), fval, output.fsd, exitflag, output.iterations);
+            end
+            params{i} = xOpt;
+            nLL(i) = fval;
+            success(i) = exitflag;
+            res{i} = output;
+        end
+        besti = find(nLL == min(nLL));
+        xOpt = params{besti};
+        fval = nLL(besti);
+        exitflag = success(besti);
+        output = res{besti};
+        filename = fullfile(modeldir, sprintf('BADS_subj%02i.mat', subj));
+        save(filename, 'xOpt', 'fval', 'exitflag', 'output');
+        if modeli <= 2
+            new_row = table(subj, {model}, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+        elseif modeli >= 3
+            new_row = table(subj, {model}, 1, xOpt(1), xOpt(2), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+        end
+        Rslts = [Rslts; new_row];
+        writetable(Rslts, fullfile(svdir, AnalysName, 'Rslts_BADS_Best.txt'), 'Delimiter', '\t');
+        fprintf('%f\t', fval);
     end
+    subj = subj + 1;
 end
+%fclose(fp);
 
 %% 
 function nll = McFadden(x, dat)
