@@ -50,35 +50,52 @@ for subj = 1:length(sublist)
         %     h(modeli) = figure;
         %     fprintf('\n');
         % end
-        switch modeli
-            case 1
-                nLLfunc = @(x) McFadden(x, dat);
-                name = 'McFadden';
-            case 2
-                nLLfunc = @(x) Mdl2(x, dat);
-                name = 'Model2';
-            case 3
-                nLLfunc = @(x) DN(x, dat);
-                name = 'DN';
-            case 4
-                nLLfunc = @(x) dDNa(x, dat, mode);
-                name = 'dDNa, cut input, dependent';
-            case 5
-                nLLfunc = @(x) dDNb(x, dat, mode);
-                name = 'dDNb, cut input, independent';
-            case 6
-                nLLfunc = @(x) dDNc(x, dat, mode);
-                name = 'dDNc, cut SIGMA, dependent';
-            case 7
-                nLLfunc = @(x) dDNd(x, dat, mode);
-                name = 'dDNd, cut SIGMA, independent';
+        filename = sprintf('Gridsrch_Subj%02i', subj);
+        obj = fullfile(mtrxdir, [filename, '_Mdl', num2str(modeli), '.mat']);
+        if ~exist(obj, 'file')
+            switch modeli
+                case 1
+                    nLLfunc = @(x) McFadden(x, dat);
+                    name = 'McFadden';
+                case 2
+                    nLLfunc = @(x) Mdl2(x, dat);
+                    name = 'Model2';
+                case 3
+                    nLLfunc = @(x) DN(x, dat);
+                    name = 'DN';
+                case 4
+                    nLLfunc = @(x) dDNa(x, dat, mode);
+                    name = 'dDNa'; %, cut input, dependent';
+                case 5
+                    nLLfunc = @(x) dDNb(x, dat, mode);
+                    name = 'dDNb'; %, cut input, independent';
+                case 6
+                    nLLfunc = @(x) dDNc(x, dat, mode);
+                    name = 'dDNc'; %, cut SIGMA, dependent';
+                case 7
+                    nLLfunc = @(x) dDNd(x, dat, mode);
+                    name = 'dDNd'; %, cut SIGMA, independent';
+            end
+            if modeli <= 2
+                nlls = [];
+                parfor i = 1:numel(eta)
+                    nlls(i) = nLLfunc(eta(i));
+                end
+            elseif modeli >= 3
+                nlls = [];
+                [X, Y] = meshgrid(wp, Mp);
+                parfor k = 1:numel(X)
+                    nlls(k) = nLLfunc([Y(k), X(k)]);
+                end
+                nlls = reshape(nlls, size(X));
+            end
+            save(obj, 'nlls', 'modeli', 'eta', 'Mp', 'wp');
+        else
+            load(obj);
         end
+
         subplot(4,2,modeli);
         if modeli <= 2
-            nlls = [];
-            parfor i = 1:numel(eta)
-                nlls(i) = nLLfunc(eta(i));
-            end
             plot(eta, nlls, '-');
             hold on;
             xlabel('\eta');
@@ -87,18 +104,12 @@ for subj = 1:length(sublist)
             fval = min(nlls);
             plot(xOpt, fval, 'm.', 'MarkerSize', 18);
         elseif modeli >= 3
-            nlls = [];
-            [X, Y] = meshgrid(wp, Mp);
-            parfor k = 1:numel(X)
-                nlls(k) = nLLfunc([Y(k), X(k)]);
-            end
-            [minVal, Idx] = min(nlls);
+            [minVal, Idx] = min(nlls(:));
             Mpbst = Y(Idx);
             wpbst = X(Idx);
             xOpt = [Mpbst, wpbst];
             fval = minVal;
-            nlls = reshape(nlls, size(X));
-            imagesc(wp,Mp, nlls);
+            imagesc(wp, Mp, nlls);
             hold on;
             c = colorbar;
             title(c, 'nLL');
@@ -108,14 +119,13 @@ for subj = 1:length(sublist)
             ylabel('Mp');
         end
         title(sprintf('SubID %i\n%s',sublist(subj), name));
-        filename = sprintf('Gridsrch_Subj%02i', subj);
         mysavefig(h, filename, plotdir, 11, [8,11]);
         if modeli <= 2
             dlmwrite(testfile, [subj, modeli, xOpt, NaN, NaN, fval],'delimiter','\t','precision','%d%i%.6f%.6f%.6f%.6f','-append');
         elseif modeli >= 3
             dlmwrite(testfile, [subj, modeli, 1, xOpt(1), xOpt(2), fval],'delimiter','\t','precision','%d%i%.6f%.6f%.6f%.6f','-append');
         end
-        save(fullfile(mtrxdir, [filename, '_Mdl', num2str(modeli), '.mat']), 'nlls', 'modeli', 'eta', 'Mp', 'wp');
+        
         % if modeli <= 2
         %     new_row = table(subj, {name}, xOpt, NaN, NaN, fval, 'VariableNames', Rslts.Properties.VariableNames);
         % elseif modeli >= 3
