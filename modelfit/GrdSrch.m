@@ -1,6 +1,6 @@
 % Code for Grid search visualization
-% rtdir = '/Users/bs3667/Noise/modelfit';
-rtdir = '/gpfs/data/glimcherlab/BoShen/Noise/modelfit';
+rtdir = '/Users/bs3667/Noise/modelfit';
+% rtdir = '/gpfs/data/glimcherlab/BoShen/Noise/modelfit';
 cd(rtdir);
 addpath('../utils');
 datadir = rtdir;
@@ -29,9 +29,9 @@ sublist = unique(mt.subID);
 % disp(head(mt));
 %%
 mode = 'absorb';
-eta = [-flip(logspace(-2, 3, 40)) logspace(-2, 3, 40)]; % range of eta
+eta = [-flip(logspace(-1, 3, 40)) logspace(-1, 3, 40)]; % range of eta
 wp = linspace(-2, 2, 80);
-Mp = [-flip(logspace(-2, 3, 40)) logspace(-2, 3, 40)];  % range of Mp and wp
+Mp = [-flip(logspace(-1, 3, 40)) logspace(-1, 3, 40)];  % range of Mp and wp
 
 % Rslts = table('Size', [0 6], 'VariableTypes', {'double', 'string', 'double', 'double', 'double', 'double'}, 'VariableNames', {'subID', 'Model', 'eta', 'Mp', 'wp', 'nll'});
 testfile = fullfile(svdir, AnalysName, 'Rslts_GrdSrch.txt');
@@ -109,14 +109,22 @@ for subj = 1:length(sublist)
             [X, Y] = meshgrid(wp, Mp);
             Mpbst = Y(Idx);
             wpbst = X(Idx);
+            [Xi, Yi] = meshgrid(1:numel(wp), 1:numel(Mp));
+            Mi = Yi(Idx);
+            wi = Xi(Idx);
             xOpt = [Mpbst, wpbst];
             fval = minVal;
-            imagesc(wp, Mp, nlls);
+            clims = [min(nlls(:)), min(nlls(:))*2];
+            imagesc(nlls, clims);
+            yticks([1, 20, 40.5, 61, 80]);
+            yticklabels([Mp([1,20]) 0, Mp([61, 80])]);
+            xticks([1, 20, 40.5, 61, 80]);
+            xticklabels([wp([1,20]) 0, wp([61, 80])]);
             hold on;
             c = colorbar;
             title(c, 'nLL');
-            contour(X, Y, nlls, 20, 'c');
-            plot(wpbst, Mpbst, 'm.', "MarkerSize", 18);
+            contour(Xi, Yi, nlls, 200, 'm');
+            plot(wi, Mi, 'c.', "MarkerSize", 18);
             xlabel('wp');
             ylabel('Mp');
         end
