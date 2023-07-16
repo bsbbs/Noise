@@ -97,13 +97,16 @@ for subj = 1:length(sublist)
 
         subplot(4,2,modeli);
         if modeli <= 2
-            plot(eta, nlls, '-');
+            plot(1:numel(eta), nlls, '-');
             hold on;
             xlabel('\eta');
             ylabel('nLL');
             xOpt = eta(nlls == min(nlls));
             fval = min(nlls);
-            plot(xOpt, fval, 'm.', 'MarkerSize', 18);
+            plot(find(nlls == min(nlls)), fval, 'm.', 'MarkerSize', 18);
+            ylim([fval, fval*2]);
+            xticks([1, 10, 20, 30, 40.5, 50, 60, 70, 80]);
+            xticklabels([eta([1,10,20,30]),0,eta([50,60,70,80])]);
         elseif modeli >= 3
             [minVal, Idx] = min(nlls(:));
             [X, Y] = meshgrid(wp, Mp);
@@ -128,7 +131,7 @@ for subj = 1:length(sublist)
             xlabel('wp');
             ylabel('Mp');
         end
-        title(sprintf('SubID %i\n%s',sublist(subj), name));
+        title(sprintf('#%i\n%s',sublist(subj), name));
         mysavefig(h, filename, plotdir, 11, [8,11]);
         if modeli <= 2
             dlmwrite(testfile, [subj, modeli, xOpt, NaN, NaN, fval],'delimiter','\t','precision','%d%i%.6f%.6f%.6f%.6f','-append');
