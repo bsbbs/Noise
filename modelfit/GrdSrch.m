@@ -115,7 +115,7 @@ for subj = 1:length(sublist)
         elseif modeli >= 3
             dlmwrite(testfile, [subj, modeli, 1, xOpt(1), xOpt(2), fval],'delimiter','\t','precision','%d%i%.6f%.6f%.6f%.6f','-append');
         end
-        save(fullfile(mtrxdir, [filename, '.mat']), 'nlls', 'modeli', 'eta', 'Mp', 'wp');
+        save(fullfile(mtrxdir, [filename, '_Mdl', num2str(modeli), '.mat']), 'nlls', 'modeli', 'eta', 'Mp', 'wp');
         % if modeli <= 2
         %     new_row = table(subj, {name}, xOpt, NaN, NaN, fval, 'VariableNames', Rslts.Properties.VariableNames);
         % elseif modeli >= 3
