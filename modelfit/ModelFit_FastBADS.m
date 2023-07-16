@@ -36,6 +36,7 @@ options = bads('defaults');     % Default options
 options.Display = 'None';
 options.UncertaintyHandling = true;    %s Function is stochastic
 options.NoiseFinalSamples = 30;
+mode = 'absorb';
 
 Rslts = table('Size', [0 9], 'VariableTypes', {'double', 'string', 'double', 'double', 'double', 'double', 'double', 'logical', 'double'}, 'VariableNames', {'subID', 'Model', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations'});
 testfile = fullfile(svdir, AnalysName, 'Rslts_FastBADS_rndsd.txt');
@@ -73,7 +74,7 @@ while subj <= length(sublist)
                 nLLfunc = @(x) dDNd(x, dat, mode);
                 name = 'dDNd, cut SIGMA, independent';
         end
-        fprintf('Model %s nll=', model);
+        fprintf('Model %s nll=', modeli);
         if modeli <= 2
             LB = 0;
             UB = 1000;
