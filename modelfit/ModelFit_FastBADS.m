@@ -38,7 +38,8 @@ options.UncertaintyHandling = true;    %s Function is stochastic
 options.NoiseFinalSamples = 30;
 mode = 'absorb';
 
-Rslts = table('Size', [0 9], 'VariableTypes', {'double', 'string', 'double', 'double', 'double', 'double', 'double', 'logical', 'double'}, 'VariableNames', {'subID', 'Model', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations'});
+Rslts = table('Size', [0 10], 'VariableTypes', {'double', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'logical', 'double'},...
+    'VariableNames', {'subID', 'modeli', 'name', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations'});
 testfile = fullfile(svdir, AnalysName, 'Rslts_FastBADS_rndsd.txt');
 fp = fopen(testfile, 'w+');
 fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', 'subID', 'Model', 'randi', 'eta0', 'Mp0', 'wp0', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations');
@@ -63,18 +64,18 @@ while subj <= length(sublist)
                 name = 'DN';
             case 4
                 nLLfunc = @(x) dDNa(x, dat, mode);
-                name = 'dDNa, cut input, dependent';
+                name = 'dDNa'; %, cut input, dependent';
             case 5
                 nLLfunc = @(x) dDNb(x, dat, mode);
-                name = 'dDNb, cut input, independent';
+                name = 'dDNb'; %, cut input, independent';
             case 6
                 nLLfunc = @(x) dDNc(x, dat, mode);
-                name = 'dDNc, cut SIGMA, dependent';
+                name = 'dDNc'; %, cut SIGMA, dependent';
             case 7
                 nLLfunc = @(x) dDNd(x, dat, mode);
-                name = 'dDNd, cut SIGMA, independent';
+                name = 'dDNd'; %, cut SIGMA, independent';
         end
-        fprintf('Model %s nll=', modeli);
+        fprintf('Model %i nll=', modeli);
         if modeli <= 2
             LB = 0;
             UB = 1000;
@@ -111,9 +112,9 @@ while subj <= length(sublist)
         filename = fullfile(mtrxdir, sprintf('FastBADS_Subj%02i_Mdl%i.mat', subj, modeli));
         save(filename, 'xOpt', 'fval', 'exitflag', 'output');
         if modeli <= 2
-            new_row = table(subj, {model}, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(subj, modeli, {name}, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         elseif modeli >= 3
-            new_row = table(subj, {model}, 1, xOpt(1), xOpt(2), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(subj, modeli, {name}, 1, xOpt(1), xOpt(2), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         end
         Rslts = [Rslts; new_row];
         writetable(Rslts, fullfile(outdir, 'Rslts_FastBADS_Best.txt'), 'Delimiter', '\t');
