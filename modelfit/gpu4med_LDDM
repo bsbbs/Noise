@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --partition=gpu4_medium
-#SBATCH --job-name=NOISE
+#SBATCH --job-name=FstBADS
 #SBATCH --mem-per-cpu=3G
 #SBATCH --time=3-00:00:00
 #SBATCH --tasks=1
@@ -8,5 +8,7 @@
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --gres=gpu:4
+#SBATCH --mail-type=END
+#SBATCH --mail-user=bs3667@nyu.edu
 srun /gpfs/data/glimcherlab/BoShen/Noise/modelfit/batch
 
