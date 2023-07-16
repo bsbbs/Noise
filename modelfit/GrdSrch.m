@@ -50,32 +50,33 @@ for subj = 1:length(sublist)
         %     h(modeli) = figure;
         %     fprintf('\n');
         % end
+        switch modeli
+            case 1
+                nLLfunc = @(x) McFadden(x, dat);
+                name = 'McFadden';
+            case 2
+                nLLfunc = @(x) Mdl2(x, dat);
+                name = 'Model2';
+            case 3
+                nLLfunc = @(x) DN(x, dat);
+                name = 'DN';
+            case 4
+                nLLfunc = @(x) dDNa(x, dat, mode);
+                name = 'dDNa'; %, cut input, dependent';
+            case 5
+                nLLfunc = @(x) dDNb(x, dat, mode);
+                name = 'dDNb'; %, cut input, independent';
+            case 6
+                nLLfunc = @(x) dDNc(x, dat, mode);
+                name = 'dDNc'; %, cut SIGMA, dependent';
+            case 7
+                nLLfunc = @(x) dDNd(x, dat, mode);
+                name = 'dDNd'; %, cut SIGMA, independent';
+        end
+
         filename = sprintf('Gridsrch_Subj%02i', subj);
         obj = fullfile(mtrxdir, [filename, '_Mdl', num2str(modeli), '.mat']);
         if ~exist(obj, 'file')
-            switch modeli
-                case 1
-                    nLLfunc = @(x) McFadden(x, dat);
-                    name = 'McFadden';
-                case 2
-                    nLLfunc = @(x) Mdl2(x, dat);
-                    name = 'Model2';
-                case 3
-                    nLLfunc = @(x) DN(x, dat);
-                    name = 'DN';
-                case 4
-                    nLLfunc = @(x) dDNa(x, dat, mode);
-                    name = 'dDNa'; %, cut input, dependent';
-                case 5
-                    nLLfunc = @(x) dDNb(x, dat, mode);
-                    name = 'dDNb'; %, cut input, independent';
-                case 6
-                    nLLfunc = @(x) dDNc(x, dat, mode);
-                    name = 'dDNc'; %, cut SIGMA, dependent';
-                case 7
-                    nLLfunc = @(x) dDNd(x, dat, mode);
-                    name = 'dDNd'; %, cut SIGMA, independent';
-            end
             if modeli <= 2
                 nlls = [];
                 parfor i = 1:numel(eta)
@@ -125,7 +126,7 @@ for subj = 1:length(sublist)
         elseif modeli >= 3
             dlmwrite(testfile, [subj, modeli, 1, xOpt(1), xOpt(2), fval],'delimiter','\t','precision','%d%i%.6f%.6f%.6f%.6f','-append');
         end
-        
+
         % if modeli <= 2
         %     new_row = table(subj, {name}, xOpt, NaN, NaN, fval, 'VariableNames', Rslts.Properties.VariableNames);
         % elseif modeli >= 3
