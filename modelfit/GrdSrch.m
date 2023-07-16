@@ -13,6 +13,14 @@ outdir = fullfile(svdir, AnalysName);
 if ~exist(outdir, 'dir')
     mkdir(outdir);
 end
+plotdir = fullfile(outdir, 'plot');
+if ~exist(plotdir, 'dir')
+    mkdir(plotdir);
+end
+mtrxdir = fullfile(outdir, 'Objs');
+if ~exist(mtrxdir, 'dir')
+    mkdir(mtrxdir);
+end
 %% load data
 load(fullfile(datadir, 'TrnsfrmData.mat'));
 % blacklist = [22102401, 22102405, 22110306]; % these subjects report they aimed to choose smaller-value items.
@@ -101,13 +109,13 @@ for subj = 1:length(sublist)
         end
         title(sprintf('SubID %i\n%s',sublist(subj), name));
         filename = sprintf('Gridsrch_Subj%02i', subj);
-        mysavefig(h, filename, outdir, 11, [8,11]);
+        mysavefig(h, filename, plotdir, 11, [8,11]);
         if modeli <= 2
             dlmwrite(testfile, [subj, modeli, xOpt, NaN, NaN, fval],'delimiter','\t','precision','%d%i%.6f%.6f%.6f%.6f','-append');
         elseif modeli >= 3
             dlmwrite(testfile, [subj, modeli, 1, xOpt(1), xOpt(2), fval],'delimiter','\t','precision','%d%i%.6f%.6f%.6f%.6f','-append');
         end
-        % save(fullfile(outdir, [filename, '.mat']), 'nlls', 'modeli', 'eta', 'Mp', 'wp');
+        save(fullfile(mtrxdir, [filename, '.mat']), 'nlls', 'modeli', 'eta', 'Mp', 'wp');
         % if modeli <= 2
         %     new_row = table(subj, {name}, xOpt, NaN, NaN, fval, 'VariableNames', Rslts.Properties.VariableNames);
         % elseif modeli >= 3
