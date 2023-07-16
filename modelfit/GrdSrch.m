@@ -106,6 +106,7 @@ for subj = 1:length(sublist)
             plot(xOpt, fval, 'm.', 'MarkerSize', 18);
         elseif modeli >= 3
             [minVal, Idx] = min(nlls(:));
+            [X, Y] = meshgrid(wp, Mp);
             Mpbst = Y(Idx);
             wpbst = X(Idx);
             xOpt = [Mpbst, wpbst];
