@@ -1,6 +1,6 @@
 % Code for Grid search visualization
-rtdir = '/Users/bs3667/Noise/modelfit';
-% rtdir = '/gpfs/data/glimcherlab/BoShen/Noise/modelfit';
+% rtdir = '/Users/bs3667/Noise/modelfit';
+rtdir = '/gpfs/data/glimcherlab/BoShen/Noise/modelfit';
 cd(rtdir);
 addpath('../utils');
 datadir = rtdir;
