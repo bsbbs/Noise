@@ -1,0 +1,18 @@
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2021 The MathWorks, Inc.
+                  R2021b (9.11.0.1769968) 64-bit (glnxa64)
+                             September 17, 2021
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+    ----------------------------------------------------
+	Your license will expire in 11 days.
+	Please contact your system administrator or
+	MathWorks to renew this license.
+    ----------------------------------------------------
+Starting parallel pool (parpool) using the 'local' profile ...
+Connected to the parallel pool (number of workers: 40).
+Subject 1:	Model 1 nll=250.238331	Model 2 nll=248.835799	Model 3 nll=250.234996	Model 4 nll=248.866059	Model 5 nll=248.845483	Model 6 nll=248.850231	Model 7 nll=248.806609	Subject 2:	Model 1 nll=349.043647	Model 2 nll=348.341138	Model 3 nll=349.015139	Model 4 nll=348.297108	Model 5 nll=348.300177	Model 6 nll=348.344728	Model 7 nll=348.341348	Subject 3:	Model 1 nll=183.866313	Model 2 nll=191.716177	Model 3 nll=180.311582	Model 4 nll=191.717766	Model 5 nll=189.651152	Model 6 nll=191.581294	Model 7 nll=189.139692	Subject 4:	Model 1 nll=124.858135	Model 2 nll=124.928881	Model 3 nll=124.849958	Model 4 nll=124.915827	Model 5 nll=124.926715	Model 6 nll=124.922086	Model 7 nll=124.902822	Subject 5:	Model 1 nll=152.115751	Model 2 nll=155.270213	Model 3 nll=152.314654	Model 4 nll=154.859344	Model 5 nll=154.771891	Model 6 nll=155.407971	Model 7 nll=156.018668	Subject 6:	Model 1 nll=248.363889	Model 2 nll=248.144713	Model 3 nll=239.104151	Model 4 nll=237.692952	Model 5 nll=238.561521	Model 6 nll=237.695342	Model 7 nll=238.551282	Subject 7:	Model 1 nll=286.026903	Model 2 nll=286.522198	Model 3 nll=286.012616	Model 4 nll=286.510055	Model 5 nll=286.456229	Model 6 nll=286.511078	Model 7 nll=286.482705	Subject 8:	Model 1 nll=168.520703	Model 2 nll=167.736573	Model 3 nll=168.411308	Model 4 nll=168.981510	Model 5 nll=168.607958	Model 6 nll=168.859162	Model 7 nll=168.625305	Subject 9:	Model 1 nll=190.390696	Model 2 nll=187.991479	Model 3 nll=190.473166	Model 4 nll=188.784834	Model 5 nll=187.015930	Model 6 nll=188.661575	Model 7 nll=187.086115	Subject 10:	Model 1 nll=352.623291	Model 2 nll=353.754515	Model 3 nll=352.731954	Model 4 nll=353.104986	Model 5 nll=353.997584	Model 6 nll=352.758797	Model 7 nll=353.730370	Subject 11:	Model 1 nll=395.468347	Model 2 nll=395.481707	Model 3 nll=369.897368	Model 4 nll=364.602790	Model 5 nll=374.198800	Model 6 nll=353.987441	Model 7 nll=368.338488	Subject 12:	Model 1 nll=375.137505	Model 2 nll=374.870420	Model 3 nll=368.280855	Model 4 nll=368.974706	Model 5 nll=367.915153	Model 6 nll=369.011079	Model 7 nll=367.918179	Subject 13:	Model 1 nll=351.365235	Model 2 nll=351.342962	Model 3 nll=351.507927	Model 4 nll=351.369274	Model 5 nll=351.430071	Model 6 nll=351.462658	Model 7 nll=351.437687	Subject 14:	Model 1 nll=168.285456	Model 2 nll=168.783526	Model 3 nll=168.358440	Model 4 nll=168.757662	Model 5 nll=168.805278	Model 6 nll=168.785527	Model 7 nll=168.778810	Subject 15:	Model 1 nll=327.851859	Model 2 nll=327.678741	Model 3 nll=321.758616	Model 4 nll=320.322442	Model 5 nll=321.976663	Model 6 nll=320.246064	Model 7 nll=321.920285	Subject 16:	Model 1 nll=333.448214	Model 2 nll=334.067448	Model 3 nll=333.453115	Model 4 nll=334.087766	Model 5 nll=334.099103	Model 6 nll=334.088620	Model 7 nll=334.078374	Subject 17:	Model 1 nll=260.895947	Model 2 nll=260.743776	Model 3 nll=245.875036	Model 4 nll=249.389632	Model 5 nll=247.454633	Model 6 nll=249.358631	Model 7 nll=247.466415	Subject 18:	Model 1 nll=243.673320	Model 2 nll=244.675892	Model 3 nll=242.444043	Model 4 nll=241.945644	Model 5 nll=243.423127	Model 6 nll=2
