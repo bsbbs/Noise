@@ -8,7 +8,7 @@ output: html_document
 ## Set the root directory
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = '/Volumes/GoogleDrive/My Drive/Noise')
+knitr::opts_knit$set(root.dir = '/Users/bs3667/Dropbox (NYU Langone Health)/CESS-Bo/AnalysisII')
 ```
 
 ## define directories
@@ -637,4 +637,116 @@ dev.copy(pdf,file.path(out_dir,sprintf("Diagram.pdf")),height=3.4, width=3.4)
 dev.off()
 ```
 
+## Model fitting results
+```{r}
+out_dir <- '/Users/bs3667/Noise/modelfit/Results/FastBADS_Mtlb/plot'
+fastbads <- read.table('/Users/bs3667/Noise/modelfit/Results/FastBADS_Mtlb/Rslts_FastBADS_Best.txt', header = TRUE, sep = '\t')
+fastbads <- fastbads[fastbads$subID < 48,]
+fastbads$subID <- as.factor(fastbads$subID)
+fastbads$name <- factor(fastbads$name, levels = c('McFadden','Model2','DN','dDNa','dDNb','dDNc','dDNd'))
+fastbads$modeli <- as.factor(fastbads$modeli)
+str(fastbads)
+summary(test <- aov(nll ~ name + Error(subID), data = fastbads))
+names <- unique(fastbads$name)
+subjlist <- unique(fastbads$subID)
+
+par(mfrow=c(3,2))
+for (mdli in 1)
+{
+  for (mdlj in 2:7)
+  {
+    bars <- fastbads$nll[fastbads$modeli == mdlj] - fastbads$nll[fastbads$modeli == mdli]
+    barplot(bars, ylab = 'nLL', xlab = 'Subjects', names = subjlist, main = sprintf('%s - %s', names[mdlj], names[mdli]))
+    legend('bottomleft',sprintf('delta nLL = %1.3f', sum(bars)), bty = 'n')
+    # plot(fastbads$nll[fastbads$modeli==mdli], fastbads$nll[fastbads$modeli==mdlj], type = 'p', pch = 20, xlab = names[mdli], ylab = names[mdlj], xlim = range(c(fastbads$nll[fastbads$modeli==mdli], fastbads$nll[fastbads$modeli==mdlj])), ylim = range(c(fastbads$nll[fastbads$modeli==mdli], fastbads$nll[fastbads$modeli==mdlj])))
+    # abline(a = 0, b = 1, lty = 1)
+  }
+}
+
+par(mfrow=c(3,2))
+for (mdli in 2)
+{
+  for (mdlj in 3:7)
+  {
+    bars <- fastbads$nll[fastbads$modeli == mdlj] - fastbads$nll[fastbads$modeli == mdli]
+    barplot(bars, ylab = 'nLL', xlab = 'Subjects', names = subjlist, main = sprintf('%s - %s', names[mdlj], names[mdli]))
+    legend('bottomleft',sprintf('delta nLL = %1.3f', sum(bars)), bty = 'n')
+  }
+}
+
+par(mfrow=c(2,2))
+for (mdli in 3)
+{
+  for (mdlj in 4:7)
+  {
+    bars <- fastbads$nll[fastbads$modeli == mdlj] - fastbads$nll[fastbads$modeli == mdli]
+    barplot(bars, ylab = 'nLL', xlab = 'Subjects', names = subjlist, main = sprintf('%s - %s', names[mdlj], names[mdli]))
+    legend('bottomleft',sprintf('delta nLL = %1.3f', sum(bars)), bty = 'n')
+  }
+}
+
+par(mfrow=c(1,2))
+for (mdli in 1:2)
+{
+  bars <- fastbads$eta[fastbads$modeli == mdli]
+  plot(density(bars), xlab = 'eta', main = names[mdli], bty = 'n')
+  legend('topleft',sprintf('mean eta = %1.1f', mean(bars)), bty = 'n')
+}
+dev.copy(pdf,file.path(out_dir,sprintf("eta.pdf")),height=3, width=6)
+dev.off()
+
+par(mfrow=c(2,3))
+for (mdli in 3:7)
+{
+  bars <- fastbads$Mp[fastbads$modeli == mdli]
+  plot(density(bars), xlab = 'Mp', main = names[mdli], bty = 'n')
+  legend('topleft',sprintf('mean Mp = %1.1f', mean(bars)), bty = 'n')
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Mp.pdf")),height=6, width=6)
+dev.off()
+
+par(mfrow=c(2,3))
+for (mdli in 3:7)
+{
+  bars <- fastbads$wp[fastbads$modeli == mdli]
+  plot(density(bars), xlab = 'wp', main = names[mdli], bty = 'n')
+  legend('topleft',sprintf('mean wp = %.3f', mean(bars)), bty = 'n')
+}
+dev.copy(pdf,file.path(out_dir,sprintf("wp.pdf")),height=6, width=6)
+dev.off()
+
+par(mfrow=c(2,2))
+for (mdli in 4:7){
+plot(fastbads$wp[fastbads$modeli == 3], fastbads$wp[fastbads$modeli == mdli], xlab = names[3], ylab = names[mdli], main = 'wp') 
+abline(v = 0, lty = 2)
+abline(h = 0, lty = 2)
+abline(a = 0, b = 1, lty = 2)}
+wp <- aggregate(wp ~ subID, data = fastbads[fastbads$modeli == 3,], FUN = mean)
+sort(wp$wp)
+```
+suspicion of choosing zero V3
+```{r}
+redtrnsp <- rgb(255,0,0,50, maxColorValue = 255)
+bluetrnsp <- rgb(0,0,255,50, maxColorValue = 255)
+subjlist <- unique(grpdcsn$subID)
+plot(chosenValue ~ subID, data = grpdcsn, type = 'p', pch = 20, las = 2, col = redtrnsp)
+points(chosenValue ~ subID, data = grpdcsn[grpdcsn$chosenItem == 3,], pch = 20, col = redtrnsp)
+       
+table(grpdcsn$subID, grpdcsn$chosenID)
+
+table(indvdcsn$V1, indvdcsn$V2)
+slctdat <- indvdcsn[indvdcsn$chosenItem == 2,]
+table(slctdat$V1, slctdat$V2)
+slctdat <- indvdcsn[indvdcsn$chosenItem == 1,]
+table(slctdat$V1, slctdat$V2)
+
+grid <- aggregate(trial ~ V1 + V2 + chosenItem, data = indvdcsn, FUN = length)
+
+mydat <- indvdcsn
+mydat$V1 <- mydat$V1 + rnorm(length(mydat$V1), 0, mydat$V1/10)
+mydat$V2 <- mydat$V2 + rnorm(length(mydat$V2), 0, mydat$V2/10)
+plot(V2 ~ V1, col = bluetrnsp, pch = 20, data = mydat[mydat$chosenItem == 2,])
+points(V2 ~ V1, col = redtrnsp, pch = 20, data = mydat[mydat$chosenItem == 1,])
+points(V2 ~ V1, col = "red", pch = 20, data = mydat[mydat$chosenItem == 3,])
+```
 
