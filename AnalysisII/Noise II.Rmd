@@ -637,7 +637,7 @@ dev.copy(pdf,file.path(out_dir,sprintf("Diagram.pdf")),height=3.4, width=3.4)
 dev.off()
 ```
 
-## Model fitting results
+## Model fitting results - non-negative
 ```{r}
 Analysis <- '/Users/bs3667/Noise/modelfit/Results/FastBADS_nonNgtv'
 out_dir <- file.path(Analysis,'plot')
@@ -650,6 +650,17 @@ str(fastbads)
 summary(test <- aov(nll ~ name + Error(subID), data = fastbads))
 names <- unique(fastbads$name)
 subjlist <- unique(fastbads$subID)
+# Model comparison
+bars <- fastbads$nll[fastbads$modeli == 2] - fastbads$nll[fastbads$modeli == 1]
+hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[2], names[1]), 50, xlim = c(-12,12))
+legend('left', legend = expression(Delta~nLL == -93.6), bty = 'n')
+legend('bottomleft', legend = expression(Delta~nLL == sum(bars[bars>-100])), bty = 'n')
+
+#legend('bottomleft',sprintf('\Delta nLL = %1.3f', sum(bars)), bty = 'n')
+legend('bottomleft', sprintf('\\Delta nLL = %1.3f', sum(bars)), bty = 'n')
+
+dev.copy(pdf,file.path(out_dir,sprintf("FlatDual_vs_McFadden.pdf")),height=3, width=3)
+dev.off()
 
 par(mfrow=c(3,2))
 for (mdli in 1)
@@ -735,6 +746,30 @@ abline(a = 0, b = 1, lty = 2)}
 wp <- aggregate(wp ~ subID, data = fastbads[fastbads$modeli == 3,], FUN = mean)
 sort(wp$wp)
 ```
+
+## Model fitting results - full range
+```{r}
+Analysis <- '/Users/bs3667/Noise/modelfit/Results/FastBADS_FullRng'
+out_dir <- file.path(Analysis,'plot')
+fastbads <- read.table(file.path(Analysis,'Rslts_FastBADS_Best.txt'), header = TRUE, sep = '\t')
+fastbads <- fastbads[fastbads$subID < 48,]
+fastbads$subID <- as.factor(fastbads$subID)
+fastbads$name <- factor(fastbads$name, levels = c('McFadden','Model2','DN','dDNa','dDNb','dDNc','dDNd'))
+fastbads$modeli <- as.factor(fastbads$modeli)
+str(fastbads)
+name <- c('McFadden','Model2','DN','dDNa','dDNb','dDNc','dDNd')
+par(mfrow=c(3,2))
+for (mdli in 3:7)
+{
+  dat <- fastbads[fastbads$modeli == mdli,]
+  plot(Mp ~ wp, data = dat, pch = 20, main = name[mdli])
+  abline(h = 0, lty = 2)
+  abline(v = 0, lty = 2)
+}
+dev.copy(pdf,file.path(out_dir,sprintf("MP-wp.pdf")),height=11, width=8)
+dev.off()
+```
+
 ## Grid search outlier
 ```{r}
 Analysis <- '/Users/bs3667/Noise/modelfit/Results/GridSearch_Mtlb'
@@ -797,6 +832,10 @@ for (mdli in 3:7)
 }
 dev.copy(pdf,file.path(out_dir,sprintf("MP-wp.pdf")),height=11, width=8)
 dev.off()
+```
+# Goodness of fit, Model 1 vs. Model 2
+```{r}
+
 ```
 
 
