@@ -1,4 +1,4 @@
-%% Prediction of divisive normalization effect given different magnitue of noise
+Il%% Prediction of divisive normalization effect given different magnitue of noise
 % There are two source of noise, exogenous/input/representation noise and endogenous/output/decision noise
 % The representation noise comes with the input, reflecting variability of the
 % representation on the value of the item

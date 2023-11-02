@@ -79,13 +79,3 @@ plt.grid(True)
 plt.tight_layout()
 plt.show()
 plt.savefig(join(svdir, 'LogisticSimulation', 'PsychometricCurves.pdf'), format='pdf')
-
-
-candidates = ['GTK3Agg', 'GTK3Cairo', 'GTK4Agg', 'GTK4Cairo', 'MacOSX', 'nbAgg', 'QtAgg', 'QtCairo', 'Qt5Agg', 'Qt5Cairo', 'TkAgg', 'TkCairo', 'WebAgg', 'WX', 'WXAgg', 'WXCairo', 'agg', 'cairo', 'pdf', 'pgf', 'ps', 'svg', 'template']
-for candy in candidates:
-    try:
-        matplotlib.use(candy)
-        print('Using backend: ' + candy)
-        break
-    except (ImportError, ModuleNotFoundError):
-        pass
