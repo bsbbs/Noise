@@ -8,9 +8,9 @@ svdir = r'/Users/bs3667/Dropbox (NYU Langone Health)/CESS-Bo/pyResults'
 
 # Animation, change of V1 - V2 overlapping by moving V3
 #V3mean = np.arange(0, 50, .25)
-V3mean = np.arange(0, 19600, 98)**0.5
-V1mean = 150
-V2mean = 158
+V3mean = np.arange(0, 2, 98)**0.5#np.arange(0, 19600, 98)**0.5
+V1mean = 50 #150
+V2mean = 58 #158
 
 
 # Model 1 - Linear subtraction
@@ -198,6 +198,50 @@ eps=0
 eta=1.7
 V1=[V1mean, eps] # mean and std
 V2=[V2mean, eps]
+
+def update(frame):
+    V3 = [V3mean[frame], eps]
+    SVs, _ = DN(V1, V2, V3, eta)
+    ys = [np.arange(np.mean(SV) - 3 * np.std(SV), np.mean(SV) + 3 * np.std(SV), .1) for SV in SVs]
+    pdfs = [stats.norm.pdf(y, np.mean(SV), np.std(SV)) for y, SV in zip(ys, SVs)]
+    plt.clf()
+    xlim = 65
+    ylim = 45
+    # Create a figure and axis
+    fig, ax = plt.subplots()
+    # replace x and y axis with arrows
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.annotate('', xy=(0, 0), xytext=(0, ylim),
+                arrowprops=dict(arrowstyle='<-', linewidth=1.5, color='black'))
+    ax.annotate('', xy=(xlim, 0), xytext=(0, 0),
+                arrowprops=dict(arrowstyle='->', linewidth=1.5, color='black'))
+    # plot distribution outside of the axes
+    ax.plot(-pdfs[0]/pdfs[0].max()*10, ys[0], label='Option 1', color='limegreen')
+    ax.plot([-10, V1mean], [np.mean(SVs[0]), np.mean(SVs[0])], color='limegreen', linestyle='--')
+    ax.plot([V1mean, V1mean], [0, np.mean(SVs[0])], color='limegreen', linestyle='--')
+    ax.plot(-pdfs[1]/pdfs[0].max()*10, ys[1], label='Option 2', color='steelblue')
+    ax.plot([-10, V2mean], [np.mean(SVs[1]), np.mean(SVs[1])], color='steelblue', linestyle='--')
+    ax.plot([V2mean, V2mean], [0, np.mean(SVs[1])], color='steelblue', linestyle='--')
+    ax.plot(-pdfs[2]/pdfs[0].max()*10, ys[2], label='Option 3', color='tomato')
+    ax.plot([-10, V3mean[frame]], [np.mean(SVs[2]), np.mean(SVs[2])], color='steelblue', linestyle='--')
+    ax.plot([V3mean[frame], V3mean[frame]], [0, np.mean(SVs[2])], color='steelblue', linestyle='--')
+
+    # Set x and y-axis limits
+    ax.set_xlim(-11, xlim)
+    ax.set_ylim(0, ylim)
+    ax.spines['left'].set_position('zero')
+    ax.set_xlabel('Inputs')
+    ax.yaxis.set_label_position('left')  # Position the y-label on the left side
+    ax.set_ylabel('Neural activity', labelpad=-15)  # Rotate the label and adjust padding
+    ax.legend()
+    # Show the plot
+    plt.show()
+
 def update2(frame):
     V3=[V3mean[frame], eps]
     SVs, _ = DN(V1, V2, V3, eta)
