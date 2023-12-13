@@ -140,6 +140,43 @@ version = 'additive'
 eps = 0
 eta = 3
 PlotAUCRatio(DN, Test, version, V1mean, V2mean, eps, eta, svdir)
+
+# Absolute
+V1mean = 150
+V2mean = 158
+Test = 'Early'
+version = 'additive'
+eps = 13
+eta = 0
+PlotAUCRatio(Absolute, Test, version, V1mean, V2mean, eps, eta, svdir)
+version = 'mean-scaled'
+eps = 1.1
+eta = 0
+PlotAUCRatio(Absolute, Test, version, V1mean, V2mean, eps, eta, svdir)
+Test = 'Late'
+version = 'additive'
+eps = 0
+eta = 13
+PlotAUCRatio(Absolute, Test, version, V1mean, V2mean, eps, eta, svdir)
+
+# Linear subtraction
+V1mean = 150
+V2mean = 158
+Test = 'Early'
+version = 'additive'
+eps = 13
+eta = 0
+PlotAUCRatio(LS, Test, version, V1mean, V2mean, eps, eta, svdir)
+version = 'mean-scaled'
+eps = 1.1
+eta = 0
+PlotAUCRatio(LS, Test, version, V1mean, V2mean, eps, eta, svdir)
+Test = 'Late'
+version = 'additive'
+eps = 0
+eta = 13
+PlotAUCRatio(LS, Test, version, V1mean, V2mean, eps, eta, svdir)
+
 def PlotAUCRatio(func, Test, version, V1mean, V2mean, eps, eta, svdir):
     V3curves = np.arange(0, V2mean - 1, 1)
     V1 = [V1mean, eps]  # mean and std
@@ -237,7 +274,8 @@ plt.title(f'{Test} noise')
 plt.tick_params(axis='both', direction='in')
 plt.tight_layout()
 plt.savefig(join(svdir, 'ModelSimulation', f'Ratios_DN_{Test}.pdf'), format='pdf')
-# Mixed noise
+
+# Mixed noise - Applied for DN only
 Test = 'Mixed'
 V1mean = 150 # 45
 V2mean = 158 # 58
@@ -383,179 +421,6 @@ plt.tick_params(axis='both', direction='in')
 plt.tight_layout()
 plt.savefig(join(svdir, 'ModelSimulation', f'Ratios_LinearSubtract_{Test}.pdf'), format='pdf')
 
-# Overlapping curves
-# Divisive normalization
-V1mean = 150
-V2mean = 158
-# V3curves = np.linspace(0, V2mean-1, 71)
-V3curves = np.arange(0, V2mean - 1, 1)
-Test = 'Early'
-for version in ['additive', 'mean-scaled']:
-    if version == 'additive':
-        eps = 13
-    elif version == 'mean-scaled':
-        eps = 1.25
-    fig = plt.figure(figsize=(3, 2))
-    eta = 0
-    V1 = [V1mean, eps]  # mean and std
-    V2 = [V2mean, eps]
-    ratio = []
-    for V3mean in V3curves:
-        V3 = [V3mean, eps]
-        SVs, probs = DN(V1, V2, V3, eta, version)
-        V3 = [V3curves[frame], eps]
-        SVs, probs = DN(V1, V2, V3, eta)
-        pdfs, x = getpdfs(SVs)
-        AUCval =  AUC(pdfs, x)
-
-        # AUC
-        AUCPlot(ax[1], SVs, V3curves, AUCrng, colors, frame)
-
-        ratio.append(probs[1] / (probs[0] + probs[1])*100)
-    cmap = plt.get_cmap('viridis')
-    plt.scatter(V3curves, ratio, c=ratio, cmap=cmap, marker='.', s=30)
-    plt.plot(V1mean, min(ratio), 'v', color=color1, markersize=4, alpha=1)
-    plt.plot(V2mean, min(ratio), 'v', color=color2, markersize=4, alpha=1)
-    plt.xlim((-4, V3curves.max() + 6))
-    plt.xlabel('V3')
-    plt.ylabel('% Overlapping (V1 & V2)')
-    plt.title(f'{Test} noise')
-    plt.tick_params(axis='both', direction='in')
-    plt.tight_layout()
-    plt.savefig(join(svdir, 'ModelSimulation', f'Overlap_DN_{Test}_{version}.pdf'), format='pdf')
-
-
-
-Test = 'Late'
-fig = plt.figure(figsize=(3, 2))
-eps = 0
-eta = 3
-V1 = [V1mean, eps] # mean and std
-V2 = [V2mean, eps]
-ratio = []
-for V3mean in V3curves:
-    V3 = [V3mean, eps]
-    SVs, probs = DN(V1, V2, V3, eta, 'additive')
-    ratio.append(probs[1] / (probs[0] + probs[1])*100)
-cmap = plt.get_cmap('viridis')
-plt.scatter(V3curves, ratio, c=ratio, cmap=cmap, marker='.', s=30)
-plt.plot(V1mean, min(ratio), 'v', color=color1, markersize=4, alpha=1)
-plt.plot(V2mean, min(ratio), 'v', color=color2, markersize=4, alpha=1)
-plt.xlim((-4, V3curves.max() + 6))
-plt.xlabel('V3')
-plt.ylabel('% Correct (V1 & V2)')
-plt.title(f'{Test} noise')
-plt.tick_params(axis='both', direction='in')
-plt.tight_layout()
-plt.savefig(join(svdir, 'ModelSimulation', f'Ratios_DN_{Test}.pdf'), format='pdf')
-
-# Absolute values
-V1mean = 150
-V2mean = 158
-V3curves = np.arange(0, V2mean - 1, 1)
-Test = 'Early'
-for version in ['additive', 'mean-scaled']:
-    if version == 'additive':
-        eps = 13
-    elif version == 'mean-scaled':
-        eps = 1.1
-    fig = plt.figure(figsize=(3, 2))
-    eta = 0
-    V1 = [V1mean, eps]  # mean and std
-    V2 = [V2mean, eps]
-    ratio = []
-    for V3mean in V3curves:
-        V3 = [V3mean, eps]
-        SVs, probs = Absolute(V1, V2, V3, eta, version)
-        ratio.append(probs[1] / (probs[0] + probs[1])*100)
-    cmap = plt.get_cmap('viridis')
-    plt.scatter(V3curves, ratio, c=ratio, cmap=cmap, marker='.', s=30)
-    plt.plot(V1mean, min(ratio), 'v', color=color1, markersize=4, alpha=1)
-    plt.plot(V2mean, min(ratio), 'v', color=color2, markersize=4, alpha=1)
-    plt.xlim((-4, V3curves.max() + 6))
-    plt.xlabel('V3')
-    plt.ylabel('% Correct (V1 & V2)')
-    plt.title(f'{Test} noise')
-    plt.tick_params(axis='both', direction='in')
-    plt.tight_layout()
-    plt.savefig(join(svdir, 'ModelSimulation', f'Ratios_Absolute_{Test}_{version}.pdf'), format='pdf')
-Test = 'Late'
-fig = plt.figure(figsize=(3, 2))
-eps = 0
-eta = 13
-V1 = [V1mean, eps] # mean and std
-V2 = [V2mean, eps]
-ratio = []
-for V3mean in V3curves:
-    V3 = [V3mean, eps]
-    SVs, probs = Absolute(V1, V2, V3, eta, 'additive')
-    ratio.append(probs[1] / (probs[0] + probs[1])*100)
-cmap = plt.get_cmap('viridis')
-plt.scatter(V3curves, ratio, c=ratio, cmap=cmap, marker='.', s=30)
-plt.plot(V1mean, min(ratio), 'v', color=color1, markersize=4, alpha=1)
-plt.plot(V2mean, min(ratio), 'v', color=color2, markersize=4, alpha=1)
-plt.xlim((-4, V3curves.max() + 6))
-plt.xlabel('V3')
-plt.ylabel('% Correct (V1 & V2)')
-plt.title(f'{Test} noise')
-plt.tick_params(axis='both', direction='in')
-plt.tight_layout()
-plt.savefig(join(svdir, 'ModelSimulation', f'Ratios_Absolute_{Test}.pdf'), format='pdf')
-
-# Linear subtraction
-V1mean = 150
-V2mean = 158
-V3curves = np.arange(0, V2mean - 1, 1)
-Test = 'Early'
-for version in ['additive', 'mean-scaled']:
-    if version == 'additive':
-        eps = 13
-    elif version == 'mean-scaled':
-        eps = 1.1
-    fig = plt.figure(figsize=(3, 2))
-    eta = 0
-    V1 = [V1mean, eps]  # mean and std
-    V2 = [V2mean, eps]
-    ratio = []
-    for V3mean in V3curves:
-        V3 = [V3mean, eps]
-        SVs, probs = LS(V1, V2, V3, eta, version)
-        ratio.append(probs[1] / (probs[0] + probs[1])*100)
-    cmap = plt.get_cmap('viridis')
-    plt.scatter(V3curves, ratio, c=ratio, cmap=cmap, marker='.', s=30)
-    plt.plot(V1mean, min(ratio), 'v', color=color1, markersize=4, alpha=1)
-    plt.plot(V2mean, min(ratio), 'v', color=color2, markersize=4, alpha=1)
-    plt.xlim((-4, V3curves.max() + 6))
-    plt.xlabel('V3')
-    plt.ylabel('% Correct (V1 & V2)')
-    plt.title(f'{Test} noise')
-    plt.tick_params(axis='both', direction='in')
-    plt.tight_layout()
-    plt.savefig(join(svdir, 'ModelSimulation', f'Ratios_LinearSubtract_{Test}_{version}.pdf'), format='pdf')
-Test = 'Late'
-fig = plt.figure(figsize=(3, 2))
-eps = 0
-eta = 13
-V1 = [V1mean, eps] # mean and std
-V2 = [V2mean, eps]
-ratio = []
-for V3mean in V3curves:
-    V3 = [V3mean, eps]
-    SVs, probs = LS(V1, V2, V3, eta, 'additive')
-    ratio.append(probs[1] / (probs[0] + probs[1])*100)
-cmap = plt.get_cmap('viridis')
-plt.scatter(V3curves, ratio, c=ratio, cmap=cmap, marker='.', s=30)
-plt.plot(V1mean, min(ratio), 'v', color=color1, markersize=4, alpha=1)
-plt.plot(V2mean, min(ratio), 'v', color=color2, markersize=4, alpha=1)
-plt.xlim((-4, V3curves.max() + 6))
-plt.xlabel('V3')
-plt.ylabel('% Correct (V1 & V2)')
-plt.title(f'{Test} noise')
-plt.tick_params(axis='both', direction='in')
-plt.tight_layout()
-plt.savefig(join(svdir, 'ModelSimulation', f'Ratios_LinearSubtract_{Test}.pdf'), format='pdf')
-
-
 
 # Alternative Model - Divisive normalization, with additive early noise (when version == 'additive') or with mean-scaled noise (version == 'mean-scaled')
 def DN(V1, V2, V3, eta, version):
@@ -566,7 +431,6 @@ def DN(V1, V2, V3, eta, version):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
     options = torch.tensor([V1, V2, V3])
     num_samples = int(1e6)
-
     # Operation #1, sampling with early noise
     if version == 'additive':
         O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
@@ -588,14 +452,12 @@ def DN(V1, V2, V3, eta, version):
                                     for mean, slp in options], dim=0), dim=0)
         G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
                                     for mean, slp in options], dim=0), dim=0)
-
     # Operation #3, implementing lateral inhibition
     Context = torch.stack((G1, G2, G3), dim=0)
     O3 = [Rmax*DirectValue/(M+ContextValue*w) for DirectValue, ContextValue in zip(O1, Context)]
     # Alternatively, use the shared denominator by assuming noise varying trial-by-trial but fixed within trial
     # D = torch.sum(O1, dim=0)
     # O3 = [Rmax * DirectValue / (M + D * w) for DirectValue in O1]
-
     # Operation #4, apply late noise
     Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
                            for ComputedValue in O3])
@@ -610,7 +472,6 @@ def Absolute(V1, V2, V3, eta, version):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
     options = torch.tensor([V1, V2, V3])
     num_samples = int(1e6)
-
     # Operation #1, sampling with early noise
     if version == 'additive':
         O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
@@ -633,7 +494,6 @@ def LS(V1, V2, V3, eta, version):
     options = torch.tensor([V1, V2, V3])
     num_samples = int(1e6)
     w = .2
-
     # Operation #1, sampling with early noise
     if version == 'additive':
         O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
@@ -690,13 +550,11 @@ def adddistrilines(ax, pdfs, x):
     ax.plot(x[mask], pdfs[1][mask],  label='Option 2', color=color2)
     mask = pdfs[2] > 1e-4
     ax.plot(x[mask], pdfs[2][mask],  label='Option 3', color=color3, alpha=0.5, zorder=1)
-
     overlap = np.minimum(pdfs[0], pdfs[1])
     cutout = np.minimum(overlap, pdfs[2])
     mask = overlap > 1e-4
     ax.fill_between(x[mask], cutout[mask], overlap[mask], color='darkslategrey', label='Overlap Area')
     ax.fill_between(x[mask], 0, cutout[mask], color='darkslategrey', alpha=0.5, label='Overlap Area')
-
     ax.set_xlim(0, 45)
     ax.set_xticks([0, 20, 40])
     ax.set_ylim(0, .5)
@@ -713,27 +571,6 @@ def AUC(pdfs, x):
     return AUCval
 
 
-
-
-
-fig = plt.figure(figsize=(3.2, 3))
-colors = ['blue', 'red', 'lightblue', 'pink']
-eta = 13
-slp = 2.52
-V1 = [V1mean, slp]  # mean and the slope of mean-scaled variance
-V2 = [V2mean, slp]
-V3curves = np.arange(0, V1mean, 1)
-ratio = []
-for V3mean in V3curves:
-    V3 = [V3mean, slp]
-    SVs, probs = DN(V1, V2, V3, eta, 'mean-scaled')
-    ratio.append(probs[1] / (probs[0] + probs[1]) * 100)
-plt.scatter(V3curves, ratio, color='red', marker='.', s=30)
-plt.xlim((-3, V3curves.max() + 3))
-plt.xlabel('V3')
-plt.ylabel('% Correct (V1 & V2)')
-plt.title('Relative accuracy')
-plt.tight_layout()
 
 # 2-by-2 design
 V1mean = 45
@@ -787,139 +624,3 @@ plt.xlabel('V3')
 plt.ylabel('% Correct (V1 & V2)')
 plt.title('Relative accuracy')
 plt.tight_layout()
-
-
-# Late noise only
-# Test = 'Late'
-# eps=0
-# eta=3 # 1.7
-Test = "Early"
-eps=5
-eta=0
-V1=[V1mean, eps] # mean and std
-V2=[V2mean, eps]
-
-def set_axis(ax):
-    ax.set_yticks([])
-    ax.spines['bottom'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.annotate('', xy=(0, 0), xytext=(0, ylim),
-                arrowprops=dict(arrowstyle='<-', linewidth=1.5, color='grey'))
-    ax.annotate('', xy=(xlim, 0), xytext=(0, 0),
-                arrowprops=dict(arrowstyle='->', linewidth=1.5, color='grey'))
-
-def getpdfs(SVs):
-    # ys = [np.arange(np.mean(SV) - 3 * np.std(SV), np.mean(SV) + 3 * np.std(SV), .1) for SV in SVs]
-    # pdfs = [stats.norm.pdf(y, np.mean(SV), np.std(SV)) for y, SV in zip(ys, SVs)]
-    # kdes = [stats.gaussian_kde(SV) for SV in SVs]
-    # pdfs = [kde(y) for kde, y in zip(kdes, ys)]
-    interval = 0.1
-    y = np.arange(0, ylim, interval)
-    kdes = [stats.gaussian_kde(SV) for SV in SVs]
-    pdfs = [kde(y) for kde in kdes]
-    return pdfs, y
-def adddistrilines(ax, SVs, pdfs, y, V1, V2, V3, maxheight, frame, overlap0):
-    height = 200
-    mask = pdfs[0] > 1e-4
-    ax.plot(-pdfs[0][mask] * height, y[mask], label='Option 1', color=color1)
-    ax.plot([0, V1[0]], [np.mean(SVs[0]), np.mean(SVs[0])], color=color1, linestyle='--', linewidth=1)
-    ax.plot([V1[0], V1[0]], [0, np.mean(SVs[0])], color=color1, linestyle='--', linewidth=1)
-    mask = pdfs[1] > 1e-4
-    ax.plot(-pdfs[1][mask] * height, y[mask], label='Option 2', color=color2)
-    ax.plot([0, V2[0]], [np.mean(SVs[1]), np.mean(SVs[1])], color=color2, linestyle='--', linewidth=1)
-    ax.plot([V2[0], V2[0]], [0, np.mean(SVs[1])], color=color2, linestyle='--', linewidth=1)
-    # ax.plot(-pdfs[2] * height, ys[2], label='Option 3', color=color3, alpha=0.5, zorder=1)
-
-    overlap = np.minimum(pdfs[0], pdfs[1])
-    #cutout = np.minimum(overlap, pdf[2])
-    mask = overlap > 1e-4
-    ax.fill_between(np.concatenate([np.zeros(1), -overlap[mask]*height, np.zeros(1)]), np.append(np.append(y[mask].min(), y[mask]), y[mask].max()), color='orangered', edgecolor='none', label='Overlap Area')
-    if (frame > 0):
-        mask0 = overlap0 > 1e-4
-        #ax.fill_between(-overlap0[mask0] * height, x[mask0], x[mask0], color='lightgray', label='Overlap Area')
-        ax.fill_between(np.concatenate([np.zeros(1), -overlap0[mask0] * height, np.zeros(1)]),
-                        np.append(np.append(y[mask0].min(), y[mask0]), y[mask0].max()), color='lightgray',
-                        edgecolor='none', label='Overlap Area')
-    if V1[1]>0:
-        xs = [np.arange(meanval - 3 * sdval, meanval + 3 * sdval, .1) for meanval, sdval in [V1, V2, V3]]
-        pdfxs = [stats.norm.pdf(np.arange(meanval - 3 * sdval, meanval + 3 * sdval, .1), meanval, sdval) for
-                 meanval, sdval in [V1, V2, V3]]
-    if V1[1]>0:
-        ax.plot(xs[0], pdfxs[0] / pdfxs[0].max() * 5, label='V1', color=color1)
-    if V2[1] > 0:
-        ax.plot(xs[1], pdfxs[1] / pdfxs[0].max() * 5, label='V2', color=color2)
-    #if V3[1] > 0:
-        #ax.plot(xs[2], pdfxs[2] / pdfxs[0].max() * 5, label='V3', color=color3, alpha=0.5, zorder=1)
-    ax.annotate('V3', (V3[0], -5), color=color3, fontsize=11,
-                   ha='center', va='bottom')
-    ax.spines['bottom'].set_position('zero')
-    ax.set_xticks([V1[0], V2[0]], labels=['V1', 'V2'], color='orangered')
-    ax.set_xlim(-maxheight, xlim)
-    ax.set_ylim(-5, ylim)
-    ax.set_xlabel('Inputs')
-    ax.set_ylabel('Neural activity')  # adjust padding
-def AUCPlot(ax, SVs, V3curves, AUCrng, colors, frame):
-    interval = 0.1
-    x = np.arange(0, ylim, interval)
-    kdes = [stats.gaussian_kde(SV) for SV in SVs[:2]]
-    pdfs = [kde(x) for kde in kdes]
-    overlap = np.minimum(pdfs[0], pdfs[1])
-    AUCval = sum(overlap) * interval * 100
-    ax.plot(V3curves[frame], AUCval, '.', label="Overlapping", color=colors[frame])
-    ax.set_xlabel('V3')
-    ax.set_ylabel('% (V1 & V2)')  # adjust padding
-    ax.set_ylim([AUCrng.min()-1, AUCrng.max()+1])
-    ax.set_xlim([V3curves.min()-1,V3curves.max()+1])
-    ax.set_title('Overlapping')
-
-# Distribution and overlapping
-#V3curves = np.append(np.linspace(0,((V1mean-3)/2)**0.5,25)**2, np.linspace(((V1mean-3)/2)**2, (V1mean-3)**2, 25)**0.5)
-V3curves = np.append(np.linspace(0,(xlim/2)**0.5,25)**2, np.linspace((xlim/2)**2, xlim**2, 25)**0.5)
-V3 = [V3curves.min(), eps]
-SVs, _ = DN(V1, V2, V3, eta)
-pdfs, y = getpdfs(SVs)
-overlap0 = np.minimum(pdfs[0], pdfs[1])
-V3 = [V3curves.max(), eps]
-SVs, _ = DN(V1, V2, V3, eta)
-pdfs, y = getpdfs(SVs)
-maxheight = pdfs[1].max()*220
-
-_, ax = plt.subplots(1,3)
-fig = plt.figure(figsize=(3.2*3, 3))
-# ax[0] = fig.add_axes([.05, .1, .3, .9])
-ax[0] = fig.add_axes([0.03, .1, .35, .9])
-def distrplot(frame):
-    V3 = [V3curves[frame], eps]
-    SVs, _ = DN(V1, V2, V3, eta)
-    pdfs, y = getpdfs(SVs)
-    ax[0].clear()
-    set_axis(ax[0])
-    adddistrilines(ax[0], SVs, pdfs, y, V1, V2, V3, maxheight, frame, overlap0)
-    if (frame==0) | (frame==len(V3curves)-1):
-        plt.savefig(join(svdir, 'ModelSimulation', f'DistriPlot_DN_{Test}{frame}.pdf'), format='pdf')
-ani = FuncAnimation(fig, distrplot, frames=len(V3curves), repeat=False)
-ani.save(join(svdir, 'ModelSimulation', f'DistriPlot_DN_{Test}.gif'), writer='pillow', fps=20)
-
-V3curves = np.append(np.linspace(0,((V1mean-3)/2)**0.5,25)**2, np.linspace(((V1mean-3)/2)**2, (V1mean-3)**2, 25)**0.5)
-AUCrng = np.array([AUC([V3mean, eps]) for V3mean in [V3curves.min(), V3curves.max()]])
-colors = makecolors(V3curves)
-_, ax = plt.subplots(1,3)
-fig = plt.figure(figsize=(3.2*3, 3))
-ax[0] = fig.add_axes([.03, .1, .35, .9])
-ax[1] = fig.add_axes([.465, .2, .2, .6])
-def OverlapPlot(frame):
-    V3 = [V3curves[frame], eps]
-    SVs, probs = DN(V1, V2, V3, eta)
-    # AUC
-    AUCPlot(ax[1], SVs, V3curves, AUCrng, colors, frame)
-    # Distribution
-    pdfs, y = getpdfs(SVs)
-    ax[0].clear()
-    set_axis(ax[0])
-    adddistrilines(ax[0], SVs, pdfs, y, V1, V2, V3, maxheight, frame, overlap0)
-    if (frame==0) | (frame==len(V3curves)-1):
-        plt.savefig(join(svdir, 'ModelSimulation', f'OverlapPlot_DN_{Test}{frame}.pdf'), format='pdf')
-ani = FuncAnimation(fig, OverlapPlot, frames=len(V3curves), repeat=False, blit=False)
-ani.save(join(svdir, 'ModelSimulation', f'OverlapPlot_DN_{Test}.gif'), writer='pillow', fps=20)
