@@ -171,7 +171,7 @@ def PlotAUCRatio(func, Test, version, V1mean, V2mean, eps, eta, svdir):
     axs[1].set_ylabel('% Correct (V1 & V2)')
     axs[1].tick_params(axis='both', direction='in')
     # plt.tight_layout()
-    plt.savefig(join(svdir, 'ModelSimulation', f'AUCRatios_{func}_{Test}_{version}.pdf'), format='pdf')
+    plt.savefig(join(svdir, 'ModelSimulation', f'AUCRatios_{func.__name__}_{Test}_{version}.pdf'), format='pdf')
 
 # Divisive normalization
 V1mean = 150
