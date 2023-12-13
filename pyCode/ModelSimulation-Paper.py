@@ -6,7 +6,7 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.colors import Normalize
 from os.path import join as join
 svdir = r'/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject/pyResults'
-
+svdir = r'C:\Users\Bo\Dropbox (NYU Langone Health)\Bo Shen Working files\NoiseProject\pyResults'
 # Global parameters preset
 
 # Distribution demo
@@ -557,16 +557,6 @@ plt.savefig(join(svdir, 'ModelSimulation', f'Ratios_LinearSubtract_{Test}.pdf'),
 
 
 
-def LateNoise(O3, eta, num_samples):
-    import torch
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
-    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
-                           for ComputedValue in O3])
-    max_indices = torch.argmax(Outputs, dim=0)
-    max_from_each_distribution = torch.zeros_like(Outputs)
-    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
-    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
-    return Outputs.numpy(), probs.numpy()
 # Alternative Model - Divisive normalization, with additive early noise (when version == 'additive') or with mean-scaled noise (version == 'mean-scaled')
 def DN(V1, V2, V3, eta, version):
     w = 1
@@ -607,8 +597,13 @@ def DN(V1, V2, V3, eta, version):
     # O3 = [Rmax * DirectValue / (M + D * w) for DirectValue in O1]
 
     # Operation #4, apply late noise
-    Outputs, probs = LateNoise(O3, eta, num_samples)
-    return Outputs, probs
+    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
+                           for ComputedValue in O3])
+    max_indices = torch.argmax(Outputs, dim=0)
+    max_from_each_distribution = torch.zeros_like(Outputs)
+    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
+    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
+    return Outputs.cpu().numpy(), probs.cpu().numpy()
 # Alternative Model - Absolute values, with additive early noise (when version == 'additive') or with mean-scaled noise (version == 'mean-scaled')
 def Absolute(V1, V2, V3, eta, version):
     import torch
@@ -624,8 +619,13 @@ def Absolute(V1, V2, V3, eta, version):
         O1 = torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
                           for mean, slp in options], dim=0)
     # Operation #4, apply late noise
-    Outputs, probs = LateNoise(O1, eta, num_samples)
-    return Outputs, probs
+    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
+                           for ComputedValue in O1])
+    max_indices = torch.argmax(Outputs, dim=0)
+    max_from_each_distribution = torch.zeros_like(Outputs)
+    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
+    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
+    return Outputs.cpu().numpy(), probs.cpu().numpy()
 # Alternative Model - Linear subtraction, with additive early noise (when version == 'additive') or with mean-scaled noise (version == 'mean-scaled')
 def LS(V1, V2, V3, eta, version):
     import torch
@@ -659,8 +659,13 @@ def LS(V1, V2, V3, eta, version):
     # Operation #3, implementing lateral inhibition
     O3 = [DirectValue - ContextValue*w for DirectValue, ContextValue in zip(O1, Context)]
     # Operation #4, apply late noise
-    Outputs, probs = LateNoise(O3, eta, num_samples)
-    return Outputs, probs
+    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
+                           for ComputedValue in O3])
+    max_indices = torch.argmax(Outputs, dim=0)
+    max_from_each_distribution = torch.zeros_like(Outputs)
+    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
+    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
+    return Outputs.cpu().numpy(), probs.cpu().numpy()
 def makecolors(values):
     norm = Normalize(vmin=values.min(), vmax=values.max())
     normalized_values = norm(values)
