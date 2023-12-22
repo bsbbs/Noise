@@ -34,13 +34,13 @@ sublist = unique(mt.subID);
 % disp(head(mt));
 %% Maximum likelihood fitting to the choice behavior
 options = bads('defaults');     % Default options
-options.Display = 'None';
+options.Display = 'final';
 options.UncertaintyHandling = true;    %s Function is stochastic
 options.NoiseFinalSamples = 30;
 mode = 'absorb';
 Rslts = table('Size', [0 12], 'VariableTypes', {'double', 'double', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'double', 'logical', 'double'},...
     'VariableNames', {'subID', 'TimeConstraint', 'modeli', 'name', 'scl', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations'});
-testfile = fullfile(svdir, AnalysName, 'Rslts_FastBADS_rndsd.txt');
+testfile = fullfile(svdir, AnalysName, 'AllRslt.txt');
 fp = fopen(testfile, 'w+');
 fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', 'subID', 'TimeConstraint', 'Model', 'randi', 'scl0', 'eta0', 'Mp0', 'wp0', 'scl', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations');
 fclose(fp);
@@ -49,6 +49,7 @@ mypool = parpool(Npar);
 sublist = unique(mt.subID);
 subj = 1;
 while subj <= length(sublist)
+    %%
     fprintf('Subject %d:\t', subj);
     for t = [10, 1.5]
         fprintf('TimeConstraint %1.1f:\t', t);
@@ -89,11 +90,11 @@ while subj <= length(sublist)
             fval = nLL(besti);
             exitflag = success(besti);
             output = res{besti};
-            filename = fullfile(mtrxdir, sprintf('FastBADS_Subj%02i_Mdl%i.mat', subj, modeli));
+            filename = fullfile(mtrxdir, sprintf('Subj%02i_Mdl%i.mat', subj, modeli));
             save(filename, 'xOpt', 'fval', 'exitflag', 'output');
             new_row = table(subj, t, modeli, {name}, xOpt(1), xOpt(2), 1, 1, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
             Rslts = [Rslts; new_row];
-            writetable(Rslts, fullfile(outdir, 'Rslts_FastBADS_Best.txt'), 'Delimiter', '\t');
+            writetable(Rslts, fullfile(outdir, 'Best.txt'), 'Delimiter', '\t');
             fprintf('%f\t', fval);
         end
     end
