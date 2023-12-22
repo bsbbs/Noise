@@ -90,7 +90,7 @@ while subj <= length(sublist)
             fval = nLL(besti);
             exitflag = success(besti);
             output = res{besti};
-            filename = fullfile(mtrxdir, sprintf('Subj%02i_Mdl%i.mat', subj, modeli));
+            filename = fullfile(mtrxdir, sprintf('Subj%02i_TC%1.1f_Mdl%i.mat', subj, t, modeli));
             save(filename, 'xOpt', 'fval', 'exitflag', 'output');
             new_row = table(subj, t, modeli, {name}, xOpt(1), xOpt(2), 1, 1, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
             Rslts = [Rslts; new_row];
