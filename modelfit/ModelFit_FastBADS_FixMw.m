@@ -38,12 +38,11 @@ options.Display = 'None';
 options.UncertaintyHandling = true;    %s Function is stochastic
 options.NoiseFinalSamples = 30;
 mode = 'absorb';
-
-Rslts = table('Size', [0 11], 'VariableTypes', {'double', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'double', 'logical', 'double'},...
-    'VariableNames', {'subID', 'modeli', 'name', 'scl', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations'});
+Rslts = table('Size', [0 12], 'VariableTypes', {'double', 'double', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'double', 'logical', 'double'},...
+    'VariableNames', {'subID', 'TimeConstraint', 'modeli', 'name', 'scl', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations'});
 testfile = fullfile(svdir, AnalysName, 'Rslts_FastBADS_rndsd.txt');
 fp = fopen(testfile, 'w+');
-fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', 'subID', 'Model', 'randi', 'scl0', 'eta0', 'Mp0', 'wp0', 'scl', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations');
+fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', 'subID', 'TimeConstraint', 'Model', 'randi', 'scl0', 'eta0', 'Mp0', 'wp0', 'scl', 'eta', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations');
 fclose(fp);
 Npar = 40;
 mypool = parpool(Npar);
@@ -51,49 +50,52 @@ sublist = unique(mt.subID);
 subj = 1;
 while subj <= length(sublist)
     fprintf('Subject %d:\t', subj);
-    dat = mt(mt.subID == sublist(subj), :);
-    for modeli = 1:2
-        switch modeli
-            case 1
-                nLLfunc = @(x) dDNb(x, dat, mode);
-                name = 'dDNb'; %, cut input, independent';
-            case 2
-                nLLfunc = @(x) dDNd(x, dat, mode);
-                name = 'dDNd'; %, cut SIGMA, independent';
-        end
-        fprintf('Model %i nll=', modeli);
+    for t = [10, 1.5]
+        fprintf('TimeConstraint %1.1f:\t', t);
+        dat = mt(mt.subID == sublist(subj) & mt.TimeConstraint == t, :);
+        for modeli = 1:2
+            switch modeli
+                case 1
+                    nLLfunc = @(x) dDNb(x, dat, mode);
+                    name = 'dDNb'; %, cut input, independent';
+                case 2
+                    nLLfunc = @(x) dDNd(x, dat, mode);
+                    name = 'dDNd'; %, cut SIGMA, independent';
+            end
+            fprintf('Model %i nll=', modeli);
 
-        LB = [.2, 0];
-        UB = [2, 2];
-        PLB = [.9, .1];
-        PUB = [1.1, .4];
+            LB = [.2, 0];
+            UB = [2, 2];
+            PLB = [.9, .1];
+            PUB = [1.1, .4];
 
-        nLL = [];
-        params = {};
-        success = [];
-        res = {};
-        parfor i = 1:Npar
-            x0 = PLB + (PUB - PLB) .* rand(size(PLB));
-            [xOpt,fval,exitflag,output] = bads(nLLfunc,x0,LB,UB,PLB,PUB,[],options);
-        
-            dlmwrite(testfile, [subj, modeli, i, x0(1), x0(2), 1, 1, xOpt(1), xOpt(2), 1, 1, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
-            
-            params{i} = xOpt;
-            nLL(i) = fval;
-            success(i) = exitflag;
-            res{i} = output;
+            nLL = [];
+            params = {};
+            success = [];
+            res = {};
+            parfor i = 1:Npar
+                x0 = PLB + (PUB - PLB) .* rand(size(PLB));
+                [xOpt,fval,exitflag,output] = bads(nLLfunc,x0,LB,UB,PLB,PUB,[],options);
+
+                dlmwrite(testfile, [subj, t, modeli, i, x0(1), x0(2), 1, 1, xOpt(1), xOpt(2), 1, 1, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+
+                params{i} = xOpt;
+                nLL(i) = fval;
+                success(i) = exitflag;
+                res{i} = output;
+            end
+            besti = find(nLL == min(nLL));
+            xOpt = params{besti};
+            fval = nLL(besti);
+            exitflag = success(besti);
+            output = res{besti};
+            filename = fullfile(mtrxdir, sprintf('FastBADS_Subj%02i_Mdl%i.mat', subj, modeli));
+            save(filename, 'xOpt', 'fval', 'exitflag', 'output');
+            new_row = table(subj, t, modeli, {name}, xOpt(1), xOpt(2), 1, 1, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            Rslts = [Rslts; new_row];
+            writetable(Rslts, fullfile(outdir, 'Rslts_FastBADS_Best.txt'), 'Delimiter', '\t');
+            fprintf('%f\t', fval);
         end
-        besti = find(nLL == min(nLL));
-        xOpt = params{besti};
-        fval = nLL(besti);
-        exitflag = success(besti);
-        output = res{besti};
-        filename = fullfile(mtrxdir, sprintf('FastBADS_Subj%02i_Mdl%i.mat', subj, modeli));
-        save(filename, 'xOpt', 'fval', 'exitflag', 'output');
-        new_row = table(subj, modeli, {name}, xOpt(1), xOpt(2), 1, 1, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
-        Rslts = [Rslts; new_row];
-        writetable(Rslts, fullfile(outdir, 'Rslts_FastBADS_Best.txt'), 'Delimiter', '\t');
-        fprintf('%f\t', fval);
     end
     subj = subj + 1;
 end
