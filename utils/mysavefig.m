@@ -1,6 +1,6 @@
 function savefigs(h, filename, outdir, fontsize, aspect)
 set(gca,'FontSize',fontsize);
-set(gca,'TickDir','out');
+set(gca,'TickDir','in');
 set(gca,'LineWidth',1); 
 xl = get(gca,'XLabel');
 xAX = get(gca,'XAxis');
