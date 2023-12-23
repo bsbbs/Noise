@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --partition=gpu4_medium
-#SBATCH --job-name=FastBADS
+#SBATCH --job-name=FixMws
 #SBATCH --mem-per-cpu=3G
 #SBATCH --time=3-00:00:00
 #SBATCH --tasks=1

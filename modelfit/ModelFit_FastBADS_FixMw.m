@@ -66,7 +66,7 @@ while subj <= length(sublist)
             fprintf('Model %i nll=', modeli);
 
             LB = [.2, 0];
-            UB = [2, 2];
+            UB = [3, 2];
             PLB = [.9, .1];
             PUB = [1.1, .4];
 
