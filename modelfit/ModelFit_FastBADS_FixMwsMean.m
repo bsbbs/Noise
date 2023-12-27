@@ -109,7 +109,7 @@ Mp = 1;%x(1);
 wp = 1;%x(2);
 scl = x(1); % scaling for early noise
 eta = x(2); % late noise standard deviation
-num_samples = 2000;
+num_samples = 200000;
 Ntrl = size(dat,1);
 if strcmp(mode, 'absorb')
     samples = [];
