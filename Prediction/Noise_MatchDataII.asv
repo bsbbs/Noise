@@ -57,17 +57,8 @@ if strcmp(Treatment, "Point")
 elseif strcmp(Treatment, 'Raw')
     GrpMean = GrpMeanraw;
 end
-%%
-h = figure;
-ti = 0;
-for t = [10, 1.5] % low, high
-    ti = ti + 1;
-    dat = GrpMean(GrpMean.TimeConstraint == t,:); 
-    subplot(2,1,ti);
-    plot(dat.mean_V3scld, dat.mean_sdV3scld, '.', 'Color', dat.mean_choice);
-    xlim([0,1]);
-    ylim([0,1]);
-end
+
+for 
 %%
 GrpMean = sortrows(GrpMean, {'subID', 'mean_V3scld'}, {'ascend', 'ascend'});
 Sublist = unique(GrpMean.subID);

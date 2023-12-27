@@ -1,8 +1,9 @@
-%% Simulation on noise that matches the value settings in the empirical data
+%% 
 %% define directories
 [os, ~, ~] = computer;
 if os == 'MACI64'
     rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/';
+    fitdir = '/Users/bs3667/Noise/modelfit';
 end
 plot_dir = fullfile(rootdir, 'Bo Shen Working files/NoiseProject/Prediction');
 Gitdir = '~/Documents/Noise';
@@ -10,7 +11,8 @@ addpath(genpath(Gitdir));
 %% Loading the data transformed in the code: /Users/bs3667/Noise/modelfit/ModelFit-DataTrnsfrm.m
 datadir = '/Users/bs3667/Dropbox (NYU Langone Health)/CESS-Bo/myData';
 load(fullfile(datadir, 'TrnsfrmData.mat'), 'mt');
-
+model = 'FastBADS_FixMw';
+fit = tdfread(fullfile(fitdir,'Results', model, 'Best.txt'));
 %% Transform data
 Sublist = unique(mt.subID);
 N = length(Sublist);
@@ -30,151 +32,82 @@ for s = 1:N
     end  
 end
 mtconvert.choice = mtconvert.chosenItem - 1;
-
-%% Choice accuracy in individuals
-dat = mtconvert(mtconvert.chosenItem ~= 3 & ~isnan(mtconvert.chosenItem),:);
-GrpMeanraw = grpstats(dat, ["subID","TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice"]);
-Treatment = 'Raw';%'Point'; %'Raw'; %'Demean'; %
-LowestV3 = 0;
-Sublist = unique(GrpMeanraw.subID);
+%% visualize fitting parameters
+h = figure; 
+subplot(2,2,1); hold on;
+x = fit.eta(fit.modeli == 1 & fit.TimeConstraint == 10);
+y = fit.eta(fit.modeli == 1 & fit.TimeConstraint == 1.5);
+plot(x, y, 'k.', 'MarkerSize',12);
+plot([0, 2], [0, 2],'k--');
+xlabel('Low Time Pressure \eta');
+ylabel('High Time Pressure \eta');
+title('Model 1');
+mysavefig(h, 'eta', fullfile(fitdir,'Results', model, 'plot'), 12, [6, 6]);
+[~, p, ci, stats] = ttest(y-x);
+p
+text(.2, 1.8, sprintf('p = %.3f', p));
+subplot(2,2,2); hold on;
+x = fit.eta(fit.modeli == 2 & fit.TimeConstraint == 10);
+y = fit.eta(fit.modeli == 2 & fit.TimeConstraint == 1.5);
+plot(x, y, 'k.', 'MarkerSize',12);
+plot([0, 2], [0, 2],'k--');
+xlabel('Low Time Pressure \eta');
+ylabel('High Time Pressure \eta');
+title('Model 2');
+mysavefig(h, 'eta', fullfile(fitdir,'Results', model, 'plot'), 12, [6, 6]);
+[~, p, ci, stats] = ttest(y-x);
+p
+text(.2, 1.8, sprintf('p = %.3f', p))
+subplot(2,2,3);hold on;
+x = fit.eta(fit.modeli == 1 & fit.TimeConstraint == 10);
+y = fit.eta(fit.modeli == 2 & fit.TimeConstraint == 10);
+plot(x, y, '.', 'Color', 'k', 'MarkerSize',12);
+plot([0, 2], [0, 2],'k--');
+xlabel('Model 1 \eta');
+ylabel('Model 2 \eta');
+title('Low time pressure');
+mysavefig(h, 'eta', fullfile(fitdir,'Results', model, 'plot'), 12, [6, 6]);
+subplot(2,2,4);hold on;
+x = fit.eta(fit.modeli == 1 & fit.TimeConstraint == 1.5);
+y = fit.eta(fit.modeli == 2 & fit.TimeConstraint == 1.5);
+plot(x, y, 'k.', 'MarkerSize',12);
+plot([0, 2], [0, 2],'k--');
+xlabel('Model 1 \eta');
+ylabel('Model 2 \eta');
+title('High time pressure');
+mysavefig(h, 'eta', fullfile(fitdir,'Results', model, 'plot'), 12, [6, 6]);
+%% Simulation
+modeli = 2;
+fulllist = unique(mt.subID);
+Sublist = unique(mtconvert.subID);
 N = length(Sublist);
-if strcmp(Treatment, "Point")
-    GrpMean = [];
-    for s = 1:N
-        indv = GrpMeanraw(GrpMeanraw.subID == Sublist(s),:);
-        for t = [10, 1.5]
-            sect = indv(indv.TimeConstraint == t,:);
-            trunk = sect(sect.mean_V3scld >=0 & sect.mean_V3scld <= .3 & sect.mean_sdV3scld>=0 & sect.mean_sdV3scld <= .3,:);
-            if ~isempty(trunk)
-                point = mean(trunk.mean_choice);
-                sect.mean_choice = sect.mean_choice - point; %mean(indv.mean_choice);
-                GrpMean = [GrpMean; sect];
-            else
-                warning("%s",Sublist(s));
-            end
-        end
-    end
-elseif strcmp(Treatment, 'Raw')
-    GrpMean = GrpMeanraw;
-end
-%%
-h = figure;
-ti = 0;
-for t = [10, 1.5] % low, high
-    ti = ti + 1;
-    dat = GrpMean(GrpMean.TimeConstraint == t,:); 
-    subplot(2,1,ti);
-    plot(dat.mean_V3scld, dat.mean_sdV3scld, '.', 'Color', dat.mean_choice);
-    xlim([0,1]);
-    ylim([0,1]);
-end
-%%
-GrpMean = sortrows(GrpMean, {'subID', 'mean_V3scld'}, {'ascend', 'ascend'});
-Sublist = unique(GrpMean.subID);
-N = length(Sublist);
-h = figure;
-ti = 0;
-for t = [10, 1.5]
-    ti = ti + 1;
-    subplot(2,1,ti); hold on;
-    dat = GrpMean(GrpMean.TimeConstraint == t,:);
-    for s = 1:N
-        indv = dat(dat.subID == Sublist(s),:);
-        plot(indv.mean_V3scld, indv.mean_choice,'.-');
-    end
-    xlim([0,1]);
-end
-xlabel('Scaled V3');
-ylabel('% Correct (V1 & V2)');
-mysavefig(h, sprintf('Choice_Data_Subjects_%s', Treatment), plot_dir, 12, [5, 8]);
-
-%% Choice accuracy in a heatmap of mean value and variance
-Window = 0.15;
-Varrng = [min(GrpMean.mean_sdV3scld), 1];% max(GrpMean.mean_sdV3scld)];
-Bindow = 0.05;
-h = figure;
-ti = 0;
-for t = [10, 1.5] % low, high
-    ti = ti + 1;
-    dat = GrpMean(GrpMean.TimeConstraint == t,:);
-    v3vec = LowestV3:.03:1;
-    varvec = Varrng(1):.03:Varrng(2);
-    Ntrial = NaN(numel(varvec), numel(v3vec));
-    Nsubj = NaN(numel(varvec), numel(v3vec));
-    choice = NaN(numel(varvec), numel(v3vec));
-    choicese = NaN(numel(varvec), numel(v3vec));
-    sdV3scld = NaN(numel(varvec), numel(v3vec));
-    for vi = 1:numel(v3vec)
-        for ri = 1:numel(varvec)
-            v3 = v3vec(vi);
-            r = varvec(ri);
-            maskv3 = dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window;
-            maskr3 = dat.mean_sdV3scld >= r - Bindow & dat.mean_sdV3scld <= r + Bindow;
-            section = dat(maskv3 & maskr3,:);
-            Ntrial(ri,vi) = sum(section.GroupCount);
-            Nsubj(ri,vi) = numel(unique(section.subID));
-            choice(ri,vi) = mean(section.mean_choice);
-            choicese(ri,vi) = std(section.mean_choice)/sqrt(length(section.mean_choice));
-            sdV3scld(ri,vi) = mean(section.mean_sdV3scld);
-        end
-    end
-    [maxri, maxvi] = find(Nsubj == max(Nsubj(:)));
-    choice(Ntrial<25) = NaN;
-    subplot(2,2,1+(ti-1)*2); hold on;
-    colormap("bone");
-    cmap = bone(numel(varvec));
-    for ri = 1:numel(varvec)
-        plot(v3vec, choice(ri,:), '.-', 'Color', cmap(ri,:));
-        if ri == 1
-            plot(v3vec, choice(ri,:), '.-', 'Color', 'r', 'LineWidth',2);
-        elseif ri == 10
-            % plot(v3vec, choice(ri,:), '.-', 'Color', 'r', 'LineWidth',2);
-        end
-        
-    end
-    xlabel('Scaled V3');
-    ylabel('% Correct (V1 & V2)');
-    %ylim([.4, .8]);
-    title(sprintf('Time limit %1.1fs', t));
-
-    subplot(2,2,2+(ti-1)*2); hold on;
-    colormap("hot");
-    %imagesc(v3vec, varvec, Nsubj);
-    %plot(varvec(maxri),v3vec(maxvi),'b-', 'LineWidth',2);
-    imagesc(v3vec, varvec, choice); % , [0.4, 0.8]
-    %title('N subjects');
-    colorbar;
-    xlabel('Scaled V3');
-    ylabel('V3 Variance');
-    ylim([0,1]);
-end
-mysavefig(h, sprintf('Choice_Data_%s', Treatment), plot_dir, 12, [10, 8]);
-
-%% Simulations
-M = 1;
-w = 1;
-sL = .1;
-lL = .1;
-mode = 'absorb';
 mtmodel = [];
-for t = [10, 1.5] % low, high
-    if t == 10
-        x = [M, 1, .1];
-    elseif t == 1.5
-        x = [M, .5, lL];
-    end
-    for v = [1, 0] % vague, precise
-        dat = mtconvert(mtconvert.TimeConstraint == t & mtconvert.Vaguenesscode == v,:);
-        probs = dDN(x, dat, mode);
-        ratio = probs(2,:)./sum(probs(1:2,:),1);
+for s = 1:N
+    fprintf('Subject %d:\t', s);
+    for t = [10, 1.5]
+        fprintf('TimeConstraint %1.1f:\t', t);
+        dat = mtconvert(mtconvert.subID == Sublist(s) & mtconvert.TimeConstraint == t, :);
+        scl = fit.scl(fulllist(fit.subID) == Sublist(s) & fit.TimeConstraint == t & fit.modeli == modeli);
+        eta = fit.eta(fulllist(fit.subID) == Sublist(s) & fit.TimeConstraint == t & fit.modeli == modeli);
+        x = [scl, eta];
+        switch modeli
+            case 1
+                [probs, nLL] = dDNb(x, dat, mode);
+                name = 'dDNb'; %, cut input, independent';
+            case 2
+                [probs, nLL] = dDNd(x, dat, mode);
+                name = 'dDNd'; %, cut SIGMA, independent';
+        end
         dat.modelprob1 = probs(1,:)';
         dat.modelprob2 = probs(2,:)';
         dat.modelprob3 = probs(3,:)';
         mtmodel = [mtmodel; dat];
     end
+    fprintf('\n');
 end
 mtmodel.ratio = mtmodel.modelprob2./(mtmodel.modelprob1 + mtmodel.modelprob2);
-%% Visualization in heatmap
+% Visualization in heatmap
+Treatment = sprintf('%s%i',model,modeli);
 dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
 GrpMean = grpstats(dat, ["subID", "TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "ratio"]);
 Window = 0.15;
@@ -224,33 +157,7 @@ for t = [10, 1.5] % low, high
     ylabel('V3 Variance');
 end
 mysavefig(h, sprintf('ChoiceModel_heatmap_%s', Treatment), plot_dir, 12, [10, 8]);
-
-%% Simulations - based on the data structure
-M = 1;
-w = 1;
-sL = .06;
-lL = .12;
-mode = 'absorb';
-mtmodel = [];
-for t = [10, 1.5] % low, high
-    if t == 10
-        x = [M, 1, sL];
-    elseif t == 1.5
-        x = [M, 1, lL];
-    end
-    for v = [1, 0] % vague, precise
-        dat = mtconvert(mtconvert.TimeConstraint == t & mtconvert.Vaguenesscode == v,:);
-        probs = dDN(x, dat, mode);
-        ratio = probs(2,:)./sum(probs(1:2,:),1);
-        dat.modelprob1 = probs(1,:)';
-        dat.modelprob2 = probs(2,:)';
-        dat.modelprob3 = probs(3,:)';
-        mtmodel = [mtmodel; dat];
-    end
-end
-mtmodel.ratio = mtmodel.modelprob2./(mtmodel.modelprob1 + mtmodel.modelprob2);
-
-%% Visualize in sliding windows
+% Visualize in sliding windows
 dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
 GrpMean = grpstats(dat, ["subID","TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
 colorpalette = {'#0000FF', '#FFC0CB', '#ADD8E6', '#FF0000'};
@@ -286,29 +193,29 @@ for t = [10, 1.5] % low, high
             sdV3scld = [sdV3scld, mean(section.mean_sdV3scld)];
         end
         plot(v3vec, ratio, '-', 'Color', colorpalette{vi}, 'LineWidth', 2);
-        fill([v3vec fliplr(v3vec)], [ratio-ratiose fliplr(ratio+ratiose)], rgbMatrix(vi,:), 'FaceAlpha', 0.3, 'EdgeColor', 'none');
+        % fill([v3vec fliplr(v3vec)], [ratio-ratiose fliplr(ratio+ratiose)], rgbMatrix(vi,:), 'FaceAlpha', 0.3, 'EdgeColor', 'none');
     end
 end
 xlim([0,1]);
 xlabel('Scaled V3');
 ylabel('% Correct (V1 & V2)');
 mysavefig(h, sprintf('Ratio_ModelPredict_%s', Treatment), plot_dir, 12, [4, 4]);
-%% functions
-function probs = dDN(x, dat, mode) % cut inputs, independent
+%%
+function [probs, nll] = dDNb(x, dat, mode) % cut inputs, independent
 % set the lower boundary for every input value distribution as zero
 % samples in the denominator are independent from the numerator
-% the SIGMA term in the denominator will be natually non-negative after that.
+% the SIGMA term in the denominator is non-negative after that.
 if gpuDeviceCount > 0
     gpuparallel = 1;
 else
     gpuparallel = 0;
 end
-Mp = x(1);
-wp = x(2);
-eta = x(3);
-scl = 1;
+Mp = 1;%x(1);
+wp = 1;%x(2);
+scl = x(1); % scaling for early noise
+eta = x(2); % late noise standard deviation
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem'});
-num_samples = 15;
+num_samples = 2000;
 Ntrl = size(dat,1);
 if strcmp(mode, 'absorb')
     samples = [];
@@ -345,16 +252,89 @@ elseif strcmp(mode, 'cutoff')
     error('The cutoff boundary algorithm has not been developped yet.');
 end
 D1 = sum(samplesD1, 1)*wp + Mp;
-D2 = sum(samplesD2, 1)*wp + Mp;
-D3 = sum(samplesD3, 1)*wp + Mp;
+D2 = sum(samplesD1, 1)*wp + Mp;
+D3 = sum(samplesD1, 1)*wp + Mp;
 D = [D1; D2; D3];
 if gpuparallel
     SVs = samples./D + gpuArray.randn(size(samples))*eta;
-    %choice = gpuArray(data.chosenItem');
+    choice = gpuArray(data.chosenItem');
 else
     SVs = samples./D + randn(size(samples))*eta;
-    %choice = data.chosenItem';
+    choice = data.chosenItem';
 end
 max_from_each_distribution = SVs == max(SVs, [], 1);
 probs = squeeze(sum(max_from_each_distribution, 2) / size(SVs, 2));
+nll = -sum(log(max(probs(sub2ind(size(probs), choice, 1:size(probs, 2))), eps)));
+if gpuparallel
+    nll = gather(nll);
+end
+end
+
+function [probs, nll] = dDNd(x, dat, mode) % cut SIGMA, independent
+% set the lower boundary for the summed SIGMA in the denominator
+% but not for the input values in the numerator
+% samples in the denominator are independent from the numerator
+if gpuDeviceCount > 0
+    gpuparallel = 1;
+else
+    gpuparallel = 0;
+end
+Mp = 1;%x(1);
+wp = 1;%x(2);
+scl = x(1); % scaling for early noise
+eta = x(2); % late noise standard deviation
+data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem'});
+num_samples = 2000;
+Ntrl = size(dat,1);
+samples = [];
+for ci = 1:3
+    if gpuparallel
+        values = gpuArray(data.(['V',num2str(ci)])');
+        stds = gpuArray(data.(['sdV', num2str(ci)])')*scl;
+        samples(ci,:,:) = gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+    else
+        values = data.(['V',num2str(ci)])';
+        stds = data.(['sdV', num2str(ci)])'*scl;
+        samples(ci,:,:) = randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+    end
+end
+samplesD1 = [];
+samplesD2 = [];
+samplesD3 = [];
+for ci = 1:3
+    if gpuparallel
+        values = gpuArray(data.(['V',num2str(ci)])');
+        stds = gpuArray(data.(['sdV', num2str(ci)])')*scl;
+        samplesD1(ci,:,:) = gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+        samplesD2(ci,:,:) = gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+        samplesD3(ci,:,:) = gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+    else
+        values = data.(['V',num2str(ci)])';
+        stds = data.(['sdV', num2str(ci)])'*scl;
+        samplesD1(ci,:,:) = randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+        samplesD2(ci,:,:) = randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+        samplesD3(ci,:,:) = randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+    end
+end
+if strcmp(mode, 'absorb')
+    D1 = max(sum(samplesD1, 1),0)*wp + Mp;
+    D2 = max(sum(samplesD2, 1),0)*wp + Mp;
+    D3 = max(sum(samplesD3, 1),0)*wp + Mp;
+elseif strcmp(mode, 'cutoff')
+    error('The cutoff boundary algorithm has not been developped yet.');
+end
+D = [D1; D2; D3];
+if gpuparallel
+    SVs = samples./D + gpuArray.randn(size(samples))*eta;
+    choice = gpuArray(data.chosenItem');
+else
+    SVs = samples./D + randn(size(samples))*eta;
+    choice = data.chosenItem';
+end
+max_from_each_distribution = SVs == max(SVs, [], 1);
+probs = squeeze(sum(max_from_each_distribution, 2) / size(SVs, 2));
+nll = -sum(log(max(probs(sub2ind(size(probs), choice, 1:size(probs, 2))), eps)));
+if gpuparallel
+    nll = gather(nll);
+end
 end
