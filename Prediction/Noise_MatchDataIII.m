@@ -11,7 +11,7 @@ addpath(genpath(Gitdir));
 %% Loading the data transformed in the code: /Users/bs3667/Noise/modelfit/ModelFit-DataTrnsfrm.m
 datadir = '/Users/bs3667/Dropbox (NYU Langone Health)/CESS-Bo/myData';
 load(fullfile(datadir, 'TrnsfrmData.mat'), 'mt');
-model = 'FastBADS_FixMw';
+model = 'FastBADS_FixMwsMean';
 fit = tdfread(fullfile(fitdir,'Results', model, 'Best.txt'));
 %% Transform data
 Sublist = unique(mt.subID);
@@ -32,6 +32,31 @@ for s = 1:N
     end
 end
 mtconvert.choice = mtconvert.chosenItem - 1;
+%% Choice accuracy in individuals
+dat = mtconvert(mtconvert.chosenItem ~= 3 & ~isnan(mtconvert.chosenItem),:);
+GrpMeanraw = grpstats(dat, ["subID","TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice"]);
+Treatment = 'Raw';%'Point'; %'Raw'; %'Demean'; %
+Sublist = unique(GrpMeanraw.subID);
+N = length(Sublist);
+if strcmp(Treatment, "Point")
+    GrpMean = [];
+    for s = 1:N
+        indv = GrpMeanraw(GrpMeanraw.subID == Sublist(s),:);
+        for t = [10, 1.5]
+            sect = indv(indv.TimeConstraint == t,:);
+            trunk = sect(sect.mean_V3scld >=0 & sect.mean_V3scld <= .3 & sect.mean_sdV3scld>=0 & sect.mean_sdV3scld <= .3,:);
+            if ~isempty(trunk)
+                point = mean(trunk.mean_choice);
+                sect.mean_choice = sect.mean_choice - point; %mean(indv.mean_choice);
+                GrpMean = [GrpMean; sect];
+            else
+                warning("%s",Sublist(s));
+            end
+        end
+    end
+elseif strcmp(Treatment, 'Raw')
+    GrpMean = GrpMeanraw;
+end
 %% Simulation
 modeli = 1;
 mode = 'absorb';
@@ -65,32 +90,17 @@ end
 mtmodel.ratio = mtmodel.modelprob2./(mtmodel.modelprob1 + mtmodel.modelprob2);
 dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
 GrpMeanMdl = grpstats(dat, ["subID","TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
+Treatment = 'Raw';
+% bl = fulllist(unique(fit.subID(fit.eta >= 1.99)));
+% GrpMeanMdl = GrpMeanMdl(~ismember(GrpMeanMdl.subID, bl),:);
 
-%% Choice accuracy in individuals
-dat = mtconvert(mtconvert.chosenItem ~= 3 & ~isnan(mtconvert.chosenItem),:);
-GrpMeanraw = grpstats(dat, ["subID","TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice"]);
-Treatment = 'Raw';%'Point'; %'Raw'; %'Demean'; %
-Sublist = unique(GrpMeanraw.subID);
-N = length(Sublist);
-if strcmp(Treatment, "Point")
-    GrpMean = [];
-    for s = 1:N
-        indv = GrpMeanraw(GrpMeanraw.subID == Sublist(s),:);
-        for t = [10, 1.5]
-            sect = indv(indv.TimeConstraint == t,:);
-            trunk = sect(sect.mean_V3scld >=0 & sect.mean_V3scld <= .3 & sect.mean_sdV3scld>=0 & sect.mean_sdV3scld <= .3,:);
-            if ~isempty(trunk)
-                point = mean(trunk.mean_choice);
-                sect.mean_choice = sect.mean_choice - point; %mean(indv.mean_choice);
-                GrpMean = [GrpMean; sect];
-            else
-                warning("%s",Sublist(s));
-            end
-        end
-    end
-elseif strcmp(Treatment, 'Raw')
-    GrpMean = GrpMeanraw;
-end
+% GrpMeanMdl = GrpMeanMdl(GrpMeanMdl.mean_choice >= .5,:);
+% Treatment = 'RemoveTrials';
+% tmp = GrpMeanMdl(GrpMeanMdl.mean_choice < .5, :);
+% diagnose = grpstats(tmp, "subID", "mean", "DataVars", ["mean_choice", "mean_ratio"]);
+% bl = diagnose.subID(diagnose.GroupCount > 5);
+% GrpMeanMdl = GrpMeanMdl(~ismember(GrpMeanMdl.subID, bl),:);
+
 %% Visualize in lines plot in x-axis of mean scaled V3
 colorpalette = {'#FFC0CB', '#FF0000', '#0000FF', '#ADD8E6'};
 rgbMatrix = [
@@ -104,16 +114,22 @@ LowestV3 = 0;
 HighestV3 = 1;
 h = figure;
 hold on;
-vi = 0;
 Sldwndw = [];
+conditions = {'Ambiguous','Definitive'};
+ci = 0;
+vi = 0;
 for v = [0, 1] % vague, precise
+    vi = vi + 1;
     if v == 0
         subplot(1,2,1); hold on;
     elseif v == 1
         subplot(1,2,2); hold on;
     end
+    lg = [];
+    ti = 0;
     for t = [10, 1.5] % low, high
-        vi = vi + 1;
+        ci = ci + 1;
+        ti = ti + 1;
         % dat = GrpMean(GrpMean.TimeConstraint == t & GrpMean.Vaguenesscode == v & GrpMean.mean_V3scld >= LowestV3 & GrpMean.mean_V3scld <= HighestV3,:);
         dat = GrpMeanMdl(GrpMeanMdl.TimeConstraint == t & GrpMeanMdl.Vaguenesscode == v & GrpMeanMdl.mean_V3scld >= LowestV3 & GrpMeanMdl.mean_V3scld <= HighestV3,:);
         % plot data pattern overlapping with model fitting
@@ -132,41 +148,18 @@ for v = [0, 1] % vague, precise
             ratio = [ratio, mean(section.mean_ratio*100)];
             ratiose = [ratiose, std(section.mean_ratio*100)/sqrt(length(section.mean_ratio))];
             sdV3scld = [sdV3scld, mean(section.mean_sdV3scld)];
-        end
-        
-        plot(v3vec, choice, '-', 'Color', colorpalette{vi}, 'LineWidth', 2);
-        fill([v3vec fliplr(v3vec)], [choice-choicese fliplr(choice+choicese)], rgbMatrix(vi,:), 'FaceAlpha', 0.3, 'EdgeColor', 'none');
-        plot(v3vec, ratio-2, 'k--', 'LineWidth', 2);
-        % Ntrial = [];
-        % choice = [];
-        % choicese = [];
-        % ratio = [];
-        % ratiose = [];
-        % sdV3scld = [];
-        % v3vec = LowestV3:.015:1;
-        % for v3 = v3vec
-        %     section = dat(dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window,:);
-        %     Ntrial = [Ntrial, sum(section.GroupCount)];
-        %     choice = [choice, mean(section.mean_choice*100)];
-        %     choicese = [choicese, std(section.mean_choice*100)/sqrt(length(section.mean_choice))];
-        %     sdV3scld = [sdV3scld, mean(section.mean_sdV3scld)];
-        % end
-        % tmp = [];
-        % tmp.TimeConstraint = t*ones(numel(Ntrial),1);
-        % tmp.Vaguenesscode = v*ones(numel(Ntrial),1);
-        % tmp.Ntrial = Ntrial';
-        % tmp.choice = choice';
-        % tmp.choicese = choicese';
-        % tmp.V3scld = v3vec';
-        % tmp.sdV3scld = sdV3scld';
-        % tmp = struct2table(tmp);
-        % Sldwndw = [Sldwndw; tmp];
-        
-        % xlim([-.05,.85]);
+        end 
+        %plot(v3vec, choice, '-', 'Color', colorpalette{ci}, 'LineWidth', 2);
+        %fill([v3vec fliplr(v3vec)], [choice-choicese fliplr(choice+choicese)], rgbMatrix(ci,:), 'FaceAlpha', 0.3, 'EdgeColor', 'none');
+        lg(ti) = plot(v3vec, ratio, '-', 'Color', colorpalette{ci}, 'LineWidth', 2);
     end
     xlabel('Scaled V3');
     ylabel('% Correct (V1 & V2)');
-    mysavefig(h, sprintf('Ratio_ModelmData_%s', Treatment), plot_dir, 12, [8, 4]);
+    title(conditions{vi});
+    myle = legend(lg, {'Low', 'High'}, 'Location', "NorthWest", 'Box',"off");
+    title(myle, "Time pressure");
+    ylim([65, 75]);
+    mysavefig(h, sprintf('Ratio_Model_%s', Treatment), plot_dir, 12, [8, 4]);
 end
 
 %% 2by2
@@ -186,7 +179,7 @@ epsV2 = 9;
 
 h = figure;
 hold on;
-vi = 0;
+ci = 0;
 for t = [10, 1.5] % low, high
     if t == 10
         eta = .8;
@@ -194,7 +187,7 @@ for t = [10, 1.5] % low, high
         eta = 1.9;
     end
     for v = [1, 0] % vague, precise
-        vi = vi + 1;
+        ci = ci + 1;
         if v == 1
             eps = 9;
         elseif v == 0
@@ -212,7 +205,7 @@ for t = [10, 1.5] % low, high
         x = [1, 1, eta];
         probs = dDN(x, dat, 'absorb');
         ratio = probs(2,:)./(probs(1,:) + probs(2,:));
-        plot(V3/V1mean, ratio, '.-', 'Color', colorpalette{vi});
+        plot(V3/V1mean, ratio, '.-', 'Color', colorpalette{ci});
 
     end
 end
@@ -224,24 +217,27 @@ V1mean = 83;% 53;
 V2mean = 88;% 58;
 epsV1 = 9; % early noise for V1
 epsV2 = 9; % early noise for V2
-V3 = linspace(0, V1mean*.8, 20)';
+V3 = linspace(0, V1mean, 25)';
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 sdV1 = epsV1*ones(size(V3))/2;
 sdV2 = epsV2*ones(size(V3))/2;
 chosenItem = randi(3, size(V3)); % dummy variable required by the function, meaningless used here
 etavec = linspace(.8, 1.9, 8); % different levels of late noise
-filename = sprintf('Ratio_Model_%s', '2Panels');
+filename = sprintf('Ratio_Model_%iv3max%1.0f_%s', numel(V3), max(V3), '2Panels');
 % simulation
 SimDatafile = fullfile(dumpdir, [filename, '.mat']);
 if exist(SimDatafile,'file')
     load(SimDatafile);
 else
     Ratios = nan(2, numel(etavec), numel(V3));
+    DNOverlaps = Ratios;
+    SVOverlaps = Ratios;
     tmp = nan(2, numel(etavec), 3, numel(V3));
     DNPStats = tmp;
     V3Stats = tmp;
     SVStats = tmp;
+    
     for i = 1:2
         if i == 1
             v = 0;
@@ -255,15 +251,17 @@ else
         for ti = 1:numel(etavec)
             eta = etavec(ti);
             x = [1, 1, eta]; % M , w, eta
-            [probs, ~, dDNPQntls, V3Qntls, dSVQtls] = dDN(x, dat, 'absorb');
+            [probs, dDNPQntls, V3Qntls, dSVQtls, dDNOvlp, dSVOvlp] = dDN(x, dat, 'absorb');
             DNPStats(i, ti, :, :) = dDNPQntls;
+            DNOverlaps(i, ti, :) = dDNOvlp;
             V3Stats(i, ti, :, :) = V3Qntls;
             SVStats(i, ti, :, :) = dSVQtls;
+            SVOverlaps(i, ti, :) = dSVOvlp;
             Ratios(i,ti,:) = probs(2,:)./(probs(1,:) + probs(2,:));
         end
     end
     xval = V3'/V1mean;
-    save(SimDatafile, "Ratios","DNPStats","V3Stats","SVStats","xval",'-mat');
+    save(SimDatafile, "Ratios","DNPStats","V3Stats","SVStats","DNOverlaps","SVOverlaps","xval",'-mat');
 end
 %% visualization
 red = [1, 0, 0];
@@ -273,12 +271,26 @@ colors = [orange; red; green];
 h = figure;
 for i = 1:2
     subplot(8, 2, 2+i); hold on;
-    for opt = [3]
-        Med = squeeze(V3Stats(i, 1, 2,:))';
-        Qntls = squeeze(V3Stats(i, 1, [1,3],:));
-        fill([xval, fliplr(xval)], [Qntls(1,:), fliplr(Qntls(2,:))], 'k', 'FaceAlpha', 0.3, 'EdgeColor', 'none');
-        plot(xval, Med, 'k-', "LineWidth", 1);
+    % V3
+    if i == 1
+        v = 0;
+        eps = 4;
+    elseif i == 2
+        v = 1;
+        eps = 9;
     end
+    Med = squeeze(V3Stats(i, 1, 2,:))';
+    Qntls = squeeze(V3Stats(i, 1, [1,3],:));
+    fill([xval, fliplr(xval)], [Qntls(1,:), fliplr(Qntls(2,:))], 'k', 'FaceAlpha', 0.3, 'EdgeColor', 'none');
+    lg = plot(xval, Med, 'k-', "LineWidth", 1);
+    ylim([-5, 29]);
+    mylg = legend(lg, 'V3', 'Location', "northeastoutside", 'Box','off');
+    title(mylg, 'Late noise');
+    grid on;
+    % num_samples = 20;
+    % Ntrl = numel(V3);
+    % V3rnd = max(randn([num_samples, Ntrl]).*eps + repmat(V3', num_samples, 1), 0);
+    % plot(repmat(V3', num_samples, 1)/V1mean, V3rnd, 'k.');
     ylabel("V3 (a.u.)");
     mysavefig(h, filename, plot_dir, 12, [8, 8]);
 
@@ -292,20 +304,30 @@ for i = 1:2
         endColor = [.68, .85, .9]; % Light-blue
     end
     cmap = GradColor(startColor, endColor, numel(etavec));
+    
     subplot(4, 2, 2+i); hold on;
-    Med = squeeze(DNPStats(i, 1, 2,:))';
-    Qntls = squeeze(DNPStats(i, 1, [1,3],:));
-    fill([xval, fliplr(xval)], [Qntls(1,:), fliplr(Qntls(2,:))], 'k', 'FaceAlpha', 0.3, 'EdgeColor', 'none');
-    plot(xval, Med, 'k-', "LineWidth",1);
+    % Med = squeeze(DNPStats(i, 1, 2,:))';
+    % Qntls = squeeze(DNPStats(i, 1, [1,3],:));
+    % fill([xval, fliplr(xval)], [Qntls(1,:), fliplr(Qntls(2,:))], 'k', 'FaceAlpha', 0.3, 'EdgeColor', 'none');
+    % plot(xval, Med, 'k-', "LineWidth",1);
+    % for ti = 1:numel(etavec)
+    %     Qntls = squeeze(SVStats(i, ti, [1,3],:));
+    %     plot(xval, Qntls(1,:), '-', 'Color', cmap(ti,:));
+    %     plot(xval, Qntls(2,:), '-', 'Color', cmap(ti,:));
+    % end
+    % plot(xval, ones(size(xval))*0,'k--');
+    % xlim([0, .8]);
+    % ylim([-1.2, 5.3]);
+    % ylabel("V1 - V2 (a.u.)");
+    lg = [];
+    lg(9) = plot(xval, squeeze(DNOverlaps(i,1,:))', 'k.-');
     for ti = 1:numel(etavec)
-        Qntls = squeeze(SVStats(i, ti, [1,3],:));
-        plot(xval, Qntls(1,:), '-', 'Color', cmap(ti,:));
-        plot(xval, Qntls(2,:), '-', 'Color', cmap(ti,:));
+        lg(9-ti) = plot(xval, squeeze(SVOverlaps(i,ti,:))', '.-', 'Color', cmap(ti,:));
     end
-    plot(xval, ones(size(xval))*0,'k--');
-    xlim([0, .8]);
-    ylim([-1.2, 5.3]);
-    ylabel("V1 - V2 (a.u.)");
+    ylabel("% Overlapping (V1 & V2)");
+    mylg = legend(lg, fliplr({'0','0.80','0.96','1.11','1.27','1.43','1.59','1.74','1.90'}), 'Location', "northeastoutside", 'Box','off');
+    title(mylg, 'Late noise');
+    grid on;
     mysavefig(h, filename, plot_dir, 12, [8, 8]);
 
     subplot(2,2,2+i); hold on;
@@ -318,7 +340,7 @@ for i = 1:2
     mysavefig(h, filename, plot_dir, 12, [8, 8]);
 end
 
-% %% Simulations - based on the trends of V3 noise
+%% Simulations - based on the trends of V3 noise
 % M = .1;
 % w = 1;
 % sL = .0000;
@@ -403,7 +425,7 @@ for i = 1:3
 end
 end
 %%
-function [probs, nll, dDNPQntls, V3Qntls, dSVQtls] = dDN(x, dat, mode) % cut inputs, independent
+function [probs, dDNPQntls, V3Qntls, dSVQtls, dDNOvlp, dSVOvlp] = dDN(x, dat, mode) % cut inputs, independent
 % set the lower boundary for every input value distribution as zero
 % samples in the denominator are independent from the numerator
 % the SIGMA term in the denominator will be natually non-negative after that.
@@ -464,20 +486,46 @@ DNP = Rmax*samples./D;
 % The final decision variables (subjective values) with late noise
 if gpuparallel
     SVs = DNP + gpuArray.randn(size(samples))*eta;
-    choice = gpuArray(data.chosenItem');
+    %choice = gpuArray(data.chosenItem');
 else
     SVs = DNP + randn(size(samples))*eta;
-    choice = data.chosenItem';
+    %choice = data.chosenItem';
 end
 max_from_each_distribution = SVs == max(SVs, [], 1);
 probs = squeeze(sum(max_from_each_distribution, 2) / size(SVs, 2));
-nll = -sum(log(max(probs(sub2ind(size(probs), choice, 1:size(probs, 2))), eps)));
+%nll = -sum(log(max(probs(sub2ind(size(probs), choice, 1:size(probs, 2))), eps)));
 dDNPQntls = quantile(squeeze(DNP(2,:,:) - DNP(1,:,:)), 3, 1);
 V3Qntls = quantile(squeeze(DNP(3,:,:)), [.05, .5, .95], 1);
 dSVQtls = quantile(squeeze(SVs(2,:,:) - SVs(1,:,:)), 3, 1);
+
+dDNOvlp = [];
+dSVOvlp = [];
+dDNrng = [min(DNP(:)), max(DNP(:))];
+dSVrng = [min(SVs(:)), max(SVs(:))];
+for v3i = 1:numel(dat.V3)
+    pd1 = fitdist(DNP(1,:,v3i)','kernel','Kernel','normal');
+    x = dDNrng(1):.1:dDNrng(2);
+    y1 = pdf(pd1,x);
+    pd2 = fitdist(DNP(2,:,v3i)','kernel','Kernel','normal');
+    y2 = pdf(pd2,x);
+    %h = figure; hold on;
+    %plot(x,y1,'k-','LineWidth', 1);
+    %plot(x,y2,'k-','LineWidth', 1);
+    %area([x(y1>y2), x(y1<y2)],[y2(y1>y2), y1(y2>y1)],'FaceColor','b','FaceAlpha',.5,'EdgeAlpha',.3);
+    ovlp = sum([y2(y1>y2), y1(y2>y1)])*.1;
+    dDNOvlp(v3i) = ovlp*100;
+
+    pd1 = fitdist(SVs(1,:,v3i)','kernel','Kernel','normal');
+    x = dSVrng(1):.1:dSVrng(2);
+    y1 = pdf(pd1, x);
+    pd2 = fitdist(SVs(2,:,v3i)','kernel','Kernel','normal');
+    y2 = pdf(pd2, x);
+    ovlp = sum([y2(y1>y2), y1(y2>y1)])*.1;
+    dSVOvlp(v3i) = ovlp*100;
+end
 if gpuparallel
     probs = gather(probs);
-    nll = gather(nll);
+    %nll = gather(nll);
     dDNPQntls = gather(dDNPQntls);
     V3Qntls = gather(V3Qntls);
     dSVQtls = gather(dSVQtls);

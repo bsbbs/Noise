@@ -6,12 +6,11 @@ if os == 'MACI64'
     fitdir = '/Users/bs3667/Noise/modelfit';
 end
 plot_dir = fullfile(rootdir, 'Bo Shen Working files/NoiseProject/Prediction');
-Gitdir = '~/Documents/Noise';
 addpath(genpath(Gitdir));
 %% Loading the data transformed in the code: /Users/bs3667/Noise/modelfit/ModelFit-DataTrnsfrm.m
 datadir = '/Users/bs3667/Dropbox (NYU Langone Health)/CESS-Bo/myData';
 load(fullfile(datadir, 'TrnsfrmData.mat'), 'mt');
-model = 'FastBADS_FixMw';
+model = 'FastBADS_FixMwsMean';
 fit = tdfread(fullfile(fitdir,'Results', model, 'Best.txt'));
 %% Transform data
 Sublist = unique(mt.subID);
@@ -42,10 +41,11 @@ plot([0, 2], [0, 2],'k--');
 xlabel('Low Time Pressure \eta');
 ylabel('High Time Pressure \eta');
 title('Model 1');
-mysavefig(h, 'eta', fullfile(fitdir,'Results', model, 'plot'), 12, [6, 6]);
 [~, p, ci, stats] = ttest(y-x);
 p
 text(.2, 1.8, sprintf('p = %.3f', p));
+mysavefig(h, 'eta', fullfile(fitdir,'Results', model, 'plot'), 12, [6, 6]);
+
 subplot(2,2,2); hold on;
 x = fit.eta(fit.modeli == 2 & fit.TimeConstraint == 10);
 y = fit.eta(fit.modeli == 2 & fit.TimeConstraint == 1.5);

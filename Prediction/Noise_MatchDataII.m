@@ -3,9 +3,9 @@
 [os, ~, ~] = computer;
 if os == 'MACI64'
     rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/';
+    Gitdir = '~/Noise';
 end
 plot_dir = fullfile(rootdir, 'Bo Shen Working files/NoiseProject/Prediction');
-Gitdir = '~/Documents/Noise';
 addpath(genpath(Gitdir));
 %% Loading the data transformed in the code: /Users/bs3667/Noise/modelfit/ModelFit-DataTrnsfrm.m
 datadir = '/Users/bs3667/Dropbox (NYU Langone Health)/CESS-Bo/myData';
@@ -57,18 +57,8 @@ if strcmp(Treatment, "Point")
 elseif strcmp(Treatment, 'Raw')
     GrpMean = GrpMeanraw;
 end
-%%
-h = figure;
-ti = 0;
-for t = [10, 1.5] % low, high
-    ti = ti + 1;
-    dat = GrpMean(GrpMean.TimeConstraint == t,:); 
-    subplot(2,1,ti);
-    plot(dat.mean_V3scld, dat.mean_sdV3scld, '.', 'Color', dat.mean_choice);
-    xlim([0,1]);
-    ylim([0,1]);
-end
-%%
+
+%% Choice accuracy, visualize each individual
 GrpMean = sortrows(GrpMean, {'subID', 'mean_V3scld'}, {'ascend', 'ascend'});
 Sublist = unique(GrpMean.subID);
 N = length(Sublist);
@@ -83,10 +73,13 @@ for t = [10, 1.5]
         plot(indv.mean_V3scld, indv.mean_choice,'.-');
     end
     xlim([0,1]);
+    ylabel('% Correct (V1 & V2)');
+    title(sprintf("Time limit %1.1f s", t));
+    if ti == 2
+        xlabel('Scaled V3');
+    end
+    mysavefig(h, sprintf('Choice_Data_Subjects_%s', Treatment), plot_dir, 12, [5, 8]);
 end
-xlabel('Scaled V3');
-ylabel('% Correct (V1 & V2)');
-mysavefig(h, sprintf('Choice_Data_Subjects_%s', Treatment), plot_dir, 12, [5, 8]);
 
 %% Choice accuracy in a heatmap of mean value and variance
 Window = 0.15;
@@ -98,7 +91,7 @@ for t = [10, 1.5] % low, high
     ti = ti + 1;
     dat = GrpMean(GrpMean.TimeConstraint == t,:);
     v3vec = LowestV3:.03:1;
-    varvec = Varrng(1):.03:Varrng(2);
+    varvec = Varrng(1):.05:Varrng(2);
     Ntrial = NaN(numel(varvec), numel(v3vec));
     Nsubj = NaN(numel(varvec), numel(v3vec));
     choice = NaN(numel(varvec), numel(v3vec));
@@ -123,30 +116,36 @@ for t = [10, 1.5] % low, high
     subplot(2,2,1+(ti-1)*2); hold on;
     colormap("bone");
     cmap = bone(numel(varvec));
+    secti = 5;
     for ri = 1:numel(varvec)
         plot(v3vec, choice(ri,:), '.-', 'Color', cmap(ri,:));
         if ri == 1
             plot(v3vec, choice(ri,:), '.-', 'Color', 'r', 'LineWidth',2);
-        elseif ri == 10
-            % plot(v3vec, choice(ri,:), '.-', 'Color', 'r', 'LineWidth',2);
+        elseif ri == secti
+            plot(v3vec, choice(ri,:), '.-', 'Color', 'b', 'LineWidth',2);
         end
         
     end
     xlabel('Scaled V3');
     ylabel('% Correct (V1 & V2)');
-    %ylim([.4, .8]);
+    ylim([.3, .8]);
     title(sprintf('Time limit %1.1fs', t));
 
     subplot(2,2,2+(ti-1)*2); hold on;
     colormap("hot");
     %imagesc(v3vec, varvec, Nsubj);
     %plot(varvec(maxri),v3vec(maxvi),'b-', 'LineWidth',2);
-    imagesc(v3vec, varvec, choice); % , [0.4, 0.8]
+    imagesc(v3vec, varvec, choice, [0.3, 0.8]);
     %title('N subjects');
+    
+    plot([0, 0, 1, 1, 0], [varvec(1), varvec(2), varvec(2), varvec(1), varvec(1)]-.025, 'r-', 'LineWidth', 0.5);
+    plot([0, 0, 1, 1, 0], [varvec(secti), varvec(secti+1), varvec(secti+1), varvec(secti), varvec(secti)]-.025, 'b-', 'LineWidth', 0.5);
+    
     colorbar;
+    ylim([0,.7]);
+    xlim([0,1]);
     xlabel('Scaled V3');
     ylabel('V3 Variance');
-    ylim([0,1]);
 end
 mysavefig(h, sprintf('Choice_Data_%s', Treatment), plot_dir, 12, [10, 8]);
 

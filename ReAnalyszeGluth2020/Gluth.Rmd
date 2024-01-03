@@ -1,0 +1,128 @@
+---
+title: "Gluth"
+author: "Bo Shen"
+date: "6/2/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '/Volumes/GoogleDrive/My Drive/Noise/Gluth')
+```
+
+```{r}
+datadir <- './data'
+outdir <- 'Rfit'
+```
+
+## load data
+```{r}
+cdat <- read.table(file.path(datadir,'Choice.txt'), header = TRUE)
+cdat$subID <- as.factor(cdat$subID)
+subdat <- cdat[cdat$choice !=3,]
+```
+
+## Distractor effect, Ryan's method
+```{r}
+require(maxLik)
+blacklist <- ''# '21072401'
+sublist <- levels(subdat$subID[subdat$subID != blacklist])
+coefslist.DvNorm <- c()
+indvcoefslist.DvNorm <- c()
+mm.DvNorm <- matrix(list(),length(sublist),1)
+par(mfrow = c(3,4))
+for (subj in 1:length((sublist))) #
+{
+  indvmask <- subdat$subID == sublist[subj] & !is.nan(subdat$choice)
+  indvdat <- subdat[indvmask,]
+  indvdat$choice <- (2 - indvdat$choice) # mark as V1 = 1, V2 = 0
+  indvdat$Vdiff <- indvdat$V1 - indvdat$V2
+  logLik <- function(param)
+  {
+    #beta <- param[1]
+    sgm <- param[1]
+    w <- param[2]
+    v <- param[3]
+    SV1 <- indvdat$V1/(sgm + w*indvdat$V1 + v*indvdat$V2 + v*indvdat$V3)
+    SV2 <- indvdat$V2/(sgm + w*indvdat$V1 + v*indvdat$V2 + v*indvdat$V3)
+    choice <- 2*indvdat$choice - 1
+    ll <- -sum(log(1+exp(-(choice*(SV1-SV2))))) # log likelihood
+    ll
+  }
+  # # Constraint
+  A <- matrix(rbind(c(1,0,0),c(-1,0,0),c(0,1,0),c(0,-1,0),c(0,0,1),c(0,0,-1)),6,3)
+  B <- c(20, 20, 1, 1, 1, 1)
+  for (cyc in 1:30)
+  {
+    startpoint <- c(runif(3,-1,1)*c(5,1,1))
+    fit <- maxLik(logLik,start=startpoint, method = "SANN", constraints = list(ineqA=A,ineqB=B))
+    loglik <- fit$maximum
+    k <- length(fit$estimate)
+    N <- length(indvdat$choice)
+    Aval <- 2*k - 2*loglik
+    Bval <- k*log(N) - 2*loglik
+    coefs <- coef(fit)
+    if (cyc == 1)
+    {
+      bestfit <- fit
+      bestcoefs <- coefs
+      beststartpoint <- startpoint
+      bestAIC <- Aval
+      bestBIC <- Bval
+    }
+    if (cyc > 1){
+      if (loglik > bestloglik)
+      {
+        bestfit <- fit
+        bestcoefs <- coefs
+        beststartpoint <- startpoint
+        bestAIC <- Aval
+        bestBIC <- Bval
+      }
+    } 
+    bestloglik <- bestfit$maximum
+    indvcoefslist.DvNorm <- rbind(indvcoefslist.DvNorm, data.frame(subid = sublist[subj], sgm0 = startpoint[1],w0 = startpoint[2], v0 = startpoint[3], sgm = coefs[1],w = coefs[2], v = coefs[3], ll = loglik, AIC = Aval, BIC = Bval))
+  }
+  mm.DvNorm[[subj,1]] <- bestfit
+  coefslist.DvNorm <- rbind(coefslist.DvNorm,data.frame(subid = sublist[subj], sgm0 = beststartpoint[1], w0 = beststartpoint[2], v0 = beststartpoint[3], sgm = bestcoefs[1], w = bestcoefs[2], v = bestcoefs[3], ll = bestloglik, AIC = bestAIC, BIC = bestBIC))
+  
+  # replot fitting performance
+  beta <- 1#bestcoefs[1]
+  sgm <- bestcoefs[1]
+  w <- bestcoefs[2]
+  v <- bestcoefs[3]
+  M <- (sgm + w*indvdat$V1 + v*indvdat$V2 + v*indvdat$V3)
+  SV1 <- indvdat$V1/M
+  SV2 <- indvdat$V2/M
+  p <- 1/(1+exp(-beta*(SV1-SV2)))
+  plot(choice ~ Vdiff, data = indvdat, xlab = 'V1 - V2', ylab = 'p (V1)', main = sublist[subj])
+  points(indvdat$Vdiff, p, pch = 20)
+  if (subj%%12 == 0){
+    dev.copy(pdf,file.path(outdir,sprintf("Fit_DvNorm_%i.pdf", subj)),height=6, width=9)
+    dev.off()}
+}
+dev.copy(pdf,file.path(outdir,sprintf("Fit_DvNorm_%i.pdf", subj)),height=6, width=9)
+dev.off()
+
+save(indvcoefslist.DvNorm, coefslist.DvNorm, mm.DvNorm, file = file.path(outdir,'Fit_DvNorm.RData'))
+
+par(mfrow = c(2,2))
+barplot(coefslist.DvNorm$sgm, names = sublist, las = 2, ylab = 'Sigma')
+barplot(coefslist.DvNorm$w, names = sublist, las = 2, ylab = 'w')
+barplot(coefslist.DvNorm$v, names = sublist, las = 2, ylab = 'v')
+dev.copy(pdf,file.path(outdir,sprintf("Fit_DvNorm_Params.pdf")),height=6, width=6)
+dev.off()
+```
+# Divisive normalization effect vs. representational variability
+```{r}
+biddat <- read.table(file.path(datadir,'BidTask.txt'), header = TRUE)
+biddat$subID <- as.factor(biddat$subID)
+biddat$var <- apply(cbind(biddat$bdm1,biddat$bdm2), 1, FUN = sd)
+meanvar <- aggregate(var ~ subID, data = biddat, FUN = mean)
+colnames(coefslist.DvNorm)[1] <- 'subID'
+coefslist.DvNorm$subID <- as.factor(coefslist.DvNorm$subID)
+mergdat <- merge(coefslist.DvNorm, meanvar, by = c('subID'))
+plot(mergdat$var, mergdat$v)
+test <- lm(v ~ var, data = mergdat)
+summary(test)
+```

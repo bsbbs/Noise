@@ -1,13 +1,19 @@
 %% Code for re-analyzing the data from Louie et al., 2013
-rtdir = '/Users/bs3667/Noise/ReAnalyzeLouie2013';
-datadir = '/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseComparison/IndividualTrinaryChoiceData';
-cd(rtdir);
-addpath('../utils');
-datadir = rtdir;
-svdir = fullfile(rtdir, 'Results');
+
+%% define directories
+[os, ~, ~] = computer;
+if os == 'MACI64'
+    rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/';
+    fitdir = '/Users/bs3667/Noise/modelfit';
+end
+addpath(genpath(Gitdir));
+datadir = fullfile(rootdir,'Bo Shen Working files/NoiseProject/Louie2013/IndividualTrinaryChoiceData');
+
+svdir = fullfile(rootdir,'Bo Shen Working files/NoiseProject/Louie2013', 'Results');
 if ~exist(svdir, 'dir')
     mkdir(svdir);
 end
+
 AnalysName = 'Indvchoice';
 outdir = fullfile(svdir, AnalysName);
 if ~exist(outdir, 'dir')
@@ -42,6 +48,7 @@ end
 %% load data
 % files = myfnames(fullfile(datadir, 'CDdata_*'));
 sublist = {dir(fullfile(datadir, 'CDdata_*')).name};
+mt = [];
 for subi = 1:numel(sublist)
     if mod(subi-1, 12) == 0
         h = figure; hold on;
@@ -57,59 +64,67 @@ for subi = 1:numel(sublist)
 
     indvbd.Properties.VariableNames{'ID'} = 'item 1';
     mergedTable = join(indvdcsn, indvbd(:, {'item 1', 'bdm mean', 'bdm std'}), 'Keys', 'item 1');
-    mergedTable.Properties.VariableNames{'item 1'} = 'ID1';
-    mergedTable.Properties.VariableNames{'bdm mean'} = 'V1';
-    mergedTable.Properties.VariableNames{'bdm std'} = 'sd1';
+    mergedTable.Properties.VariableNames{'item 1'} = 'ID3';
+    mergedTable.Properties.VariableNames{'bdm mean'} = 'V3';
+    mergedTable.Properties.VariableNames{'bdm std'} = 'sdV3';
     indvbd.Properties.VariableNames{'item 1'} = 'item 2';
     mergedTable = join(mergedTable, indvbd(:, {'item 2', 'bdm mean', 'bdm std'}), 'Keys', 'item 2');
-    mergedTable.Properties.VariableNames{'item 2'} = 'ID2';
-    mergedTable.Properties.VariableNames{'bdm mean'} = 'V2';
-    mergedTable.Properties.VariableNames{'bdm std'} = 'sd2';
+    mergedTable.Properties.VariableNames{'item 2'} = 'ID1';
+    mergedTable.Properties.VariableNames{'bdm mean'} = 'V1';
+    mergedTable.Properties.VariableNames{'bdm std'} = 'sdV1';
     indvbd.Properties.VariableNames{'item 2'} = 'item 3';
     mergedTable = join(mergedTable, indvbd(:, {'item 3', 'bdm mean', 'bdm std'}), 'Keys', 'item 3');
-    mergedTable.Properties.VariableNames{'item 3'} = 'ID3';
-    mergedTable.Properties.VariableNames{'bdm mean'} = 'V3';
-    mergedTable.Properties.VariableNames{'bdm std'} = 'sd3';
-    mergedTable = mergedTable(:, {'V1', 'V2', 'V3', 'sd1', 'sd2', 'sd3', 'ID1', 'ID2', 'ID3','choice', 'RT'});
-    mergedTable.larger = nan(size(mergedTable.choice));
-    mergedTable.smaller = nan(size(mergedTable.choice));
-    mergedTable.distractor = nan(size(mergedTable.choice));
-    mergedTable.chosenV = nan(size(mergedTable.choice));
-    for i = 1:length(mergedTable.choice)
-        mergedTable.chosenV(i) = table2array(mergedTable(i,mergedTable.choice(i)));
-        if mergedTable.choice(i) == 1
+    mergedTable.Properties.VariableNames{'item 3'} = 'ID2';
+    mergedTable.Properties.VariableNames{'bdm mean'} = 'V2';
+    mergedTable.Properties.VariableNames{'bdm std'} = 'sdV2';
+    key = [3, 1, 2]';
+    mergedTable.chosenItem = key(mergedTable.choice);
+    mergedTable = mergedTable(:, {'V1', 'V2', 'V3', 'sdV1', 'sdV2', 'sdV3', 'ID1', 'ID2', 'ID3','chosenItem', 'RT'});
+    mergedTable.larger = nan(size(mergedTable.V1));
+    mergedTable.smaller = nan(size(mergedTable.V1));
+    mergedTable.distractor = nan(size(mergedTable.V1));
+    mergedTable.chosenV = nan(size(mergedTable.V1));
+    mergedTable.subCode = repmat({sublist{subi}(8:end-4)}, size(mergedTable.V1));
+    mergedTable.subID = repmat(subi, size(mergedTable.V1));
+    for i = 1:length(mergedTable.V1)
+        mergedTable.chosenV(i) = table2array(mergedTable(i,mergedTable.chosenItem(i)));
+        if mergedTable.chosenItem(i) == 3
             mergedTable.larger(i) = 0;
             mergedTable.smaller(i) = 0;
             mergedTable.distractor(i) = 1;
-        elseif table2array(mergedTable(i, mergedTable.choice(i))) > table2array(mergedTable(i, 5-mergedTable.choice(i)))
+        elseif table2array(mergedTable(i, mergedTable.chosenItem(i))) > table2array(mergedTable(i, 3-mergedTable.chosenItem(i)))
             mergedTable.larger(i) = 1;
             mergedTable.smaller(i) = 0;
             mergedTable.distractor(i) = 0;
-        elseif table2array(mergedTable(i, mergedTable.choice(i))) < table2array(mergedTable(i, 5-mergedTable.choice(i)))
+        elseif table2array(mergedTable(i, mergedTable.chosenItem(i))) < table2array(mergedTable(i, 3-mergedTable.chosenItem(i)))
             mergedTable.larger(i) = 0;
             mergedTable.smaller(i) = 1;
             mergedTable.distractor(i) = 0;
         end
     end
+    mt = [mt; mergedTable];
 
-    summaryData = groupsummary(mergedTable, {'V2', 'V3'}, {'sum', 'sum', 'sum'}, {'larger', 'smaller', 'distractor'});
+    summaryData = groupsummary(mergedTable, {'V1', 'V2'}, {'sum', 'sum', 'sum'}, {'larger', 'smaller', 'distractor'});
     summaryData.sum_larger(summaryData.sum_larger == 0) = nan;
     summaryData.sum_smaller(summaryData.sum_smaller == 0) = nan;
     summaryData.sum_distractor(summaryData.sum_distractor == 0) = nan;
 
-    scatter(summaryData.V2, summaryData.V3, summaryData.sum_larger*20, 'filled', 'MarkerFaceColor', OKeeffe(1,:), 'MarkerFaceAlpha', 0.5);
-    scatter(summaryData.V2, summaryData.V3, summaryData.sum_smaller*20, 'filled', 'MarkerFaceColor', OKeeffe(2,:), 'MarkerFaceAlpha', 0.5);
-    scatter(summaryData.V2, summaryData.V3, summaryData.sum_distractor*20, 'filled', 'MarkerFaceColor', OKeeffe(4,:), 'MarkerFaceAlpha', 0.5);
-    minval = min([summaryData.V2; summaryData.V3]);
-    maxval = max([summaryData.V2; summaryData.V3]);
+    scatter(summaryData.V1, summaryData.V2, summaryData.sum_larger*20, 'filled', 'MarkerFaceColor', OKeeffe(1,:), 'MarkerFaceAlpha', 0.5);
+    scatter(summaryData.V1, summaryData.V2, summaryData.sum_smaller*20, 'filled', 'MarkerFaceColor', OKeeffe(2,:), 'MarkerFaceAlpha', 0.5);
+    scatter(summaryData.V1, summaryData.V2, summaryData.sum_distractor*20, 'filled', 'MarkerFaceColor', OKeeffe(4,:), 'MarkerFaceAlpha', 0.5);
+    minval = min([summaryData.V1; summaryData.V2]);
+    maxval = max([summaryData.V1; summaryData.V2]);
     plot([minval, maxval], [minval, maxval], '--');
     if mod(subi-1, 12) == 0
         legend({'larger', 'smaller', 'distractor'}, 'Location','best');
     end
-    title(sublist{subi}(1:end-4));
+    title(sublist{subi}(8:end-4));
     %if mod(subi, 12) == 0
     filename = sprintf('ChoiceCounts_toSubj%i', subi);
     mysavefig(h, filename, plotdir, 12, [8,11]);
     %end
-
 end
+%% save the transformed data
+mt = mt(:,{'subID','subCode','V1', 'V2', 'V3', 'sdV1', 'sdV2', 'sdV3', 'ID1', 'ID2', 'ID3','chosenItem', 'RT','larger','smaller','distractor'});
+save(fullfile(datadir, 'TrnsfrmData.mat'), 'mt');
+writetable(mt, fullfile(datadir, 'TrnsfrmData.csv'));
