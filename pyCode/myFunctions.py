@@ -358,3 +358,81 @@ def merge_pdf_files(pdf_files, output_file):
     print(f"PDF files merged successfully. Merged document saved as '{output_file}'")
     for file in pdf_files:
         os.remove(file)
+
+def PlotAUCRatio(func, Test, version, V1mean, V2mean, eps, eta, svdir):
+    V3curves = np.arange(0, V2mean - 1, 1)
+    V1 = [V1mean, eps]  # mean and std
+    V2 = [V2mean, eps]
+    ratio = []
+    AUCval = []
+    for V3mean in V3curves:
+        V3 = [V3mean, eps]
+        SVs, probs = func(V1, V2, V3, eta, version)
+        ratio.append(probs[1] / (probs[0] + probs[1]) * 100)
+        pdfs, x = getpdfs(SVs[:2])
+        tmp = AUC(pdfs, x)
+        AUCval.append(tmp)
+    fig, axs = plt.subplots(2, 1, figsize=(3, 4))
+    cmap = plt.get_cmap('viridis')
+    # AUC
+    axs[0].set_title(f'{Test} noise')
+    axs[0].scatter(V3curves, AUCval, c=AUCval, cmap=cmap, marker='.', s=30)
+    if ((max(AUCval) - min(AUCval)) < 1):
+        axs[0].set_ylim((np.mean(AUCval)-.9, np.mean(AUCval)+1.8))
+    axs[0].set_xlim((-4, V3curves.max() + 6))
+    axs[0].set_xlabel('')
+    axs[0].set_ylabel('% Overlapping (V1 & V2)')
+    axs[0].tick_params(axis='both', direction='in')
+    # Ratio
+    axs[1].scatter(V3curves, ratio, c=ratio, cmap=cmap, marker='.', s=30)
+    axs[1].plot(V1mean, min(ratio), 'v', color=color1, markersize=4, alpha=1)
+    axs[1].plot(V2mean, min(ratio), 'v', color=color2, markersize=4, alpha=1)
+    axs[1].set_xlim((-4, V3curves.max() + 6))
+    axs[1].set_xlabel('V3')
+    axs[1].set_ylabel('% Correct (V1 & V2)')
+    axs[1].tick_params(axis='both', direction='in')
+    # plt.tight_layout()
+    plt.savefig(join(svdir, 'ModelSimulation', f'AUCRatios_{func.__name__}_{Test}_{version}.pdf'), format='pdf')
+
+def makecolors(values):
+    norm = Normalize(vmin=values.min(), vmax=values.max())
+    normalized_values = norm(values)
+    cmap = plt.get_cmap('viridis')
+    colors = cmap(normalized_values)
+    return colors
+def getpdfs(SVs):
+    # ys = [np.arange(np.mean(SV) - 3 * np.std(SV), np.mean(SV) + 3 * np.std(SV), .1) for SV in SVs]
+    # pdfs = [stats.norm.pdf(y, np.mean(SV), np.std(SV)) for y, SV in zip(ys, SVs)]
+    # kdes = [stats.gaussian_kde(SV) for SV in SVs]
+    # pdfs = [kde(y) for kde, y in zip(kdes, ys)]
+    interval = 0.1
+    x = np.arange(SVs.min(), SVs.max(), interval)
+    kdes = [stats.gaussian_kde(SV) for SV in SVs]
+    pdfs = [kde(x) for kde in kdes]
+    return pdfs, x
+def adddistrilines(ax, pdfs, x):
+    mask = pdfs[0] > 1e-4
+    ax.plot(x[mask], pdfs[0][mask], label='Option 1', color=color1)
+    mask = pdfs[1] > 1e-4
+    ax.plot(x[mask], pdfs[1][mask],  label='Option 2', color=color2)
+    mask = pdfs[2] > 1e-4
+    ax.plot(x[mask], pdfs[2][mask],  label='Option 3', color=color3, alpha=0.5, zorder=1)
+    overlap = np.minimum(pdfs[0], pdfs[1])
+    cutout = np.minimum(overlap, pdfs[2])
+    mask = overlap > 1e-4
+    ax.fill_between(x[mask], cutout[mask], overlap[mask], color='darkslategrey', label='Overlap Area')
+    ax.fill_between(x[mask], 0, cutout[mask], color='darkslategrey', alpha=0.5, label='Overlap Area')
+    ax.set_xlim(0, 45)
+    ax.set_xticks([0, 20, 40])
+    ax.set_ylim(0, .5)
+    ax.set_yticks([0, .5])
+    ax.set_xlabel('Neural activity')
+    ax.set_ylabel('Probability density')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.tick_params(axis='both', direction='in')
+def AUC(pdfs, x):
+    interval = x[1] - x[0]
+    overlap = np.minimum(pdfs[0], pdfs[1])
+    AUCval = sum(overlap) * interval * 100
+    return AUCval

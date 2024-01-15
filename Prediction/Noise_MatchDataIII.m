@@ -562,31 +562,32 @@ if strcmp(mode, 'absorb')
             samples(ci,:,:) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
         end
     end
-    samplesD1 = [];
-    samplesD2 = [];
-    samplesD3 = [];
+    D1 = [];
+    D2 = [];
+    D3 = [];
     for ci = 1:3
         if gpuparallel
             values = gpuArray(data.(['V',num2str(ci)])');
             stds = gpuArray(data.(['sdV', num2str(ci)])')*scl;
-            samplesD1(ci,:,:) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
-            samplesD2(ci,:,:) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
-            samplesD3(ci,:,:) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+            D1(ci,:,:) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+            D2(ci,:,:) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+            D3(ci,:,:) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
         else
             values = data.(['V',num2str(ci)])';
             stds = data.(['sdV', num2str(ci)])'*scl;
-            samplesD1(ci,:,:) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
-            samplesD2(ci,:,:) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
-            samplesD3(ci,:,:) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+            D1(ci,:,:) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+            D2(ci,:,:) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+            D3(ci,:,:) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
         end
     end
 elseif strcmp(mode, 'cutoff')
     error('The cutoff boundary algorithm has not been developped yet.');
 end
-D1 = sum(samplesD1, 1)*wp + Mp;
-D2 = sum(samplesD1, 1)*wp + Mp;
-D3 = sum(samplesD1, 1)*wp + Mp;
+D1 = sum(D1, 1)*wp + Mp;
+D2 = sum(D2, 1)*wp + Mp;
+D3 = sum(D3, 1)*wp + Mp;
 D = [D1; D2; D3];
+clear D1 D2 D3;
 if gpuparallel
     SVs = samples./D + gpuArray.randn(size(samples))*eta;
     choice = gpuArray(data.chosenItem');
