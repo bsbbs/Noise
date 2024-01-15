@@ -23,7 +23,7 @@ V2 = V2mean*ones(size(V3));
 nsmpls = 1e7;
 % simulation
 matfile = fullfile(plot_dir, [filename, '.mat']);
-if ~exist("matfile", 'file')
+if ~exist(matfile, 'file')
     eps = 9;
     eta = 0;
     sdV1 = eps*ones(size(V3));
