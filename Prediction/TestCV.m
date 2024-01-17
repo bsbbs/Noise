@@ -49,6 +49,7 @@ ylabel('Freq.');
 xlabel('V1 output');
 
 z = 1:10;
+mycolors = ones(1,3).*linspace(0.5,0,numel(z))';
 CV = [];
 for i = 1:numel(z)
     R1 = V1./(V1 + z(i));

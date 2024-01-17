@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import scipy.stats as stats
-from myFunctions import load_data, PlotAUCRatio
+from myFunctions import load_data, PlotAUCRatio, adddistrilines, getpdfs, dDN, dDNb, dDNDpdnt, dDNwOpt, Absolute, LS
 from matplotlib.colors import Normalize
 from os.path import join as join
 svdir = r'/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject/pyResults'
@@ -11,17 +10,13 @@ svdir = r'/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/Noise
 
 # Distribution demo
 # parameter preset
-color1 = 'orange'
-color2 = 'red'
-color3 = 'green'
-
 # Divisive normalization
 # Early noise
-V1mean = 82
-V2mean = 88
-V3demo = np.array([0, .6, .9, 1])*(V1mean - 3)
+V1mean = 88
+V2mean = 83
+V3demo = np.array([0, .6, .9, 1])*(V2mean - 3)
 Test = 'Early'
-for version in ['additive', 'mean-scaled']:
+for version in ['additive']:#, 'mean-scaled'
     if version == 'additive':
         eps = 2.8
         eta = 0
@@ -33,23 +28,23 @@ for version in ['additive', 'mean-scaled']:
     fig, axs = plt.subplots(4, 1, figsize=(3, 4))
     for frame in range(len(V3demo)):
         V3 = [V3demo[frame], eps]
-        SVs, _ = DN2(V1, V2, V3, eta, version)
+        SVs, _ = dDN(V1, V2, V3, eta, version)
         pdfs, x = getpdfs(SVs)
         adddistrilines(axs[frame], pdfs, x)
-    plt.savefig(join(svdir, 'ModelSimulation', f'Demo_DN2_{Test}_{version}.pdf'), format='pdf')
+    plt.savefig(join(svdir, 'ModelSimulation', f'Demo_dDN_{Test}_{version}.pdf'), format='pdf')
 # Late noise
 Test = 'Late'
 eps = 0
-eta = .9
+eta = 1 #.9
 V1 = [V1mean, eps]
 V2 = [V2mean, eps]
 fig, axs = plt.subplots(4, 1, figsize=(3, 4))
 for frame in range(len(V3demo)):
     V3 = [V3demo[frame], eps]
-    SVs, _ = DN(V1, V2, V3, eta, 'additive')
+    SVs, _ = dDN(V1, V2, V3, eta, 'additive')
     pdfs, x = getpdfs(SVs)
     adddistrilines(axs[frame], pdfs, x)
-plt.savefig(join(svdir, 'ModelSimulation', f'Demo_DN_{Test}.pdf'), format='pdf')
+plt.savefig(join(svdir, 'ModelSimulation', f'Demo_dDN_{Test}.pdf'), format='pdf')
 # Absolute model
 V1mean = 82*.43
 V2mean = 88*.43
@@ -337,262 +332,3 @@ plt.tight_layout()
 plt.savefig(join(svdir, 'ModelSimulation', f'Ratios_DN_{Test}_{version}.pdf'), format='pdf')
 
 
-# Alternative Model - Divisive normalization, with additive early noise (when version == 'additive') or with mean-scaled noise (version == 'mean-scaled')
-def DN(V1, V2, V3, eta, version):
-    w = 1
-    M = 1
-    Rmax = 75
-    import torch
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
-    options = torch.tensor([V1, V2, V3])
-    num_samples = int(1e6)
-    # Operation #1, sampling with early noise
-    if version == 'additive':
-        O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                          for mean, sd in options], dim=0)
-        # Operation #2, G neurons independently summarizing these inputs with noise
-        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options], dim=0), dim=0)
-        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options], dim=0), dim=0)
-        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options], dim=0), dim=0)
-    elif version == 'mean-scaled':
-        O1 = torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                          for mean, slp in options], dim=0)
-        # Operation #2, G neurons independently summarizing these inputs with noise
-        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options], dim=0), dim=0)
-        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options], dim=0), dim=0)
-        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options], dim=0), dim=0)
-    # Operation #3, implementing lateral inhibition
-    Context = torch.stack((G1, G2, G3), dim=0)
-    O3 = [Rmax*DirectValue/(M+ContextValue*w) for DirectValue, ContextValue in zip(O1, Context)]
-    # Alternatively, use the shared denominator by assuming noise varying trial-by-trial but fixed within trial
-    # D = torch.sum(O1, dim=0)
-    # O3 = [Rmax * DirectValue / (M + D * w) for DirectValue in O1]
-    # Operation #4, apply late noise
-    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
-                           for ComputedValue in O3])
-    max_indices = torch.argmax(Outputs, dim=0)
-    max_from_each_distribution = torch.zeros_like(Outputs)
-    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
-    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
-    return Outputs.cpu().numpy(), probs.cpu().numpy()
-def DN1(V1, V2, V3, eta, version):
-    w = 1
-    M = 1
-    Rmax = 75
-    import torch
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
-    options = torch.tensor([V1, V2, V3])
-    num_samples = int(1e6)
-    # Operation #1, sampling with early noise
-    if version == 'additive':
-        O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                          for mean, sd in options], dim=0)
-    elif version == 'mean-scaled':
-        O1 = torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                          for mean, slp in options], dim=0)
-    # Operation #3, Values in the same trial are always the same
-    Context = torch.sum(O1, dim=0)
-    O3 = [Rmax*DirectValue/(M+Context*w) for DirectValue in O1]
-    # Operation #4, apply late noise
-    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
-                           for ComputedValue in O3])
-    max_indices = torch.argmax(Outputs, dim=0)
-    max_from_each_distribution = torch.zeros_like(Outputs)
-    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
-    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
-    return Outputs.cpu().numpy(), probs.cpu().numpy()
-def DN2(V1, V2, V3, eta, version):
-    w = 1
-    M = 1
-    Rmax = 75
-    import torch
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
-    options = torch.tensor([V1, V2, V3])
-    num_samples = int(1e6)
-    # Operation #1, sampling with early noise
-    if version == 'additive':
-        O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                          for mean, sd in options], dim=0)
-        # Operation #2, G neurons independently summarizing contextual inputs with noise
-        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options[[1, 2]]], dim=0), dim=0)
-        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options[[0, 2]]], dim=0), dim=0)
-        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options[[0, 1]]], dim=0), dim=0)
-    elif version == 'mean-scaled':
-        O1 = torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                          for mean, slp in options], dim=0)
-        # Operation #2, G neurons independently summarizing these inputs with noise
-        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options[[1, 2]]], dim=0), dim=0)
-        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options[[0, 2]]], dim=0), dim=0)
-        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options[[0, 1]]], dim=0), dim=0)
-    # Operation #3, values (numerator and denominator) of the same item is the same only in the same option
-    Context = torch.stack((G1, G2, G3), dim=0)
-    O3 = [Rmax*DirectValue/(M+ (DirectValue + ContextValue)*w) for DirectValue, ContextValue in zip(O1, Context)]
-    # Operation #4, apply late noise
-    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
-                           for ComputedValue in O3])
-    max_indices = torch.argmax(Outputs, dim=0)
-    max_from_each_distribution = torch.zeros_like(Outputs)
-    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
-    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
-    return Outputs.cpu().numpy(), probs.cpu().numpy()
-def DN3(V1, V2, V3, eta, version):
-    w = 1
-    M = 1
-    Rmax = 75
-    import torch
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
-    options = torch.tensor([V1, V2, V3])
-    num_samples = int(1e6)
-    # Operation #1, sampling with early noise
-    if version == 'additive':
-        O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                          for mean, sd in options], dim=0)
-        # Operation #2, G neurons independently summarizing these inputs with noise
-        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options], dim=0), dim=0)
-        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options], dim=0), dim=0)
-        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options], dim=0), dim=0)
-    elif version == 'mean-scaled':
-        O1 = torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                          for mean, slp in options], dim=0)
-        # Operation #2, G neurons independently summarizing these inputs with noise
-        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options], dim=0), dim=0)
-        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options], dim=0), dim=0)
-        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options], dim=0), dim=0)
-    # Operation #3, every time access to the value of the item is different, even within the same trial and for the same option,
-    # e.g, V1 in the numerator and in the denominator of option 1 are independently drawn
-    Context = torch.stack((G1, G2, G3), dim=0)
-    O3 = [Rmax*DirectValue/(M+ContextValue*w) for DirectValue, ContextValue in zip(O1, Context)]
-    # Alternatively, use the shared denominator by assuming noise varying trial-by-trial but fixed within trial
-    # D = torch.sum(O1, dim=0)
-    # O3 = [Rmax * DirectValue / (M + D * w) for DirectValue in O1]
-    # Operation #4, apply late noise
-    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
-                           for ComputedValue in O3])
-    max_indices = torch.argmax(Outputs, dim=0)
-    max_from_each_distribution = torch.zeros_like(Outputs)
-    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
-    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
-    return Outputs.cpu().numpy(), probs.cpu().numpy()
-def DNb(V1, V2, V3, eta, version):
-    w = 1
-    M = 1
-    Rmax = 75
-    import torch
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
-    options = torch.tensor([V1, V2, V3])
-    num_samples = int(1e6)
-    # Operation #1, sampling with early noise
-    if version == 'additive':
-        O1 = torch.clamp(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                          for mean, sd in options], dim=0), min=0)
-        # Operation #2, G neurons independently summarizing these inputs with noise
-        G1 = torch.sum(torch.clamp(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options], dim=0), min=0), dim=0)
-        G2 = torch.sum(torch.clamp(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options], dim=0), min=0), dim=0)
-        G3 = torch.sum(torch.clamp(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options], dim=0), min=0), dim=0)
-    elif version == 'mean-scaled':
-        O1 = torch.clamp(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                          for mean, slp in options], dim=0), min=0)
-        # Operation #2, G neurons independently summarizing these inputs with noise
-        G1 = torch.sum(torch.clamp(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options], dim=0), min=0), dim=0)
-        G2 = torch.sum(torch.clamp(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options], dim=0), min=0), dim=0)
-        G3 = torch.sum(torch.clamp(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options], dim=0), min=0), dim=0)
-    # Operation #3, every time access to the value of the item is different, even within the same trial and for the same option,
-    # e.g, V1 in the numerator and in the denominator of option 1 are independently drawn
-    Context = torch.stack((G1, G2, G3), dim=0)
-    O3 = [Rmax*DirectValue/(M+ContextValue*w) for DirectValue, ContextValue in zip(O1, Context)]
-    # Alternatively, use the shared denominator by assuming noise varying trial-by-trial but fixed within trial
-    # D = torch.sum(O1, dim=0)
-    # O3 = [Rmax * DirectValue / (M + D * w) for DirectValue in O1]
-    # Operation #4, apply late noise
-    Outputs = torch.clamp(torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
-                           for ComputedValue in O3]), min=0)
-    max_indices = torch.argmax(Outputs, dim=0)
-    max_from_each_distribution = torch.zeros_like(Outputs)
-    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
-    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
-    return Outputs.cpu().numpy(), probs.cpu().numpy()
-
-# Alternative Model - Absolute values, with additive early noise (when version == 'additive') or with mean-scaled noise (version == 'mean-scaled')
-def Absolute(V1, V2, V3, eta, version):
-    import torch
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
-    options = torch.tensor([V1, V2, V3])
-    num_samples = int(1e6)
-    # Operation #1, sampling with early noise
-    if version == 'additive':
-        O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                          for mean, sd in options], dim=0)
-    elif version == 'mean-scaled':
-        O1 = torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                          for mean, slp in options], dim=0)
-    # Operation #4, apply late noise
-    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
-                           for ComputedValue in O1])
-    max_indices = torch.argmax(Outputs, dim=0)
-    max_from_each_distribution = torch.zeros_like(Outputs)
-    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
-    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
-    return Outputs.cpu().numpy(), probs.cpu().numpy()
-# Alternative Model - Linear subtraction, with additive early noise (when version == 'additive') or with mean-scaled noise (version == 'mean-scaled')
-def LS(V1, V2, V3, eta, version):
-    import torch
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
-    options = torch.tensor([V1, V2, V3])
-    num_samples = int(1e6)
-    w = .2
-    # Operation #1, sampling with early noise
-    if version == 'additive':
-        O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                          for mean, sd in options], dim=0)
-        # Operation #2, G neurons independently summarizing these inputs with noise
-        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options], dim=0), dim=0)
-        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options], dim=0), dim=0)
-        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
-                                    for mean, sd in options], dim=0), dim=0)
-    elif version == 'mean-scaled':
-        O1 = torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                          for mean, slp in options], dim=0)
-        # Operation #2, G neurons independently summarizing these inputs with noise
-        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options], dim=0), dim=0)
-        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options], dim=0), dim=0)
-        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
-                                    for mean, slp in options], dim=0), dim=0)
-    Context = torch.stack((G1, G2, G3), dim=0)
-    # Operation #3, implementing lateral inhibition
-    O3 = [DirectValue - ContextValue*w for DirectValue, ContextValue in zip(O1, Context)]
-    # Operation #4, apply late noise
-    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
-                           for ComputedValue in O3])
-    max_indices = torch.argmax(Outputs, dim=0)
-    max_from_each_distribution = torch.zeros_like(Outputs)
-    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
-    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
-    return Outputs.cpu().numpy(), probs.cpu().numpy()

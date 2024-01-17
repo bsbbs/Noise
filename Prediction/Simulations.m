@@ -1,5 +1,4 @@
 % Figure 1. Generating the predictions for the early and late noise
-
 %% define directories
 [os, ~, ~] = computer;
 if strcmp(os,'MACI64')
@@ -22,7 +21,7 @@ V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 nsmpls = 1e7;
 % simulation
-matfile = fullfile(plot_dir, [filename, '.mat']);
+matfile = fullfile(sim_dir, [filename, '.mat']);
 if ~exist(matfile, 'file')
     eps = 9;
     eta = 0;
@@ -47,7 +46,7 @@ if ~exist(matfile, 'file')
 else
     load(matfile);
 end
-%
+%%
 h = figure;
 subplot(3,2,1); hold on;
 plot(V3, CVsa(1,:), 'k:', 'LineWidth', 1);
@@ -55,9 +54,9 @@ plot(V3, CVsb(1,:), 'k-', 'LineWidth', 1);
 xlabel('V3');
 ylabel('Coeff. of Var.');
 xlim([0, V1mean]);
-yticks = get(gca, 'YTick');
-yticklabels = arrayfun(@(v) sprintf('%0.2f', v), yticks, 'UniformOutput', false);
-set(gca, 'YTickLabel', yticklabels);
+% yticks = get(gca, 'YTick');
+% yticklabels = arrayfun(@(v) sprintf('%0.3f', v), yticks, 'UniformOutput', false);
+% set(gca, 'YTickLabel', yticklabels);
 legend({'Theoritical','Biological'}, 'Location', 'northeast', 'FontSize',10);
 mysavefig(h, sprintf('CV_Ovlp_Choice'), plot_dir, 12, [6, 8]);
 
@@ -67,55 +66,58 @@ plot(V3, CVsbL(1,:), 'k-', 'LineWidth', 1);
 xlabel('V3');
 ylabel('Coeff. of Var.');
 xlim([0, V1mean]);
-yticks = get(gca, 'YTick');
-yticklabels = arrayfun(@(v) sprintf('%0.2f', v), yticks, 'UniformOutput', false);
-set(gca, 'YTickLabel', yticklabels);
+% yticks = get(gca, 'YTick');
+% yticklabels = arrayfun(@(v) sprintf('%0.3f', v), yticks, 'UniformOutput', false);
+% set(gca, 'YTickLabel', yticklabels);
 mysavefig(h, sprintf('CV_Ovlp_Choice'), plot_dir, 12, [6, 8]);
 
 subplot(3,2,3); hold on;
 plot(V3, Ovlpsa(1,:), 'k:', 'LineWidth', 1);
 plot(V3, Ovlpsb(1,:), 'k-', 'LineWidth', 1);
 xlabel('V3');
-ylabel('% Overlap (V1 & V2)');
+ylabel('% Overlap | V1, V2');
 xlim([0, V1mean]);
-yticks = get(gca, 'YTick');
-yticklabels = arrayfun(@(v) sprintf('%0.1f', v), yticks, 'UniformOutput', false);
-set(gca, 'YTickLabel', yticklabels);
+% yticks = get(gca, 'YTick');
+% yticklabels = arrayfun(@(v) sprintf('%2.1f', v), yticks, 'UniformOutput', false);
+% set(gca, 'YTickLabel', yticklabels);
 mysavefig(h, sprintf('CV_Ovlp_Choice'), plot_dir, 12, [6, 8]);
 
 subplot(3,2,4); hold on;
 plot(V3, OvlpsaL(1,:), 'k:', 'LineWidth', 1);
 plot(V3, OvlpsbL(1,:), 'k-', 'LineWidth', 1);
 xlabel('V3');
-ylabel('% Overlap (V1 & V2)');
+ylabel('% Overlap | V1, V2');
 xlim([0, V1mean]);
-yticks = get(gca, 'YTick');
-yticklabels = arrayfun(@(v) sprintf('%0.1f', v), yticks, 'UniformOutput', false);
-set(gca, 'YTickLabel', yticklabels);
+% yticks = get(gca, 'YTick');
+% yticklabels = arrayfun(@(v) sprintf('%2.1f', v), yticks, 'UniformOutput', false);
+% set(gca, 'YTickLabel', yticklabels);
 mysavefig(h, sprintf('CV_Ovlp_Choice'), plot_dir, 12, [6, 8]);
 
 subplot(3,2,5); hold on;
 ratio = probsa(1,:)./(probsa(1,:) + probsa(2,:))*100;
 plot(V3, ratio, 'k:', 'LineWidth', 1);
+plot([V1mean, V2mean], [1, 1]*min(ratio), 'kv', 'MarkerFaceColor','k');
 ratio = probsb(1,:)./(probsb(1,:) + probsb(2,:))*100;
 plot(V3, ratio, 'k-', 'LineWidth', 1);
 xlabel('V3');
-ylabel('% Correct (V1 & V2)');
+ylabel('% Correct | V1, V2');
 xlim([0, V1mean]);
-yticks = get(gca, 'YTick');
-yticklabels = arrayfun(@(v) sprintf('%0.1f', v), yticks, 'UniformOutput', false);
-set(gca, 'YTickLabel', yticklabels);
+% yticks = get(gca, 'YTick');
+% yticklabels = arrayfun(@(v) sprintf('%2.1f', v), yticks, 'UniformOutput', false);
+% set(gca, 'YTickLabel', yticklabels);
 mysavefig(h, sprintf('CV_Ovlp_Choice'), plot_dir, 12, [6, 8]);
 
 subplot(3,2,6); hold on;
 ratio = probsaL(1,:)./(probsaL(1,:) + probsaL(2,:))*100;
 plot(V3, ratio, 'k:', 'LineWidth', 1);
+plot([V1mean, V2mean], [1, 1]*min(ratio), 'kv', 'MarkerFaceColor', 'k');
 ratio = probsbL(1,:)./(probsbL(1,:) + probsbL(2,:))*100;
 plot(V3, ratio, 'k-', 'LineWidth', 1);
 xlabel('V3');
-ylabel('% Correct (V1 & V2)');
+ylabel('% Correct | V1, V2');
 xlim([0, V1mean]);
-yticks = get(gca, 'YTick');
-yticklabels = arrayfun(@(v) sprintf('%0.1f', v), yticks, 'UniformOutput', false);
-set(gca, 'YTickLabel', yticklabels);
+ylim([61,65]);
+% yticks = get(gca, 'YTick');
+% yticklabels = arrayfun(@(v) sprintf('%2.1f', v), yticks, 'UniformOutput', false);
+% set(gca, 'YTickLabel', yticklabels);
 mysavefig(h, filename, plot_dir, 12, [6, 8]);

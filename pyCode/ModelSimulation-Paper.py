@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as stats
 from myFunctions import load_data
-from matplotlib.animation import FuncAnimation
 from matplotlib.colors import Normalize
 from os.path import join as join
 svdir = r'/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject/pyResults'
@@ -22,7 +21,7 @@ V1mean = 82
 V2mean = 88
 V3demo = np.array([0, .6, .9, 1])*(V1mean - 3)
 Test = 'Early'
-for version in ['additive', 'mean-scaled']:
+for version in ['additive']: # , 'mean-scaled'
     if version == 'additive':
         eps = 2.8
         eta = 0
@@ -34,7 +33,7 @@ for version in ['additive', 'mean-scaled']:
     fig, axs = plt.subplots(4, 1, figsize=(3, 4))
     for frame in range(len(V3demo)):
         V3 = [V3demo[frame], eps]
-        SVs, _ = DN2(V1, V2, V3, eta, version)
+        SVs, _ = DN(V1, V2, V3, eta, version)
         pdfs, x = getpdfs(SVs)
         adddistrilines(axs[frame], pdfs, x)
     plt.savefig(join(svdir, 'ModelSimulation', f'Demo_DN2_{Test}_{version}.pdf'), format='pdf')

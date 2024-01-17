@@ -1,6 +1,8 @@
 import os
 import glob
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 def load_data(directory, file_pattern):
     # Directory path
     # directory = r"C:\Users\Bo\Dropbox (NYU Langone Health)\CESS-Bo\TaskProgram\log\txtDat"
@@ -30,300 +32,223 @@ def load_data(directory, file_pattern):
     # Display the DataFrame
     return df
 
-# The simplest model, we call that McFadden model, with only decision noise.
-# Value of the option set as the mean bid value
-def McFadden(mean1, mean2, mean3, eta):
+# Alternative Model - Absolute values, with additive early noise (when version == 'additive') or with mean-scaled noise (version == 'mean-scaled')
+def Absolute(V1, V2, V3, eta, version):
     import torch
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
-
-    show = False
-    if show:
-        import seaborn as sns
-        import numpy as np
-        import matplotlib.pyplot as plt
-    options = torch.tensor([(mean1, eta/(2**.5)), (mean2, eta/(2**.5)), (mean3, eta/(2**.5))])
-    # sampling with decision noise based on the mean bid value of each option
-    num_samples = 100000
-    SVs = [meanval + torch.normal(mean=0, std=sdval, size=(num_samples,), device=device) for meanval, sdval in
-           options]  # move to device
-
-    if show:
-        fig, axs = plt.subplots(2, 1, figsize=(3.5, 5))
-        sns.set_palette('Paired')
-        palette = sns.color_palette('Paired')
-        # Convert tensors back to CPU for plotting
-        axs[0].axvline(x=mean1, color=palette[1], linestyle='-', label='Option 1')
-        axs[0].axvline(x=mean2, color=palette[2], linestyle='-', label='Option 2')
-        axs[0].axvline(x=mean3, color=palette[3], linestyle='-', label='Option 3')
-        axs[0].set_xlim(0, max(mean1, mean2, mean3) * 1.2)
-        axs[0].set_xlabel('Mean bid value')
-        axs[0].set_ylabel('')
-        axs[0].legend()
-        bins = np.linspace(min(SVs[0].min(), SVs[1].min(), SVs[2].min()).cpu(),
-                           max(SVs[0].max(), SVs[1].max(), SVs[2].max()).cpu(), 100)
-        sns.histplot(SVs[0].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 1', ax=axs[1])
-        sns.histplot(SVs[1].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 2', ax=axs[1])
-        sns.histplot(SVs[2].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 3', ax=axs[1])
-        axs[1].set_xlabel('Mean bid value with decision noise')
-        axs[1].set_ylabel('Frequency')
-        plt.tight_layout()
-        plt.savefig('McFadden_demo.pdf', format='pdf')
-
-    SVs_tensor = torch.stack(SVs)  # Combine the samples into a single tensor
-    # Find the index of the distribution with the max value in each row
-    max_indices = torch.argmax(SVs_tensor, dim=0)
-    # Create a tensor where each row is 1 if the max value in that row is from the corresponding distribution, and 0 otherwise
-    max_from_each_distribution = torch.zeros_like(SVs_tensor)
-    max_from_each_distribution[max_indices, torch.arange(SVs_tensor.shape[1])] = 1
-    probs = torch.sum(max_from_each_distribution, dim=1) / SVs_tensor.shape[1]
-    # Print the probabilities
-    if show:
-        print(f"Probability that a variable drawn from sample 1 is: {probs[0]}")
-        print(f"Probability that a variable drawn from sample 2 is: {probs[1]}")
-        print(f"Probability that a variable drawn from sample 3 is: {probs[2]}")
-
-    return probs
-
-# Model without normalization, but with representation noise
-# This model has no name yet, just call it model 2
-def Mdl2(mean1, mean2, mean3, sd1, sd2, sd3, eta):
+    options = torch.tensor([V1, V2, V3])
+    num_samples = int(1e6)
+    # Operation #1, sampling with early noise
+    if version == 'additive':
+        O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                          for mean, sd in options], dim=0)
+    elif version == 'mean-scaled':
+        O1 = torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                          for mean, slp in options], dim=0)
+    # Operation #4, apply late noise
+    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
+                           for ComputedValue in O1])
+    max_indices = torch.argmax(Outputs, dim=0)
+    max_from_each_distribution = torch.zeros_like(Outputs)
+    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
+    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
+    return Outputs.cpu().numpy(), probs.cpu().numpy()
+# Alternative Model - Linear subtraction, with additive early noise (when version == 'additive') or with mean-scaled noise (version == 'mean-scaled')
+def LS(V1, V2, V3, eta, version):
     import torch
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
+    options = torch.tensor([V1, V2, V3])
+    num_samples = int(1e6)
+    w = .2
+    # Operation #1, sampling with early noise
+    if version == 'additive':
+        O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                          for mean, sd in options], dim=0)
+        # Operation #2, G neurons independently summarizing these inputs with noise
+        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                                    for mean, sd in options], dim=0), dim=0)
+        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                                    for mean, sd in options], dim=0), dim=0)
+        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                                    for mean, sd in options], dim=0), dim=0)
+    elif version == 'mean-scaled':
+        O1 = torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                          for mean, slp in options], dim=0)
+        # Operation #2, G neurons independently summarizing these inputs with noise
+        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                                    for mean, slp in options], dim=0), dim=0)
+        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                                    for mean, slp in options], dim=0), dim=0)
+        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                                    for mean, slp in options], dim=0), dim=0)
+    Context = torch.stack((G1, G2, G3), dim=0)
+    # Operation #3, implementing lateral inhibition
+    O3 = [DirectValue - ContextValue*w for DirectValue, ContextValue in zip(O1, Context)]
+    # Operation #4, apply late noise
+    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
+                           for ComputedValue in O3])
+    max_indices = torch.argmax(Outputs, dim=0)
+    max_from_each_distribution = torch.zeros_like(Outputs)
+    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
+    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
+    return Outputs.cpu().numpy(), probs.cpu().numpy()
 
-    show = False
-    if show:
-        import seaborn as sns
-        import numpy as np
-        import matplotlib.pyplot as plt
-
-    num_samples = 100000
-    options = ([(mean1, sd1), (mean2, sd2), (mean3, sd3)])
-    samples = [torch.normal(mean=mean, std=sd, size=(num_samples,), device=device) for mean, sd in
-               options]  # move to device
-    # decision noise for each option
-    SVs = [sample + torch.normal(mean=0, std=eta, size=(num_samples,), device=device) for sample in
-           samples]  # move to device
-
-    if show:
-        bins = np.linspace(min(0, min(mean1 - 3 * sd1, mean2 - 3 * sd2, mean3 - 3 * sd3)),
-                           max(mean1 + 3 * sd1, mean2 + 3 * sd2, mean3 + 3 * sd3), 100)
-        fig, axs = plt.subplots(2, 1, figsize=(3.5, 5))
-        sns.set_palette('Paired')
-        # Convert tensors back to CPU for plotting
-        sns.histplot(samples[0].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 1', ax=axs[0])
-        sns.histplot(samples[1].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 2', ax=axs[0])
-        sns.histplot(samples[2].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 3', ax=axs[0])
-        axs[0].set_xlabel('Bid value with representation noise')
-        axs[0].set_ylabel('Frequency')
-        axs[0].legend()
-        bins = np.linspace(min(SVs[0].min(), SVs[1].min(), SVs[2].min()).cpu(),
-                           max(SVs[0].max(), SVs[1].max(), SVs[2].max()).cpu(), 100)
-        sns.histplot(SVs[0].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 1', ax=axs[1])
-        sns.histplot(SVs[1].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 2', ax=axs[1])
-        sns.histplot(SVs[2].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 3', ax=axs[1])
-        axs[1].set_xlabel('Bid value with decision noise')
-        axs[1].set_ylabel('Frequency')
-        plt.tight_layout()
-        plt.savefig('Mdl2_demo.pdf', format='pdf')
-
-    SVs_tensor = torch.stack(SVs)  # Combine the samples into a single tensor
-    # Find the index of the distribution with the max value in each row
-    max_indices = torch.argmax(SVs_tensor, dim=0)
-    # Create a tensor where each row is 1 if the max value in that row is from the corresponding distribution, and 0 otherwise
-    max_from_each_distribution = torch.zeros_like(SVs_tensor)
-    max_from_each_distribution[max_indices, torch.arange(SVs_tensor.shape[1])] = 1
-    probs = torch.sum(max_from_each_distribution, dim=1) / SVs_tensor.shape[1]
-    # Print the probabilities
-    if show:
-        print(f"Probability that a variable drawn from sample 1 is: {probs[0]}")
-        print(f"Probability that a variable drawn from sample 2 is: {probs[1]}")
-        print(f"Probability that a variable drawn from sample 3 is: {probs[2]}")
-
-    return probs
-
-
-# Canonical Divisive Normalization, with only decision noise
-def DN(mean1, mean2, mean3, Mp, wp):
+# Distributive divisive normalization, with additive early noise (when version == 'additive') or with mean-scaled noise (version == 'mean-scaled')
+# type 1: fully dependent
+def dDNDpdnt(V1, V2, V3, eta, version):
+    w = 1
+    M = 1
+    Rmax = 75
     import torch
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
-
-    show = False
-    if show:
-        import seaborn as sns
-        import numpy as np
-        import matplotlib.pyplot as plt
-    # the value of denominator
-    D = Mp + wp*(mean1 + mean2 + mean3)
-    # decision noise for each option. This means the pooled sd from two options is z-scored as 1
-    sd = 2**-.5
-    options = torch.tensor([(mean1, sd), (mean2, sd), (mean3, sd)])
-    # sampling with decision noise based on the normalized value of each option
-    num_samples = 100000
-    SVs = [torch.normal(mean=meanval / D, std=sdval, size=(num_samples,), device=device) for meanval, sdval in options]  # move to device
-
-    if show:
-        fig, axs = plt.subplots(2, 1, figsize=(3.5, 5))
-        sns.set_palette('Paired')
-        palette = sns.color_palette('Paired')
-        # Convert tensors back to CPU for plotting
-        axs[0].axvline(x=mean1, color=palette[1], linestyle='-', label='Option 1')
-        axs[0].axvline(x=mean2, color=palette[2], linestyle='-', label='Option 2')
-        axs[0].axvline(x=mean3, color=palette[3], linestyle='-', label='Option 3')
-        axs[0].set_xlim(-0.1, max(mean1, mean2, mean3)*1.2)
-        axs[0].set_xlabel('Input value')
-        axs[0].set_ylabel('')
-        axs[0].legend()
-        bins = np.linspace(min(SVs[0].min(),SVs[1].min(),SVs[2].min()).cpu(), max(SVs[0].max(),SVs[1].max(),SVs[2].max()).cpu(), 100)
-        sns.histplot(SVs[0].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 1', ax=axs[1])
-        sns.histplot(SVs[1].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 2', ax=axs[1])
-        sns.histplot(SVs[2].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 3', ax=axs[1])
-        axs[1].set_xlabel('Divisively normalized value with noise')
-        axs[1].set_ylabel('Frequency')
-        plt.tight_layout()
-        plt.savefig('DN_demo.pdf', format='pdf')
-
-    SVs_tensor = torch.stack(SVs)  # Combine the samples into a single tensor
-    # Find the index of the distribution with the max value in each row
-    max_indices = torch.argmax(SVs_tensor, dim=0)
-    # Create a tensor where each row is 1 if the max value in that row is from the corresponding distribution, and 0 otherwise
-    max_from_each_distribution = torch.zeros_like(SVs_tensor)
-    max_from_each_distribution[max_indices, torch.arange(SVs_tensor.shape[1])] = 1
-    probs = torch.sum(max_from_each_distribution, dim=1) / SVs_tensor.shape[1]
-    # Print the probabilities
-    if show:
-        print(f"Probability that a variable drawn from sample 1 is: {probs[0]}")
-        print(f"Probability that a variable drawn from sample 2 is: {probs[1]}")
-        print(f"Probability that a variable drawn from sample 3 is: {probs[2]}")
-
-    return probs
-
-# Distributional Divisive Normalization
-def dDN(mean1, mean2, mean3, sd1, sd2, sd3, Mp, wp, mode):
+    options = torch.tensor([V1, V2, V3])
+    num_samples = int(1e6)
+    # Operation #1, sampling with early noise
+    if version == 'additive':
+        O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                          for mean, sd in options], dim=0)
+    elif version == 'mean-scaled':
+        O1 = torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                          for mean, slp in options], dim=0)
+    # Operation #3, Values in the same trial are always the same
+    Context = torch.sum(O1, dim=0)
+    O3 = [Rmax*DirectValue/(M+Context*w) for DirectValue in O1]
+    # Operation #4, apply late noise
+    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
+                           for ComputedValue in O3])
+    max_indices = torch.argmax(Outputs, dim=0)
+    max_from_each_distribution = torch.zeros_like(Outputs)
+    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
+    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
+    return Outputs.cpu().numpy(), probs.cpu().numpy()
+def dDNwOpt(V1, V2, V3, eta, version):  # dependent within options
+    w = 1
+    M = 1
+    Rmax = 75
     import torch
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
-
-    show = False
-    if show:
-        import seaborn as sns
-        import numpy as np
-        import matplotlib.pyplot as plt
-
-    num_samples = 100000
-    options = torch.tensor([(mean1, sd1), (mean2, sd2), (mean3, sd3)])
-    samples = [torch.normal(mean=mean, std=sd, size=(num_samples,), device=device) for mean, sd in options]  # move to device
-
-    if mode == 'cutoff':
-        samples = [sample[sample >= 0] for sample in samples]
-        min_length = min([len(sample) for sample in samples])
-        samples = [sample[:min_length] for sample in samples]
-    elif mode == 'absorb':
-        samples = [torch.clamp(sample, min=0) for sample in samples]
-
-    samples_stacked = torch.stack(samples, dim=0)
-    D = torch.sum(samples_stacked, dim=0)*wp + torch.tensor(Mp, device=device)
-    # decision noise for each option. This means the pooled sd from two options is z-scored as 1
-    sd = 2**-.5
-    SVs = [sample / D + torch.normal(mean=0, std=sd, size=(len(sample),), device=device) for sample in samples]  # move to device
-    if show:
-        bins = np.linspace(min(0, min(mean1-3*sd1, mean2-3*sd2, mean3-3*sd3)), max(mean1+3*sd1, mean2+3*sd2, mean3+3*sd3), 100)
-        fig, axs = plt.subplots(2, 1, figsize=(3.5, 5))
-        sns.set_palette('Paired')
-        # Convert tensors back to CPU for plotting
-        sns.histplot(samples[0].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 1', ax=axs[0])
-        sns.histplot(samples[1].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 2', ax=axs[0])
-        sns.histplot(samples[2].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 3', ax=axs[0])
-        axs[0].set_xlabel('Input value with '+mode+' at zero')
-        axs[0].set_ylabel('Frequency')
-        axs[0].legend()
-        bins = np.linspace(min(SVs[0].min(), SVs[1].min(), SVs[2].min()).cpu(),
-                           max(SVs[0].max(), SVs[1].max(), SVs[2].max()).cpu(), 100)
-        sns.histplot(SVs[0].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 1', ax=axs[1])
-        sns.histplot(SVs[1].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 2', ax=axs[1])
-        sns.histplot(SVs[2].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 3', ax=axs[1])
-        axs[1].set_xlabel('Divisively normalized value with noise')
-        axs[1].set_ylabel('Frequency')
-        plt.tight_layout()
-        plt.savefig('dDN_'+mode+'_demo.pdf', format='pdf')
-
-    SVs_tensor = torch.stack(SVs)  # Combine the samples into a single tensor
-    # Find the index of the distribution with the max value in each row
-    max_indices = torch.argmax(SVs_tensor, dim=0)
-    # Create a tensor where each row is 1 if the max value in that row is from the corresponding distribution, and 0 otherwise
-    max_from_each_distribution = torch.zeros_like(SVs_tensor)
-    max_from_each_distribution[max_indices, torch.arange(SVs_tensor.shape[1])] = 1
-    probs = torch.sum(max_from_each_distribution, dim=1) / SVs_tensor.shape[1]
-    # Print the probabilities
-    if show:
-        print(f"Probability that a variable drawn from sample 1 is: {probs[0]}")
-        print(f"Probability that a variable drawn from sample 2 is: {probs[1]}")
-        print(f"Probability that a variable drawn from sample 3 is: {probs[2]}")
-
-    return probs
-
-# Distributional Divisive Normalization, with the denominator values independent from the numerators
-def dDNb(mean1, mean2, mean3, sd1, sd2, sd3, Mp, wp, mode):
+    options = torch.tensor([V1, V2, V3])
+    num_samples = int(1e6)
+    # Operation #1, sampling with early noise
+    if version == 'additive':
+        O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                          for mean, sd in options], dim=0)
+        # Operation #2, G neurons independently summarizing contextual inputs with noise
+        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                                    for mean, sd in options[[1, 2]]], dim=0), dim=0)
+        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                                    for mean, sd in options[[0, 2]]], dim=0), dim=0)
+        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                                    for mean, sd in options[[0, 1]]], dim=0), dim=0)
+    elif version == 'mean-scaled':
+        O1 = torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                          for mean, slp in options], dim=0)
+        # Operation #2, G neurons independently summarizing these inputs with noise
+        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                                    for mean, slp in options[[1, 2]]], dim=0), dim=0)
+        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                                    for mean, slp in options[[0, 2]]], dim=0), dim=0)
+        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                                    for mean, slp in options[[0, 1]]], dim=0), dim=0)
+    # Operation #3, values (numerator and denominator) of the same item is the same only in the same option
+    Context = torch.stack((G1, G2, G3), dim=0)
+    O3 = [Rmax*DirectValue/(M+ (DirectValue + ContextValue)*w) for DirectValue, ContextValue in zip(O1, Context)]
+    # Operation #4, apply late noise
+    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
+                           for ComputedValue in O3])
+    max_indices = torch.argmax(Outputs, dim=0)
+    max_from_each_distribution = torch.zeros_like(Outputs)
+    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
+    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
+    return Outputs.cpu().numpy(), probs.cpu().numpy()
+def dDN(V1, V2, V3, eta, version): # fully independent
+    w = 1
+    M = 1
+    Rmax = 75
     import torch
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
-
-    show = False
-    if show:
-        import seaborn as sns
-        import numpy as np
-        import matplotlib.pyplot as plt
-
-    num_samples = 100000
-    options = torch.tensor([(mean1, sd1), (mean2, sd2), (mean3, sd3)])
-    samples = [torch.normal(mean=mean, std=sd, size=(num_samples,), device=device) for mean, sd in options]  # move to device
-    samplesD = [torch.normal(mean=mean, std=sd, size=(num_samples,), device=device) for mean, sd in
-               options]  # move to device
-    samplesD_stacked = torch.stack(samplesD, dim=0)
-    SIGMA = torch.sum(samplesD_stacked, dim=0)
-    if mode == 'cutoff':
-        SIGMA = SIGMA[SIGMA > 0]
-        min_length = len(SIGMA)
-        samples = [sample[:min_length] for sample in samples]
-    elif mode == 'absorb':
-        SIGMA = torch.clamp(SIGMA, min=0)
-    D = SIGMA*wp + torch.tensor(Mp, device=device)
-    # decision noise for each option. This means the pooled sd from two options is z-scored as 1
-    sd = 2**-.5
-    SVs = [sample / D + torch.normal(mean=0, std=sd, size=(len(sample),), device=device) for sample in samples]  # move to device
-    if show:
-        bins = np.linspace(min(0, min(mean1-3*sd1, mean2-3*sd2, mean3-3*sd3)), max(mean1+3*sd1, mean2+3*sd2, mean3+3*sd3), 100)
-        fig, axs = plt.subplots(2, 1, figsize=(3.5, 5))
-        sns.set_palette('Paired')
-        # Convert tensors back to CPU for plotting
-        sns.histplot(samples[0].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 1', ax=axs[0])
-        sns.histplot(samples[1].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 2', ax=axs[0])
-        sns.histplot(samples[2].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 3', ax=axs[0])
-        sns.histplot(SIGMA.cpu(), bins=bins, kde=True, alpha=0.5, label='SIGMA', ax=axs[0])
-        axs[0].set_xlabel('Input value with '+mode+' at zero')
-        axs[0].set_ylabel('Frequency')
-        axs[0].legend()
-        bins = np.linspace(min(SVs[0].min(), SVs[1].min(), SVs[2].min()).cpu(),
-                           max(SVs[0].max(), SVs[1].max(), SVs[2].max()).cpu(), 100)
-        sns.histplot(SVs[0].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 1', ax=axs[1])
-        sns.histplot(SVs[1].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 2', ax=axs[1])
-        sns.histplot(SVs[2].cpu(), bins=bins, kde=True, alpha=0.5, label='Option 3', ax=axs[1])
-        axs[1].set_xlabel('Divisively normalized value with noise')
-        axs[1].set_ylabel('Frequency')
-        plt.tight_layout()
-        plt.savefig('dDNb_'+mode+'_demo.pdf', format='pdf')
-
-    SVs_tensor = torch.stack(SVs)  # Combine the samples into a single tensor
-    # Find the index of the distribution with the max value in each row
-    max_indices = torch.argmax(SVs_tensor, dim=0)
-    # Create a tensor where each row is 1 if the max value in that row is from the corresponding distribution, and 0 otherwise
-    max_from_each_distribution = torch.zeros_like(SVs_tensor)
-    max_from_each_distribution[max_indices, torch.arange(SVs_tensor.shape[1])] = 1
-    probs = torch.sum(max_from_each_distribution, dim=1) / SVs_tensor.shape[1]
-    # Print the probabilities
-    if show:
-        print(f"Probability that a variable drawn from sample 1 is: {probs[0]}")
-        print(f"Probability that a variable drawn from sample 2 is: {probs[1]}")
-        print(f"Probability that a variable drawn from sample 3 is: {probs[2]}")
-
-    return probs
+    options = torch.tensor([V1, V2, V3])
+    num_samples = int(1e6)
+    # Operation #1, sampling with early noise
+    if version == 'additive':
+        O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                          for mean, sd in options], dim=0)
+        # Operation #2, G neurons independently summarizing these inputs with noise
+        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                                    for mean, sd in options], dim=0), dim=0)
+        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                                    for mean, sd in options], dim=0), dim=0)
+        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                                    for mean, sd in options], dim=0), dim=0)
+    elif version == 'mean-scaled':
+        O1 = torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                          for mean, slp in options], dim=0)
+        # Operation #2, G neurons independently summarizing these inputs with noise
+        G1 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                                    for mean, slp in options], dim=0), dim=0)
+        G2 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                                    for mean, slp in options], dim=0), dim=0)
+        G3 = torch.sum(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                                    for mean, slp in options], dim=0), dim=0)
+    # Operation #3, every time access to the value of the item is different, even within the same trial and for the same option,
+    # e.g, V1 in the numerator and in the denominator of option 1 are independently drawn
+    Context = torch.stack((G1, G2, G3), dim=0)
+    O3 = [Rmax*DirectValue/(M+ContextValue*w) for DirectValue, ContextValue in zip(O1, Context)]
+    # Alternatively, use the shared denominator by assuming noise varying trial-by-trial but fixed within trial
+    # D = torch.sum(O1, dim=0)
+    # O3 = [Rmax * DirectValue / (M + D * w) for DirectValue in O1]
+    # Operation #4, apply late noise
+    Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
+                           for ComputedValue in O3])
+    max_indices = torch.argmax(Outputs, dim=0)
+    max_from_each_distribution = torch.zeros_like(Outputs)
+    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
+    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
+    return Outputs.cpu().numpy(), probs.cpu().numpy()
+def dDNb(V1, V2, V3, eta, version): # fully independent and non-negative activities
+    w = 1
+    M = 1
+    Rmax = 75
+    import torch
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
+    options = torch.tensor([V1, V2, V3])
+    num_samples = int(1e6)
+    # Operation #1, sampling with early noise
+    if version == 'additive':
+        O1 = torch.clamp(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                          for mean, sd in options], dim=0), min=0)
+        # Operation #2, G neurons independently summarizing these inputs with noise
+        G1 = torch.sum(torch.clamp(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                                    for mean, sd in options], dim=0), min=0), dim=0)
+        G2 = torch.sum(torch.clamp(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                                    for mean, sd in options], dim=0), min=0), dim=0)
+        G3 = torch.sum(torch.clamp(torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
+                                    for mean, sd in options], dim=0), min=0), dim=0)
+    elif version == 'mean-scaled':
+        O1 = torch.clamp(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                          for mean, slp in options], dim=0), min=0)
+        # Operation #2, G neurons independently summarizing these inputs with noise
+        G1 = torch.sum(torch.clamp(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                                    for mean, slp in options], dim=0), min=0), dim=0)
+        G2 = torch.sum(torch.clamp(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                                    for mean, slp in options], dim=0), min=0), dim=0)
+        G3 = torch.sum(torch.clamp(torch.stack([torch.normal(mean=mean, std=(slp * mean) ** 0.5, size=(num_samples,), device=device)
+                                    for mean, slp in options], dim=0), min=0), dim=0)
+    # Operation #3, every time access to the value of the item is different, even within the same trial and for the same option,
+    # e.g, V1 in the numerator and in the denominator of option 1 are independently drawn
+    Context = torch.stack((G1, G2, G3), dim=0)
+    O3 = [Rmax*DirectValue/(M+ContextValue*w) for DirectValue, ContextValue in zip(O1, Context)]
+    # Alternatively, use the shared denominator by assuming noise varying trial-by-trial but fixed within trial
+    # D = torch.sum(O1, dim=0)
+    # O3 = [Rmax * DirectValue / (M + D * w) for DirectValue in O1]
+    # Operation #4, apply late noise
+    Outputs = torch.clamp(torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
+                           for ComputedValue in O3]), min=0)
+    max_indices = torch.argmax(Outputs, dim=0)
+    max_from_each_distribution = torch.zeros_like(Outputs)
+    max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
+    probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
+    return Outputs.cpu().numpy(), probs.cpu().numpy()
 
 import re
 def reduce_word(word):
@@ -401,6 +326,7 @@ def makecolors(values):
     colors = cmap(normalized_values)
     return colors
 def getpdfs(SVs):
+    import scipy.stats as stats
     # ys = [np.arange(np.mean(SV) - 3 * np.std(SV), np.mean(SV) + 3 * np.std(SV), .1) for SV in SVs]
     # pdfs = [stats.norm.pdf(y, np.mean(SV), np.std(SV)) for y, SV in zip(ys, SVs)]
     # kdes = [stats.gaussian_kde(SV) for SV in SVs]
@@ -412,16 +338,16 @@ def getpdfs(SVs):
     return pdfs, x
 def adddistrilines(ax, pdfs, x):
     mask = pdfs[0] > 1e-4
-    ax.plot(x[mask], pdfs[0][mask], label='Option 1', color=color1)
+    ax.plot(x[mask], pdfs[0][mask], label='Option 1', color='black', linewidth=0.5)
     mask = pdfs[1] > 1e-4
-    ax.plot(x[mask], pdfs[1][mask],  label='Option 2', color=color2)
+    ax.plot(x[mask], pdfs[1][mask],  label='Option 2', color='black', linewidth=0.5)
     mask = pdfs[2] > 1e-4
-    ax.plot(x[mask], pdfs[2][mask],  label='Option 3', color=color3, alpha=0.5, zorder=1)
+    ax.plot(x[mask], pdfs[2][mask],  label='Option 3', color='red', linewidth=0.5, zorder=1)
     overlap = np.minimum(pdfs[0], pdfs[1])
     cutout = np.minimum(overlap, pdfs[2])
     mask = overlap > 1e-4
-    ax.fill_between(x[mask], cutout[mask], overlap[mask], color='darkslategrey', label='Overlap Area')
-    ax.fill_between(x[mask], 0, cutout[mask], color='darkslategrey', alpha=0.5, label='Overlap Area')
+    ax.fill_between(x[mask], cutout[mask], overlap[mask], color='black', label='Overlap Area')
+    ax.fill_between(x[mask], 0, cutout[mask], color='red', alpha=0.5, label='Overlap Area')
     ax.set_xlim(0, 45)
     ax.set_xticks([0, 20, 40])
     ax.set_ylim(0, .5)
@@ -430,7 +356,9 @@ def adddistrilines(ax, pdfs, x):
     ax.set_ylabel('Probability density')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.tick_params(axis='both', direction='in')
+    ax.spines['bottom'].set_linewidth(0.5)
+    ax.spines['left'].set_linewidth(0.5)
+    ax.tick_params(axis='both', direction='out', width=0.5, length=2)
 def AUC(pdfs, x):
     interval = x[1] - x[0]
     overlap = np.minimum(pdfs[0], pdfs[1])

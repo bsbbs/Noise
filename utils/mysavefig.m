@@ -1,6 +1,18 @@
 function mysavefig(h, filename, outdir, fontsize, aspect)
 set(gca,'FontSize',fontsize);
 set(gca,'TickDir','out');
+ax = gca;
+ticklength = 1.6;
+ax.TickLength = ax.TickLength*ticklength;
+% Set the axes line color to black
+ax.XColor = 'black'; % For x-axis
+ax.YColor = 'black'; % For y-axis
+
+% Set the tick color to black (this will change the color of the tick labels)
+ax.TickLabelInterpreter = 'tex';
+ax.XAxis.TickLabelFormat = '\\color{black} %g';
+ax.YAxis.TickLabelFormat = '\\color{black} %g';
+
 %set(gca,'LineWidth',1); 
 % xl = get(gca,'XLabel');
 % xAX = get(gca,'XAxis');

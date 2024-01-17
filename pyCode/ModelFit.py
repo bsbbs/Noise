@@ -6,7 +6,8 @@ import pandas as pd
 from os.path import join as join
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
-from myFunctions import load_data, McFadden, Mdl2, DN, dDN
+from myFunctions import load_data
+from FitFunctions import DN, dDN, McFadden, Mdl2
 from noisyopt import minimizeCompass
 
 # Switch under the working directory
