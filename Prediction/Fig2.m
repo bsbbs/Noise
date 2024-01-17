@@ -16,10 +16,10 @@ addpath(genpath(Gitdir));
 filename = sprintf('Choice_MixedNoise');
 V1mean = 88;
 V2mean = 83;
-V3 = linspace(0, V1mean, 40)';
+V3 = linspace(0, V1mean, 50)';
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
-nsmpls = 1e7;
+nsmpls = 2e7;
 
 epsvec = linspace(0, 9, 8);
 etavec = linspace(3.63, 0, 8);
