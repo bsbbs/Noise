@@ -16,7 +16,7 @@ addpath(genpath(Gitdir));
 filename = sprintf('Choice_MixedNoise');
 V1mean = 88;
 V2mean = 83;
-V3 = linspace(0, V1mean, 50)';
+V3 = linspace(0, V1mean, 40)';
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 nsmpls = 1e7;
@@ -38,8 +38,14 @@ if ~exist(matfile, 'file')
         sdV3 = eps*ones(size(V3));
         dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
         pars = [eta, 1, 1, 1];
-        probsa(i,:,:) = dDNaFig2(pars, dat, nsmpls);
-        probsb(i,:,:) = dDNbFig2(pars, dat, nsmpls);
+        tmpa = nan([10, 3, numel(V3)]);
+        tmpb = nan([10, 3, numel(V3)]);
+        parfor ri = 1:10
+            tmpa(ri,:,:) = dDNaFig2(pars, dat, nsmpls);
+            tmpb(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
+        end
+        probsa(i,:,:) = squeeze(mean(tmpa, 1));
+        probsb(i,:,:) = squeeze(mean(tmpb, 1));
     end
     save(matfile, "probsa",  "probsb");
 else
@@ -48,15 +54,16 @@ end
 
 %% visualization
 h = figure; hold on;
-gcolors = jet(9); %flip([winter(4); flip(autumn(4))]);
-mycols =[0.8472126105344099, 0.2612072279892349, 0.30519031141868513;
+mycols =flip([0.8472126105344099, 0.2612072279892349, 0.30519031141868513;
     0.9637831603229527, 0.47743175701653207, 0.28581314878892733;
     0.9934640522875817, 0.7477124183006535, 0.4352941176470587;
     0.9977700884275279, 0.930872741253364, 0.6330642060745867;
     0.944252210688197, 0.9777008842752788, 0.6620530565167244;
     0.7477124183006538, 0.8980392156862746, 0.6274509803921569;
     0.4530565167243369, 0.7815455594002307, 0.6462898885044214;
-    0.21607074202229912, 0.5556324490580546, 0.7319492502883507];
+    0.21607074202229912, 0.5556324490580546, 0.7319492502883507]);
+% mycols = jet(8);
+% mycols = [winter(4); flip(autumn(4))];
 ratio = [];
 slope = [];
 lt = 0.2;
@@ -65,9 +72,9 @@ for i = 1:numel(epsvec)
     x = V3/V2mean;
     mask = x >= lt & x <= rt;
     ratio(:,i,1) = squeeze(probsa(i,1,:)./(probsa(i,1,:) + probsa(i,2,:))*100);
-    plot(x, ratio(:,i,1), ':', 'Color', mycols(i,:), 'LineWidth', 1);
+    plot(x, ratio(:,i,1), ':', 'Color', mycols(i,:), 'LineWidth', 2);
     ratio(:,i,2) = squeeze(probsb(i,1,:)./(probsb(i,1,:) + probsb(i,2,:))*100);
-    plot(x, ratio(:,i,2), '-', 'Color', mycols(i,:), 'LineWidth', 1.6);
+    plot(x, ratio(:,i,2), '-', 'Color', mycols(i,:), 'LineWidth', 2);
     coefficients = polyfit(x(mask), ratio(mask,i,2), 1);
     slope(i) = coefficients(1);
 end
@@ -92,13 +99,13 @@ mysavefig(h, filename, plot_dir, 12, [2, 2]);
 filename = sprintf('Choice_MixedNoiseFullrng');
 V1mean = 88;
 V2mean = 83;
-V3vec = linspace(0, V1mean, 50);
-x = V3vec/V2mean;
+V3 = linspace(0, V1mean, 50);
+x = V3/V2mean;
 mask = x > .2 & x < .8;
 epsvec = linspace(0, 13, 201);
-[epsmesh, V3mesh] = meshgrid(epsvec, V3vec);
-V3 = V3mesh(:);
-eps = epsmesh(:);
+%[epsmesh, V3mesh] = meshgrid(epsvec, V3vec);
+%V3 = V3mesh(:);
+%eps = epsmesh(:);
 
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
@@ -111,16 +118,21 @@ if ~exist(matfile, 'file')
     for j = 1:numel(etavec)
         fprintf("Eta #%i\n",j);
         eta = etavec(j);
-        sdV1 = eps;
-        sdV2 = eps;
-        sdV3 = eps;
-        dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
-        pars = [eta, 1, 1, 1];
-        tmp = dDNbFig2(pars, dat, nsmpls);
-        ratio = tmp(1,:)./(tmp(1,:) + tmp(2,:))*100;
-        ratio = reshape(ratio, numel(V3vec), numel(epsvec));
         for i = 1:numel(epsvec)
-            coefficients = polyfit(x(mask), ratio(mask,i), 1);
+            eps = epsvec(i);
+            sdV1 = eps;
+            sdV2 = eps;
+            sdV3 = eps;
+            dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
+            pars = [eta, 1, 1, 1];
+            tmp = nan([10, 3, numel(V3)]);
+            parfor ri = 1:10
+                tmp(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
+            end
+            probs = squeeze(mean(tmp, 1));
+            ratio = probs(1,:)./(probs(1,:) + probs(2,:))*100;
+            %ratio = reshape(ratio, numel(V3), numel(epsvec));
+            coefficients = polyfit(x(mask), ratio(mask), 1);
             slope(i,j) = coefficients(1);
         end
     end
@@ -129,11 +141,11 @@ else
     load(matfile);
 end
 %%
-addpath(genpath('/Users/bs3667/Library/CloudStorage/GoogleDrive-bs3667@nyu.edu/My Drive/Mylib'));
+% addpath(genpath('/Users/bs3667/Library/CloudStorage/GoogleDrive-bs3667@nyu.edu/My Drive/Mylib'));
 h = figure;
 hold on;
 imagesc(etavec, epsvec, slope);
-colormap(bluewhitered);
+% colormap(bluewhitered);
 colorbar;
 ylabel('\sigma_{Early noise}');
 xlabel('\sigma_{Late noise}');

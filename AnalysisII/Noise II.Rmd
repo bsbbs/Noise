@@ -155,8 +155,8 @@ for (s in 1:length(subID))
 }
 patchdat <- mrgdat[mrgdat$touched == 1,]
 abline(lm(bidvar ~ bidmean, data = patchdat), col = 'red', lwd = 3)
-axis(1, at = c(seq(0,90,20)),  tck = 0.02, padj = -1.4, cex.axis = .8)
-axis(2, tck = 0.02, at = c(seq(0,500,100)), padj = 1.4, cex.axis = .8)
+axis(1, at = c(seq(0,90,20)),  tck = -0.02, padj = -1.4, cex.axis = .8)
+axis(2, tck = -0.02, at = c(seq(0,500,100)), padj = 1.4, cex.axis = .8)
 title(ylab = 'Bid variance', mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
 title(xlab = "Bid mean", mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
 #legend('topleft',c('Precise',' '), text.col = c('red','blue'), pch = 20, cex = .8, col = c('red',NA), bty = 'n')
@@ -224,6 +224,7 @@ grpdcsn$VDscld <- grpdcsn$V2scld - grpdcsn$V1scld
 grpdcsn <- grpdcsn[grpdcsn$V1 != grpdcsn$V2,]
 str(grpdcsn)
 ```
+
 # Manipulation check, 2x2 design
 ```{r}
 mtest <- lmer(choice ~ Vagueness*TimePressure + (1|subID), data = grpdcsn[grpdcsn$choice == 1 | grpdcsn$choice == 0,])
@@ -242,28 +243,28 @@ Ns <- Ns[c(4,3,2,1),]
 ses$choice <- ses$choice/sqrt(Ns$choice)
 barx <- barplot(cbind(means$choice[means$TimePressure=='Low'], means$choice[means$TimePressure=='High'])-0.5, beside = TRUE, names = c('Low','High'), col = c('blue','pink','lightblue','red'), xlab = 'Time Pressure', ylab = '', yaxt = 'n', ylim = c(-.1,.51)) #ylim = c(-.1,.6))
 legend('topright', c('','','Vague','Precise'), col = c('blue','pink','lightblue','red'), bty = 'n', pch = 15, ncol = 2)
-axis(2, at = seq(0,.2,.05), labels = seq(50,70,5), tck = 0.01, padj = .7, cex.axis = 1.0, lwd = 1.4)
+axis(2, at = seq(0,.2,.05), labels = seq(50,70,5), tck = -0.02, padj = .7, cex.axis = 1.0, lwd = 1.4)
 # axis(2, at = seq(0,.4,.1), labels = seq(50,90,10), tck = -0.03, padj = .7, cex.axis = 1.0, lwd = 1.4)
 title(ylab = expression(paste('% Correct (V1 & V2)                ')), mgp = c(2,0,0), font.lab = 1, cex.lab = 1.0)
 abline(h = 0, lty = 2, col = 8)
 
-ci <- 0
-fat <- 0.3
-for (TimePressure in c('Low','High'))
-{
-  for (Vagueness in c('Vague','Precise'))
-  {
-    ci <- ci + 1
-    slct.b1 <- bars$choice[bars$TimePressure == TimePressure & bars$Vagueness == Vagueness]
-    d1 <- density(slct.b1)
-    fat1 <- fat/max(d1$y)
-    for (di in 1:length(slct.b1))
-    {
-      mask <- abs(d1$x - slct.b1[di])  == min(abs(d1$x - slct.b1[di]))
-      points(runif(1,-d1$y[mask],d1$y[mask])*fat1+barx[ci], slct.b1[di]-0.5, pch = 20, cex = .5, col = 8)
-    }
-  }
-}
+# ci <- 0
+# fat <- 0.3
+# for (TimePressure in c('Low','High'))
+# {
+#   for (Vagueness in c('Vague','Precise'))
+#   {
+#     ci <- ci + 1
+#     slct.b1 <- bars$choice[bars$TimePressure == TimePressure & bars$Vagueness == Vagueness]
+#     d1 <- density(slct.b1)
+#     fat1 <- fat/max(d1$y)
+#     for (di in 1:length(slct.b1))
+#     {
+#       mask <- abs(d1$x - slct.b1[di])  == min(abs(d1$x - slct.b1[di]))
+#       points(runif(1,-d1$y[mask],d1$y[mask])*fat1+barx[ci], slct.b1[di]-0.5, pch = 20, cex = .5, col = 8)
+#     }
+#   }
+# }
 arrows(barx, means$choice-0.5+ses$choice, barx, means$choice-0.5-ses$choice, code = 3, angle = 90, length = 0.1)
 xm <- apply(barx, 2, mean)
 lines(c(barx[1,1], barx[2,1]), c(0.23, 0.23), lwd =1, col = 1)
@@ -282,7 +283,21 @@ summary(mtest1)
 mtest2 <- glm(choice ~  V3scld*TimePressure, family = "binomial", data = grpdcsn[grpdcsn$choice == 1 | grpdcsn$choice == 0 & grpdcsn$Vagueness == 'Vague' & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
 summary(mtest2)
 ```
+## check on reaction time
+```{r}
+RTIndv <- aggregate(RT ~ TimePressure + subID, data = grpdcsn[grpdcsn$timeout == 0,], FUN = mean)
+RTmean <- aggregate(RT ~ TimePressure, data = RTIndv, FUN = mean)
+RTse <- aggregate(RT ~ TimePressure, data = RTIndv, FUN = sd)
+RTse$RT <- RTse$RT/sqrt(length(unique(RTIndv$subID)))
+t.test(RT ~ TimePressure, data = RTIndv, paired = TRUE)
+t.test(RTIndv$RT[RTIndv$TimePressure == 'High'], RTIndv$RT[RTIndv$TimePressure == 'Low'], paired = TRUE)
 
+TOIndv <- aggregate(timeout ~ TimePressure + subID, data = grpdcsn, FUN = mean)
+TOmean <- aggregate(timeout ~ TimePressure, data = TOIndv, FUN = mean)
+TOse <- aggregate(timeout ~ TimePressure, data = TOIndv, FUN = sd)
+TOse$se <- TOse$timeout/sqrt(length(unique(TOIndv$subID)))
+
+```
 
 ## regression on the scaled value of ID3
 ```{r}
@@ -896,15 +911,15 @@ subjlist <- unique(grpbid$subID)
 indvdat <- grpbid[grpbid$subID == subjlist[2],]
 mbid <- aggregate(bid ~ item + touched, data = indvdat, FUN = mean)
 mask <- mbid$touched == 1
-plot(mbid$bid[mask], mbid$bid[mask], pch = 20, cex = 1, col = 2, xlab = "", ylab = "", xaxt = "n", yaxt = "n")
-axis(1, at = seq(0,80,20), tck = -0.03, padj = -1.118, cex.axis = 1)
+plot(mbid$bid[mask], mbid$bid[mask]*0, pch = 20, cex = 1, col = 'blue', xlab = "", ylab = "", xaxt = "n", yaxt = "n")
+#axis(1, at = seq(0,80,20), tck = -0.03, padj = -1.118, cex.axis = 1)
 axis(2, tck = -0.03, at = seq(0,80,20), padj = 1.118, cex.axis = 1)
-title(xlab = 'Bid mean ($)', ylab = 'Bid mean ($)', mgp = c(1.38,0,0), font.lab = 1, cex.lab = 1)
+title(xlab = 'Bid mean ($)', ylab = ' ', mgp = c(1.38,0,0), font.lab = 1, cex.lab = 1)
 
 undat <- mbid[mbid$touched == 0,]
 mask <- rank(undat$bid)<13
-points(undat$bid[mask], undat$bid[mask], pch = 20, cex = 1, col = 3)
-legend('topleft', c('Interactive','Non-Interactive'), pch = 20, col = c(2,3), text.col = c(2,3), bty = 'n')
+points(undat$bid[mask], undat$bid[mask]*0, pch = 20, cex = 1, col = 'red')
+legend('topleft', c('Ambiguous','Definitive'), pch = 20, col = c('red','blue'), text.col = c('red','blue'), bty = 'n')
 dev.copy(pdf,file.path(out_dir,sprintf("Diagram.pdf")),height=3.4, width=3.4)
 dev.off()
 ```
