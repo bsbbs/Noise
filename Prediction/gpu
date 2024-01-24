@@ -11,4 +11,3 @@
 #SBATCH --mail-type=END
 #SBATCH --mail-user=bs3667@nyu.edu
 srun /gpfs/data/glimcherlab/BoShen/Noise/Prediction/batch
-
