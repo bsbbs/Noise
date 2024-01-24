@@ -20,7 +20,7 @@ V2mean = 83;
 V3 = linspace(0, V1mean, 50)';
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
-nsmpls = 3*1024*1e3;
+nsmpls = 2*1024*1e3;
 
 phi = linspace(0, pi/2, 8);
 epsvec = sin(phi)*9;
@@ -125,7 +125,7 @@ epsvec = linspace(0, 13, 101);
 
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
-nsmpls = 3*1024*1e3;
+nsmpls = 2*1024*1e3;
 etavec = linspace(0, 3.63*13/9, 100);
 
 matfile = fullfile(sim_dir, [filename, '.mat']);
