@@ -9,7 +9,7 @@ elseif strcmp(os,'GLNXA64')
     Gitdir = '/gpfs/data/glimcherlab/BoShen/Noise';
 end
 plot_dir = fullfile(rootdir, 'Prediction');
-sim_dir = fullfile(rootdir, 'Prediction');
+sim_dir = fullfile(Gitdir, 'Prediction');
 addpath(genpath(Gitdir));
 
 Npar = 40;
@@ -27,9 +27,10 @@ nsmpls = 1024*1e3;
 % etavec = linspace(3.63, 0, 8);
 % plot(epsvec, etavec, '.-');
 % phi = atan((epsvec/9)./(etavec/3.63));
-phi = linspace(0, pi/2, 8);
-epsvec = sin(phi).^.7*9;
-etavec = cos(phi).^.7*3.63;
+%phi = linspace(0, pi/2, 8);
+phi = [0, .2, .3, .5, .6, .7, .8, 1]*pi/2;
+epsvec = sin(phi)*9;
+etavec = cos(phi)*3.63;
 % for i = 1:numel(epsvec)
 %     plot([0,epsvec(i)], [0, etavec(i)],'b-');
 % end
@@ -105,11 +106,11 @@ for i = 1:numel(epsvec)
     coefficients = polyfit(x(mask), ratio(mask,i,2), 1);
     slope(i) = coefficients(1);
 end
-plot([V1mean, V2mean]/V1mean, [1, 1]*min(ratio(:)), 'kv', 'MarkerFaceColor', 'k');
+plot([V1mean, V2mean]/V2mean, [1, 1]*min(ratio(:)), 'kv', 'MarkerFaceColor', 'k');
 xlim([0, V1mean/V2mean]);
 plot([lt, lt], [max(ratio(:)), min(ratio(:))], 'k--');
 plot([rt, rt], [max(ratio(:)), min(ratio(:))], 'k--');
-mylg = legend(lg, {'0.0 1.2','0.4 1.0','0.9 0.9','1.3 0.7','1.7 0.5','2.1 0.3','2.6 0.2','3.0 0.0'}, 'Location', "northeastoutside", 'Box','off');
+mylg = legend(lg, {'0.0 1.2','2.0 1.0','3.9 0.9','6.5 0.7','7.6 0.5','8.4 0.3','8.8 0.2','9.0 0.0'}, 'Location', "northeastoutside", 'Box','off');
 title(mylg, 'Noise \sigma_{Early} \sigma_{Late}');
 xlabel('Scaled V3');
 ylabel('% Correct | V1, V2');
