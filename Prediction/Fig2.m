@@ -22,11 +22,24 @@ V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 nsmpls = 1024*1e3;
 
+% h = figure; hold on;
+% epsvec = linspace(0, 9, 8);
+% etavec = linspace(3.63, 0, 8);
+% plot(epsvec, etavec, '.-');
+% phi = atan((epsvec/9)./(etavec/3.63));
 phi = linspace(0, pi/2, 8);
-epsvec = sin(phi)*9;
-etavec = cos(phi)*3.63;
-%epsvec = linspace(0, 9, 8);
-%etavec = linspace(3.63, 0, 8);
+epsvec = sin(phi).^.7*9;
+etavec = cos(phi).^.7*3.63;
+% for i = 1:numel(epsvec)
+%     plot([0,epsvec(i)], [0, etavec(i)],'b-');
+% end
+% phi = linspace(0, pi/2, 8);
+% epsvec = sin(phi)*9;
+% etavec = cos(phi)*3.63;
+% for i = 1:numel(epsvec)
+%     plot([0,epsvec(i)], [0, etavec(i)],'r-');
+% end
+
 filename = sprintf('Choice_MixedNoise_eps%1.2f_eta%1.2f', max(epsvec), max(etavec));
 % simulation
 matfile = fullfile(sim_dir, [filename, '.mat']);
