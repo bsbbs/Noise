@@ -12,8 +12,9 @@ plot_dir = fullfile(rootdir, 'Prediction');
 sim_dir = fullfile(rootdir, 'Prediction');
 addpath(genpath(Gitdir));
 
+Npar = 40;
+mypool = parpool(Npar);
 %% Mixed noise 
-
 V1mean = 88;
 V2mean = 83;
 V3 = linspace(0, V1mean, 50)';
