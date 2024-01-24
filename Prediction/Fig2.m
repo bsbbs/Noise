@@ -13,7 +13,7 @@ sim_dir = fullfile(rootdir, 'Prediction');
 addpath(genpath(Gitdir));
 
 %% Mixed noise 
-filename = sprintf('Choice_MixedNoise');
+
 V1mean = 88;
 V2mean = 83;
 V3 = linspace(0, V1mean, 50)';
@@ -21,9 +21,9 @@ V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 nsmpls = 1024*1e3;
 
-epsvec = linspace(0, 9, 8)/3;
-etavec = linspace(3.63, 0, 8)/3;
-
+epsvec = linspace(0, 9, 8)/2;
+etavec = linspace(3.63, 0, 8)/2;
+filename = sprintf('Choice_MixedNoise_eps%1.2f_eta%1.2f', max(epsvec), max(etavec));
 % simulation
 matfile = fullfile(sim_dir, [filename, '.mat']);
 if ~exist(matfile, 'file')
@@ -40,7 +40,7 @@ if ~exist(matfile, 'file')
         pars = [eta, 1, 1, 1];
         tmpa = nan([10, 3, numel(V3)]);
         tmpb = nan([10, 3, numel(V3)]);
-        for ri = 1:120
+        parfor ri = 1:120
             tmpa(ri,:,:) = dDNaFig2(pars, dat, nsmpls);
             tmpb(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
         end
@@ -99,7 +99,7 @@ ylabel('% Correct | V1, V2');
 mysavefig(h, filename, plot_dir, 12, [5.4, 4]);
 %%
 h = figure; hold on;
-filename = 'Fig2a_Inset';
+filename = [filename, 'Slope'];
 for i = 1:length(slope)
     bar(i, slope(i), 'FaceColor',mycols(i,:));
 end
@@ -128,17 +128,19 @@ matfile = fullfile(sim_dir, [filename, '.mat']);
 if ~exist(matfile, 'file')
     slope = nan([numel(epsvec), numel(etavec)]);
     for j = 1:numel(etavec)
-        fprintf("Eta #%i\n",j);
+        fprintf("Eta #%i, Loop over Eps: ",j);
         eta = etavec(j);
-        parfor i = 1:numel(epsvec)
+        for i = 1:numel(epsvec)
+            fprintf(".");
             eps = epsvec(i);
-            sdV1 = eps;
-            sdV2 = eps;
-            sdV3 = eps;
+            sdV1 = eps*ones(size(V3));
+            sdV2 = eps*ones(size(V3));
+            sdV3 = eps*ones(size(V3));
             dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
             pars = [eta, 1, 1, 1];
-            tmp = nan([10, 3, numel(V3)]);
-            for ri = 1:10
+            reps = 120;
+            tmp = nan([reps, 3, numel(V3)]);
+            parfor ri = 1:reps
                 tmp(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
             end
             probs = squeeze(mean(tmp, 1));
@@ -147,6 +149,7 @@ if ~exist(matfile, 'file')
             coefficients = polyfit(x(mask), ratio(mask), 1);
             slope(i,j) = coefficients(1);
         end
+        fprintf('\n');
     end
     save(matfile, 'slope');
 else
