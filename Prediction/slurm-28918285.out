@@ -10,6 +10,8 @@ Loading matlab/R2021b
 To get started, type doc.
 For product information, visit www.mathworks.com.
  
+Starting parallel pool (parpool) using the 'local' profile ...
+Connected to the parallel pool (number of workers: 40).
 Level #1
 Level #2
 Level #3
@@ -18,13 +20,3 @@ Level #5
 Level #6
 Level #7
 Level #8
-Eta #1
-{Error using +
-Arrays have incompatible sizes for this operation.
-
-Error in dDNbFig2 (line 23)
-        samples(ci,:,:) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
-
-Error in Fig2 (line 142)
-                tmp(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
-} 
