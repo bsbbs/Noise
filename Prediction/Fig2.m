@@ -9,7 +9,7 @@ elseif strcmp(os,'GLNXA64')
     Gitdir = '/gpfs/data/glimcherlab/BoShen/Noise';
 end
 plot_dir = fullfile(rootdir, 'Prediction');
-sim_dir = fullfile(Gitdir, 'Prediction');
+sim_dir = fullfile(rootdir, 'Prediction');
 addpath(genpath(Gitdir));
 
 %% Mixed noise 
@@ -62,19 +62,29 @@ mycols =flip([0.8472126105344099, 0.2612072279892349, 0.30519031141868513;
     0.7477124183006538, 0.8980392156862746, 0.6274509803921569;
     0.4530565167243369, 0.7815455594002307, 0.6462898885044214;
     0.21607074202229912, 0.5556324490580546, 0.7319492502883507]);
-% mycols = jet(8);
-% mycols = [winter(4); flip(autumn(4))];
+mycols = jet(8);
+mycols = [winter(4); flip(autumn(5))];
+mycols(5,:) = [];
+mycols = [0         0    1.0000
+         0    0.3333    0.8333
+         0    0.6667    0.6667
+         0    1.0000    0.5000
+    1.0000    0.7500         0
+    1.0000    0.5000         0
+    1.0000    0.2500         0
+    1.0000         0         0];
 ratio = [];
 slope = [];
 lt = 0.2;
 rt = 0.8;
+lg = [];
 for i = 1:numel(epsvec)
     x = V3/V2mean;
     mask = x >= lt & x <= rt;
     ratio(:,i,1) = squeeze(probsa(i,1,:)./(probsa(i,1,:) + probsa(i,2,:))*100);
     plot(x, ratio(:,i,1), ':', 'Color', mycols(i,:), 'LineWidth', 2);
     ratio(:,i,2) = squeeze(probsb(i,1,:)./(probsb(i,1,:) + probsb(i,2,:))*100);
-    plot(x, ratio(:,i,2), '-', 'Color', mycols(i,:), 'LineWidth', 2);
+    lg(i) = plot(x, ratio(:,i,2), '-', 'Color', mycols(i,:), 'LineWidth', 2);
     coefficients = polyfit(x(mask), ratio(mask,i,2), 1);
     slope(i) = coefficients(1);
 end
@@ -82,9 +92,11 @@ plot([V1mean, V2mean]/V1mean, [1, 1]*min(ratio(:)), 'kv', 'MarkerFaceColor', 'k'
 xlim([0, V1mean/V2mean]);
 plot([lt, lt], [max(ratio(:)), min(ratio(:))], 'k--');
 plot([rt, rt], [max(ratio(:)), min(ratio(:))], 'k--');
+mylg = legend(lg, {'0.0 1.2','0.4 1.0','0.9 0.9','1.3 0.7','1.7 0.5','2.1 0.3','2.6 0.2','3.0 0.0'}, 'Location', "northeastoutside", 'Box','off');
+title(mylg, 'Noise \sigma_{Early} \sigma_{Late}');
 xlabel('Scaled V3');
 ylabel('% Correct | V1, V2');
-mysavefig(h, filename, plot_dir, 12, [5, 4]);
+mysavefig(h, filename, plot_dir, 12, [5.4, 4]);
 %%
 h = figure; hold on;
 filename = 'Fig2a_Inset';
