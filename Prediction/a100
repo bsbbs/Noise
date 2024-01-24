@@ -1,12 +1,13 @@
 #!/bin/bash
-#SBATH --partition=a100_long
+#SBATH --partition=a100_short
 #SBATCH --job-name=NsFg2
 #SBATCH --mem=360G
-#SBATCH --time=7-00:00:00
-#SBATCH --tasks=1
+#SBATCH --time=3-00:00:00
 #SBATCH --cpus-per-task=40
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --gres=gpu:a100:4
+#SBATCH --mail-type=END
+#SBATCH --mail-user=bs3667@nyu.edu
 srun /gpfs/data/glimcherlab/BoShen/Noise/Prediction/batch
 
