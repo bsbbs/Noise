@@ -16,10 +16,10 @@ addpath(genpath(Gitdir));
 filename = sprintf('Choice_MixedNoise');
 V1mean = 88;
 V2mean = 83;
-V3 = linspace(0, V1mean, 40)';
+V3 = linspace(0, V1mean, 50)';
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
-nsmpls = 1e7;
+nsmpls = 1024*1e3;
 
 epsvec = linspace(0, 9, 8)/3;
 etavec = linspace(3.63, 0, 8)/3;
@@ -40,7 +40,7 @@ if ~exist(matfile, 'file')
         pars = [eta, 1, 1, 1];
         tmpa = nan([10, 3, numel(V3)]);
         tmpb = nan([10, 3, numel(V3)]);
-        parfor ri = 1:10
+        for ri = 1:120
             tmpa(ri,:,:) = dDNaFig2(pars, dat, nsmpls);
             tmpb(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
         end
@@ -111,7 +111,7 @@ mysavefig(h, filename, plot_dir, 12, [2, 2]);
 filename = sprintf('Choice_MixedNoiseFullrng');
 V1mean = 88;
 V2mean = 83;
-V3 = linspace(0, V1mean, 50);
+V3 = linspace(0, V1mean, 50)';
 x = V3/V2mean;
 mask = x > .2 & x < .8;
 epsvec = linspace(0, 13, 201);
@@ -121,7 +121,7 @@ epsvec = linspace(0, 13, 201);
 
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
-nsmpls = 1e7;
+nsmpls = 1024*1e3;
 etavec = linspace(0, 3.63*13/9, 201);
 
 matfile = fullfile(sim_dir, [filename, '.mat']);
@@ -130,7 +130,7 @@ if ~exist(matfile, 'file')
     for j = 1:numel(etavec)
         fprintf("Eta #%i\n",j);
         eta = etavec(j);
-        for i = 1:numel(epsvec)
+        parfor i = 1:numel(epsvec)
             eps = epsvec(i);
             sdV1 = eps;
             sdV2 = eps;
@@ -138,7 +138,7 @@ if ~exist(matfile, 'file')
             dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
             pars = [eta, 1, 1, 1];
             tmp = nan([10, 3, numel(V3)]);
-            parfor ri = 1:10
+            for ri = 1:10
                 tmp(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
             end
             probs = squeeze(mean(tmp, 1));

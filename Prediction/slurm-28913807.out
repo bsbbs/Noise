@@ -1,0 +1,30 @@
+Loading matlab/R2021b
+  Loading requirement: cuda/9.1
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2021 The MathWorks, Inc.
+             R2021b Update 6 (9.11.0.2207237) 64-bit (glnxa64)
+                             February 23, 2023
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+Level #1
+Level #2
+Level #3
+Level #4
+Level #5
+Level #6
+Level #7
+Level #8
+Eta #1
+{Error using +
+Arrays have incompatible sizes for this operation.
+
+Error in dDNbFig2 (line 23)
+        samples(ci,:,:) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+
+Error in Fig2 (line 142)
+                tmp(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
+} 

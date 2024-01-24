@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATH --partition=a100_long
 #SBATCH --job-name=NsFg2
-#SBATCH --mem=480G
+#SBATCH --mem=360G
 #SBATCH --time=7-00:00:00
 #SBATCH --tasks=1
 #SBATCH --cpus-per-task=40

@@ -1,0 +1,16 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=40
+#SBATCH --time=12:00:00
+#SBATCH --gres=gpu:a100:4
+#SBATCH --job-name=NsFg2
+#SBATCH --mem-per-cpu=6G
+#SBATCH --mail-type=END
+#SBATCH --mail-user=bs3667@nyu.edu
+module load cuda/11.8 cuda91/toolkit/9.1.85 matlab/R2021b
+echo -e "GPUS = $CUDA_VISIBLE_DEVICES\n"
+nvidia-smi
+cd /gpfs/data/glimcherlab/BoShen/Noise/Prediction
+matlab -nodisplay -r Fig2
+

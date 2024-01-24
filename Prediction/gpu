@@ -1,13 +1,13 @@
 #!/bin/bash
-#SBATCH --partition=gpu8_long
+#SBATCH --partition=gpu4_dev
 #SBATCH --job-name=Sim
 #SBATCH --mem-per-cpu=12G
-#SBATCH --time=3-00:00:00
+#SBATCH --time=0-04:00:00
 #SBATCH --tasks=1
-#SBATCH --cpus-per-task=40
+#SBATCH --cpus-per-task=4
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
-#SBATCH --gres=gpu:8
+#SBATCH --gres=gpu:4
 #SBATCH --mail-type=END
 #SBATCH --mail-user=bs3667@nyu.edu
 srun /gpfs/data/glimcherlab/BoShen/Noise/Prediction/batch
