@@ -28,7 +28,7 @@ nsmpls = 1024*1e3;
 % plot(epsvec, etavec, '.-');
 % phi = atan((epsvec/9)./(etavec/3.63));
 %phi = linspace(0, pi/2, 8);
-phi = [0, .2, .3, .5, .6, .7, .8, 1]*pi/2;
+phi = [0, .15, .3, .45, .6, .7, .8, 1]*pi/2;
 epsvec = sin(phi)*9;
 etavec = cos(phi)*3.63;
 % for i = 1:numel(epsvec)
