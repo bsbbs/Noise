@@ -64,6 +64,15 @@ else
     save(SimDatafile, "Ratios","DNPStats","V3Stats","SVStats","DNOverlaps","SVOverlaps","xval",'-mat');
 end
 %% visualization
+mycols = [0         0    1.0000
+         0    0.3333    0.8333
+         0    0.6667    0.6667
+         0    1.0000    0.5000
+    1.0000    0.7500         0
+    1.0000    0.5000         0
+    1.0000    0.2500         0
+    1.0000         0         0];
+
 xval = V3'/V1mean;
 lt = 0.2;
 rt = 0.8;
@@ -74,20 +83,18 @@ h = figure;
 filename = sprintf('Ratio_Model_%iv3max%1.0f_%s', numel(V3), max(V3), '2Panels');
 for i = 1:2
     subplot(1, 2, i); hold on;
-    if i == 1
+    if i == 2
         v = 0;
         eps = 4;
-        startColor = [0.944252210688197, 0.9777008842752788, 0.6620530565167244]; % Light-blue
-        %endColor = [0.21607074202229912, 0.5556324490580546, 0.7319492502883507]; % Blue
-        endColor = [0, 0, 1]; % Blue
-        cmap(:,:,1) = GradColor(startColor, endColor, numel(etavec));
-    elseif i == 2
+        startColor = mycols(4,:); % Light-blue
+        endColor = mycols(1,:);  % Blue
+    elseif i == 1
         v = 1;
         eps = 9;
-        startColor = [0.8472126105344099, 0.2612072279892349, 0.30519031141868513]; % Red
-        endColor = [0.9977700884275279, 0.930872741253364, 0.6330642060745867]; % Pink
-        cmap(:,:,2) = GradColor(startColor, endColor, numel(etavec));
+        startColor = mycols(8,:); % Red
+        endColor = mycols(5,:); % Pink
     end
+    cmap(:,:,i) = GradColor(startColor, endColor, numel(etavec));
     
     
     lg = [];
@@ -97,7 +104,7 @@ for i = 1:2
         coefficients = polyfit(xval(mask), ratio(mask), 1);
         slope(ti,i) = coefficients(1);
     end
-    plot([V1mean, V2mean]/V1mean, [1, 1]*min(ratio(:)), 'kv', 'MarkerFaceColor', 'k', 'MarkerSize', 6);
+    plot([V1mean, V2mean]/V1mean, [1, 1]*min(ratio(:)), 'kv', 'MarkerFaceColor', 'k', 'MarkerSize', 5);
     plot([lt, lt], [ylim], 'k--');
     plot([rt, rt], [ylim], 'k--');
     mylg = legend(lg, {'0.80','0.96','1.11','1.27','1.43','1.59','1.74','1.90'}, 'Location', "northeastoutside", 'Box','off');
@@ -110,13 +117,14 @@ end
 %% slopes as bars
 h = figure; hold on;
 filename = sprintf('Ratio_Model_%iv3max%1.0f_%s', numel(V3), max(V3), 'Slopes');
-mybar = bar(etavec, slope, 1, 'FaceColor','flat');
+mybar = bar(etavec, fliplr(slope), 1, 'FaceColor','flat');
 for k = 1:size(slope,2)
     mybar(k).CData = cmap(:,:,k);
 end
+legend({'Ambiguous','Definitive'});
 ylabel('Slope');
 xlabel('\sigma_{Late}');
-mysavefig(h, filename, plot_dir, 12, [2.8, 2.8]);
+mysavefig(h, filename, plot_dir, 12, [2.7, 2.8]);
 
 %% functions
 function cmap = GradColor(startColor, endColor, numColors)

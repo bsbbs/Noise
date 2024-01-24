@@ -150,15 +150,19 @@ for (s in 1:length(subID))
 {
   indvdat <- mrgdat[mrgdat$subID == subID[s],]
   patchdat <- indvdat[indvdat$touched == 1,]
-  if (s == 1){plot(patchdat$bidmean, patchdat$bidvar, pch = 20, col = 'red', xlab = ' ', ylab = ' ', xlim = c(0,90), ylim = c(0,500), frame.plot = TRUE, axes = FALSE,  xaxt = "n", yaxt = "n")}else{points(patchdat$bidmean,patchdat$bid.y, pch = 20, col = redtrnsp)}
-  abline(lm(bid.y ~ bidmean, data = patchdat), col = redtrnsp)
+  if (s == 1){plot(patchdat$bidmean, patchdat$bidvar, pch = 20, col = bluetrnsp, xlab = ' ', ylab = ' ', xlim = c(0,90), ylim = c(0,500), frame.plot = TRUE, axes = FALSE,  xaxt = "n", yaxt = "n")}else{points(patchdat$bidmean,patchdat$bid.y, pch = 20, col = bluetrnsp)}
+  abline(lm(bid.y ~ bidmean, data = patchdat), col = bluetrnsp)
 }
 patchdat <- mrgdat[mrgdat$touched == 1,]
-abline(lm(bidvar ~ bidmean, data = patchdat), col = 'red', lwd = 3)
-axis(1, at = c(seq(0,90,20)),  tck = -0.02, padj = -1.4, cex.axis = .8)
-axis(2, tck = -0.02, at = c(seq(0,500,100)), padj = 1.4, cex.axis = .8)
-title(ylab = 'Bid variance', mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
-title(xlab = "Bid mean", mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
+abline(lm(bidvar ~ bidmean, data = patchdat), col = 'blue', lwd = 3)
+# axis(1, at = c(seq(0,90,20)),  tck = -0.02, padj = -1.4, cex.axis = 1)
+# axis(2, tck = -0.02, at = c(seq(0,500,100)), padj = 1.4, cex.axis = 1)
+# title(ylab = 'Bid variance', mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
+# title(xlab = "Bid mean", mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
+axis(1, at = c(seq(0,90,20)),  tck = -0.02, padj = -1, cex.axis = 1)
+axis(2, tck = -0.02, at = c(seq(0,500,100)), padj = 1, cex.axis = 1)
+title(ylab = 'Bid variance', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+title(xlab = "Bid mean ($)", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
 #legend('topleft',c('Precise',' '), text.col = c('red','blue'), pch = 20, cex = .8, col = c('red',NA), bty = 'n')
 dev.copy(pdf,file.path(out_dir,sprintf("Paper_BidVariance_A.pdf")),height=4, width=3.7)
 dev.off()
@@ -166,13 +170,13 @@ for (s in 1:length(subID))
 {
   indvdat <- mrgdat[mrgdat$subID == subID[s],]
   patchdat <- indvdat[indvdat$touched == 0,]
-  points(patchdat$bidmean, patchdat$bidvar, pch = 20, col = bluetrnsp)
-  abline(lm(bidvar ~ bidmean, data = patchdat), col = bluetrnsp)
+  points(patchdat$bidmean, patchdat$bidvar, pch = 20, col = redtrnsp)
+  abline(lm(bidvar ~ bidmean, data = patchdat), col = redtrnsp)
 }
 patchdat <- mrgdat[mrgdat$touched == 0,]
-abline(lm(bidvar ~ bidmean, data = patchdat), col = 'blue', lwd = 3)
-legend('topright',c('Precise','Vague'), text.col = c('red','blue'), pch = 20, cex = .8, col = c('red','blue'))
-dev.copy(pdf,file.path(out_dir,sprintf("Paper_BidVariance_B.pdf")),height=4.2, width=3.885)
+abline(lm(bidvar ~ bidmean, data = patchdat), col = 'red', lwd = 3)
+legend('topright',c('Amgiguous','Definitive'), text.col = c('red','blue'), pch = 20, cex = .8, col = c('red','blue'))
+dev.copy(pdf,file.path(out_dir,sprintf("Paper_BidVariance_B.pdf")),height=3.4, width=3.1) # height=4.2, width=3.885
 dev.off()
 ```
 
@@ -229,7 +233,7 @@ str(grpdcsn)
 ```{r}
 mtest <- lmer(choice ~ Vagueness*TimePressure + (1|subID), data = grpdcsn[grpdcsn$choice == 1 | grpdcsn$choice == 0,])
 summary(mtest)
-colors <- c('blue','red','lightblue','pink')
+# colors <- c('blue','red','#00FF80','#FFBF00')
 bars <- aggregate(choice ~ Vagueness + TimePressure + subID, data = grpdcsn[grpdcsn$choice == 1 | grpdcsn$choice == 0,], FUN = mean)
 test <- aov(choice ~ TimePressure*Vagueness + Error(subID), data = bars)
 summary(test)
@@ -241,11 +245,11 @@ Ns <-  aggregate(choice ~ Vagueness + TimePressure, data = bars, FUN = length)
 ses < ses[c(4,3,2,1),]
 Ns <- Ns[c(4,3,2,1),]
 ses$choice <- ses$choice/sqrt(Ns$choice)
-barx <- barplot(cbind(means$choice[means$TimePressure=='Low'], means$choice[means$TimePressure=='High'])-0.5, beside = TRUE, names = c('Low','High'), col = c('blue','pink','lightblue','red'), xlab = 'Time Pressure', ylab = '', yaxt = 'n', ylim = c(-.1,.51)) #ylim = c(-.1,.6))
-legend('topright', c('','','Vague','Precise'), col = c('blue','pink','lightblue','red'), bty = 'n', pch = 15, ncol = 2)
+barx <- barplot(cbind(means$choice[means$TimePressure=='Low'], means$choice[means$TimePressure=='High'])-0.5, beside = TRUE, names = c('Low','High'), col = c('red','#00FF80','#FFBF00','blue'), xlab = 'Time Pressure', ylab = '', yaxt = 'n', ylim = c(-.1,.51)) #ylim = c(-.1,.6))
+legend('topright', c('','','Ambiguous','Definitive'), col = c('red','#00FF80','#FFBF00','blue'), bty = 'n', pch = 15, ncol = 2)
 axis(2, at = seq(0,.2,.05), labels = seq(50,70,5), tck = -0.02, padj = .7, cex.axis = 1.0, lwd = 1.4)
 # axis(2, at = seq(0,.4,.1), labels = seq(50,90,10), tck = -0.03, padj = .7, cex.axis = 1.0, lwd = 1.4)
-title(ylab = expression(paste('% Correct (V1 & V2)                ')), mgp = c(2,0,0), font.lab = 1, cex.lab = 1.0)
+title(ylab = expression(paste('% Correct | V1, V2                ')), mgp = c(2,0,0), font.lab = 1, cex.lab = 1.0)
 abline(h = 0, lty = 2, col = 8)
 
 # ci <- 0
@@ -586,7 +590,7 @@ summary(test <- lm(acc ~ v3*TimePressure, weights = Ntrial, data = Sldwndwdat[Sl
 ```{r}
 condlist <- c(1,4,2,3)
 condnames <- c('Vague-Low','Precise-Low','Vauge-High','Precise-High')
-condcolors <- c('blue','pink','lightblue','red')
+condcolors <- c('red','#00FF80','#FFBF00','blue')
 vaguevec <- c('Vague','Precise','Vague','Precise')
 timevec <- c('Low','Low','High','High')
 LowestV3 <- 0 # chose V3 higher than zero, to avoid the effect when V3 = 0, the early noise cannot be effectively regulated
@@ -598,10 +602,10 @@ for (ci in condlist) # decision noise
   i <- i + 1
   v <- vaguevec[ci]
   tp <- timevec[ci]
-  if (v == 'Vague' & tp == 'Low'){mycol <- 'blue'}
-  if (v == 'Precise' & tp == 'High'){mycol <- 'red'}
-  if (v == 'Precise' & tp == 'Low'){mycol <- 'pink'}
-  if (v == 'Vague' & tp == 'High'){mycol <- 'lightblue'}
+  if (v == 'Vague' & tp == 'Low'){mycol <- 'red'}
+  if (v == 'Precise' & tp == 'High'){mycol <- 'blue'}
+  if (v == 'Precise' & tp == 'Low'){mycol <- '#00FF80'}
+  if (v == 'Vague' & tp == 'High'){mycol <- '#FFBF00'}
   onesect <- AccID3[AccID3$Vagueness == v & AccID3$TimePressure == tp & AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,]
   acc <- c()
   Ntrial <- c()
@@ -616,20 +620,24 @@ for (ci in condlist) # decision noise
   cut <- Ntrial > 600
   Sldwndwdat <- rbind(Sldwndwdat, data.frame(v3 = v3vec[cut], acc = acc[cut], Ntrial = Ntrial[cut], TimePressure = tp, Vagueness = v))
   if (i == 1)
-  {plot(v3vec[cut], acc[cut], cex = (Ntrial[cut])/600, col = mycol, 
+  {plot(v3vec[cut], acc[cut], cex = (Ntrial[cut])/800, col = mycol, 
         xlim = c(-.1, 0.9), ylim = c(62,73), xlab=' ', ylab=' ', 
         axes = FALSE, frame.plot = TRUE)
-    axis(1, at = c(seq(LowestV3, 1, .2)),  tck = 0.03, padj = -1.4, cex.axis = .8)
-    axis(2, tck = 0.03, at = seq(62, 75, 3), padj = 1.4, cex.axis = .8)
-    title(ylab = '% Correct (V1 & V2)', mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
-    title(xlab = "Scaled V3", mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
-  }else{points(v3vec[cut], acc[cut], cex = (Ntrial[cut])/600, col = mycol)}
+    # axis(1, at = c(seq(LowestV3, 1, .2)),  tck = 0.03, padj = -1.4, cex.axis = 1)
+    # axis(2, tck = 0.03, at = seq(62, 75, 3), padj = 1.4, cex.axis = 1)
+    # title(ylab = '% Correct (V1 & V2)', mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
+    # title(xlab = "Scaled V3", mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
+    axis(1, at = c(seq(LowestV3, 1, .2)),  tck = -0.02, padj = -1, cex.axis = 1)
+    axis(2, tck = -0.02, at = seq(62, 75, 3), padj = 1, cex.axis = 1)
+    title(ylab = '% Correct (V1 & V2)', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+    title(xlab = "Scaled V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+  }else{points(v3vec[cut], acc[cut], cex = (Ntrial[cut])/800, col = mycol)}
   lines(v3vec[cut], acc[cut], col = mycol)
   #test <- lm(acc[cut] ~ v3vec[cut], weights = Ntrial[cut])
   #abline(test, col = mycol)
 }
-legend(x = .25, y = 73.7, condnames, cex = .8, text.col = condcolors, bty = 'n')
-dev.copy(pdf, file.path(out_dir,sprintf("Choice~IDV3scldtomin_SldWndwWght_with0.pdf")), height=4.4, width=4)
+#legend(x = .25, y = 73.7, condnames, cex = .8, text.col = condcolors, bty = 'n')
+dev.copy(pdf, file.path(out_dir,sprintf("Choice~IDV3scldtomin_SldWndwWght_with0.pdf")), height=4.4*1.2, width=4*1.2)
 dev.off()
 ```
 # Sliding windows, weighted, segments
@@ -639,10 +647,11 @@ vaguevec <- c('Vague','Precise','Vague','Precise')
 timevec <- c('Low','Low','High','High')
 # for legend
 condnames <- c('Precise-Low','Vague-Low','Precise-High','Vauge-High')
-condcolors <- c('pink','red','blue','lightblue')
+condcolors <- c('#00FF80','red','blue','#FFBF00')
 LowestV3 <- 0.2 # chose V3 higher than zero, to avoid the effect when V3 = 0, the early noise cannot be effectively regulated
 HighestV3 <- 0.8
 Sldwndwdat <- c()
+Slope <- c()
 i <- 0
 par(mfrow = c(1, 2))
 for (ci in condlist) # decision noise
@@ -650,18 +659,11 @@ for (ci in condlist) # decision noise
   i <- i + 1
   v <- vaguevec[ci]
   tp <- timevec[ci]
-  if (v == 'Vague' & tp == 'Low'){mycol <- 'blue'}
-  if (v == 'Precise' & tp == 'High'){mycol <- 'red'}
-  if (v == 'Precise' & tp == 'Low'){mycol <- 'pink'}
-  if (v == 'Vague' & tp == 'High'){mycol <- 'lightblue'}
+  if (v == 'Vague' & tp == 'Low'){mycol <- 'red'}
+  if (v == 'Precise' & tp == 'High'){mycol <- 'blue'}
+  if (v == 'Precise' & tp == 'Low'){mycol <- '#00FF80'}
+  if (v == 'Vague' & tp == 'High'){mycol <- '#FFBF00'}
   onesect <- AccID3[AccID3$Vagueness == v & AccID3$TimePressure == tp & AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,]
-  # if (i == 1 | i == 3)
-  # {plot(acc ~ V3scld, col = mycol, data = onesect)
-  # }else{points(onesect$V3scld, onesect$acc, col = mycol)}
-  # test <- lm(acc ~ V3scld, weights = Ntrial, data = onesect)
-  # abline(test, col = mycol)
-  # print(summary(test))
-  #
   acc <- c()
   Ntrial <- c()
   v3vec <- seq(LowestV3, 1, .015)
@@ -677,16 +679,18 @@ for (ci in condlist) # decision noise
   {plot(v3vec[cut], acc[cut], cex = (Ntrial[cut])/600, col = mycol,
         xlim = c(LowestV3, .8), ylim = c(62,73), xlab=' ', ylab=' ',
         axes = FALSE, frame.plot = TRUE)
-    axis(1, at = c(seq(LowestV3, 1, .2)),  tck = 0.03, padj = -1.4, cex.axis = .8)
-    axis(2, tck = 0.03, at = seq(62, 75, 3), padj = 1.4, cex.axis = .8)
-    title(ylab = '% Correct (V1 & V2)', mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
-    title(xlab = "Scaled V3", mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
+    axis(1, at = c(seq(LowestV3, 1, .2)),  tck = -0.02, padj = -1, cex.axis = 1)
+    axis(2, tck = -0.02, at = seq(62, 75, 3), padj = 1, cex.axis = 1)
+    title(ylab = '% Correct (V1 & V2)', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+    title(xlab = "Scaled V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
   }else{points(v3vec[cut], acc[cut], cex = (Ntrial[cut])/600, col = mycol)}
   lines(v3vec[cut], acc[cut], col = mycol)
   test <- lm(acc[cut] ~ v3vec[cut], weights = Ntrial[cut])
   abline(test, col = mycol)
+  stats <- summary(test)
+  Slope <- rbind(Slope, data.frame(Vagueness = v, TimePressure = tp, slope = stats$coefficients[2], se = stats$coefficients[4]))
 }
-legend(x = .25, y = 73.7, condnames, cex = .8, text.col = condcolors, bty = 'n')
+#legend(x = .25, y = 73.7, condnames, cex = .8, text.col = condcolors, bty = 'n')
 dev.copy(pdf, file.path(out_dir,sprintf("Choice~IDV3scldtomin_SldWndwWght_Segments.pdf")), height=4.4, width=8)
 dev.off()
 
@@ -697,6 +701,25 @@ summary(test <- lm(acc ~ v3*TimePressure, weights = Ntrial, data = Sldwndwdat[Sl
 summary(test <- lm(acc ~ v3, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Vague' & Sldwndwdat$TimePressure == 'Low',]))
 summary(test <- lm(acc ~ v3*TimePressure, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Vague',]))
 ```
+# Manipulation check, 2x2 design
+```{r}
+means <-Slope
+means <- means[c(3,1,4,2),]
+
+barx <- barplot(cbind(means$slope[means$TimePressure=='Low'], means$slope[means$TimePressure=='High']), beside = TRUE, names = c('Low','High'), col = c('red','#00FF80','#FFBF00','blue'), xlab = 'Time Pressure', ylab = '', yaxt = 'n', ylim = c(-7,15))
+axis(2, at = seq(-5,15,5), tck = -0.02, padj = .7, cex.axis = 1.0, lwd = 1.4)
+abline(h=0, lty=2)
+title(ylab = expression(paste('Slope')), mgp = c(2,0,0), font.lab = 1, cex.lab = 1.0)
+arrows(barx, means$slope+means$se, barx, means$slope-means$se, code = 3, angle = 90, length = 0.1)
+xm <- apply(barx, 2, mean)
+lines(c(barx[1,1], barx[2,1]), c(15.23, 15.23), lwd =1, col = 1)
+lines(c(barx[1,2], barx[2,2]), c(15.198, 15.198), lwd =1, col = 1)
+lines(c(xm[1], xm[1], xm[2], xm[2]),c(0.23,0.27,0.27,.198))
+text(mean(xm), 15.57,'***')
+dev.copy(pdf,file.path(out_dir,'Choice~IDV3scldtomin_SldWndwWght_with0_slope.pdf'), height=4, width=3)
+dev.off()
+```
+
 # Sliding windows on V3 variance
 ```{r}
 condlist <- c(1,4,2,3)

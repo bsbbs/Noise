@@ -20,10 +20,13 @@ V2mean = 83;
 V3 = linspace(0, V1mean, 50)';
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
-nsmpls = 1024*1e3;
+nsmpls = 3*1024*1e3;
 
-epsvec = linspace(0, 9, 8)/2;
-etavec = linspace(3.63, 0, 8)/2;
+phi = linspace(0, pi/2, 8);
+epsvec = sin(phi)*9;
+etavec = cos(phi)*3.63;
+%epsvec = linspace(0, 9, 8);
+%etavec = linspace(3.63, 0, 8);
 filename = sprintf('Choice_MixedNoise_eps%1.2f_eta%1.2f', max(epsvec), max(etavec));
 % simulation
 matfile = fullfile(sim_dir, [filename, '.mat']);
@@ -41,7 +44,7 @@ if ~exist(matfile, 'file')
         pars = [eta, 1, 1, 1];
         tmpa = nan([10, 3, numel(V3)]);
         tmpb = nan([10, 3, numel(V3)]);
-        parfor ri = 1:120
+        parfor ri = 1:40
             tmpa(ri,:,:) = dDNaFig2(pars, dat, nsmpls);
             tmpb(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
         end
@@ -115,15 +118,15 @@ V2mean = 83;
 V3 = linspace(0, V1mean, 50)';
 x = V3/V2mean;
 mask = x > .2 & x < .8;
-epsvec = linspace(0, 13, 201);
+epsvec = linspace(0, 13, 101);
 %[epsmesh, V3mesh] = meshgrid(epsvec, V3vec);
 %V3 = V3mesh(:);
 %eps = epsmesh(:);
 
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
-nsmpls = 1024*1e3;
-etavec = linspace(0, 3.63*13/9, 201);
+nsmpls = 3*1024*1e3;
+etavec = linspace(0, 3.63*13/9, 100);
 
 matfile = fullfile(sim_dir, [filename, '.mat']);
 if ~exist(matfile, 'file')
@@ -139,7 +142,7 @@ if ~exist(matfile, 'file')
             sdV3 = eps*ones(size(V3));
             dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
             pars = [eta, 1, 1, 1];
-            reps = 120;
+            reps = 40;
             tmp = nan([reps, 3, numel(V3)]);
             parfor ri = 1:reps
                 tmp(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
