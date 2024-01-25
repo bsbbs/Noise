@@ -72,17 +72,8 @@ end
 
 %% visualization
 h = figure; hold on;
-mycols =flip([0.8472126105344099, 0.2612072279892349, 0.30519031141868513;
-    0.9637831603229527, 0.47743175701653207, 0.28581314878892733;
-    0.9934640522875817, 0.7477124183006535, 0.4352941176470587;
-    0.9977700884275279, 0.930872741253364, 0.6330642060745867;
-    0.944252210688197, 0.9777008842752788, 0.6620530565167244;
-    0.7477124183006538, 0.8980392156862746, 0.6274509803921569;
-    0.4530565167243369, 0.7815455594002307, 0.6462898885044214;
-    0.21607074202229912, 0.5556324490580546, 0.7319492502883507]);
-mycols = jet(8);
-mycols = [winter(4); flip(autumn(5))];
-mycols(5,:) = [];
+% mycols = [winter(4); flip(autumn(5))];
+% mycols(5,:) = [];
 mycols = [0         0    1.0000
          0    0.3333    0.8333
          0    0.6667    0.6667
@@ -110,7 +101,7 @@ plot([V1mean, V2mean]/V2mean, [1, 1]*min(ratio(:)), 'kv', 'MarkerFaceColor', 'k'
 xlim([0, V1mean/V2mean]);
 plot([lt, lt], [max(ratio(:)), min(ratio(:))], 'k--');
 plot([rt, rt], [max(ratio(:)), min(ratio(:))], 'k--');
-mylg = legend(lg, {'0.0 1.2','2.0 1.0','3.9 0.9','6.5 0.7','7.6 0.5','8.4 0.3','8.8 0.2','9.0 0.0'}, 'Location', "northeastoutside", 'Box','off');
+mylg = legend(fliplr(lg), {'9.0 0.0',' ',' ',' ',' ',' ',' ','0.0 3.6'}, 'Location', "northeastoutside", 'Box','off');
 title(mylg, 'Noise \sigma_{Early} \sigma_{Late}');
 xlabel('Scaled V3');
 ylabel('% Correct | V1, V2');
@@ -118,8 +109,8 @@ mysavefig(h, filename, plot_dir, 12, [5.4, 4]);
 %%
 h = figure; hold on;
 filename = [filename, 'Slope'];
-for i = 1:length(slope)
-    bar(i, slope(i), 'FaceColor',mycols(i,:));
+for i = length(slope):-1:1
+    bar(9-i, slope(i), 'FaceColor',mycols(i,:));
 end
 ylabel('Slope');
 xlabel('Cases');
