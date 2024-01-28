@@ -165,15 +165,66 @@ else
     load(matfile);
 end
 %%
-% addpath(genpath('/Users/bs3667/Library/CloudStorage/GoogleDrive-bs3667@nyu.edu/My Drive/Mylib'));
+addpath(genpath('/Users/bs3667/Library/CloudStorage/GoogleDrive-bs3667@nyu.edu/My Drive/Mylib'));
 h = figure;
-hold on;
+subplot(1,2,1); hold on;
 imagesc(etavec, epsvec, slope);
-% colormap(bluewhitered);
-colorbar;
+phi = [0:0.01:1]*pi/2;
+epsline = sin(phi)*9;
+etaline = cos(phi)*3.63;
+prb = plot(etaline, epsline, '-', 'Color', [85, 85, 85]/255, 'LineWidth', 2);
+
+phi = [0, .2, .35, .47, .6, .7, .8, 1]*pi/2;
+epsspots = sin(phi)*9;
+etaspots = cos(phi)*3.63;
+for ci = 1:numel(phi)
+    plot(etaspots(ci), epsspots(ci), '.', 'Color', mycols(ci,:), 'MarkerSize',24);
+    plot(etaspots(ci), epsspots(ci), 'o', 'Color', [85, 85, 85]/255, 'MarkerSize', 8);
+end
+
+
+colormap(bluewhitered);
+cb = colorbar;
+ylabel('\sigma_{Early noise}');
+xlabel('\sigma_{Late noise}');
+xlim([min(etavec)-.04022, max(etavec)]);
+ylim([min(epsvec)-.1, max(epsvec)]);
+mysavefig(h, filename, plot_dir, 12, [10, 3.6]);
+
+subplot(1,2,2); hold on;
+[etamesh, epsmesh] = meshgrid(etavec, epsvec);
+[Gx, Gy] = gradient(slope);
+norm = sqrt(Gx.^2 + Gy.^2);
+rate = (norm.^.4)./(norm);
+Gx = Gx.*rate;
+Gy = Gy.*rate;
+
+contour(etamesh, epsmesh, slope, 100);
+colormap(bluewhitered);
+cb = colorbar;
+il = 4;
+quiver(etamesh(1:il:end, 1:il:end), epsmesh(1:il:end, 1:il:end), Gx(1:il:end, 1:il:end), Gy(1:il:end, 1:il:end), 'Color', [85, 85, 85]/255); % 'r' specifies the color of the arrows
+
+plot(etaline, epsline, '-', 'Color', [85, 85, 85]/255, 'LineWidth', 1);
+% ylabel(cb, 'Slope');
 ylabel('\sigma_{Early noise}');
 xlabel('\sigma_{Late noise}');
 xlim([min(etavec), max(etavec)]);
 ylim([min(epsvec), max(epsvec)]);
-mysavefig(h, filename, plot_dir, 12, [5, 4]);
+
+% h.PaperUnits = 'inches';
+% h.PaperPosition = [0 0 5+5, 3.6];
+% saveas(h,fullfile(outdir,sprintf('%s.pdf',filename)),'pdf');
+mysavefig(h, filename, plot_dir, 12, [9.9, 3.6]);
+
+% h = figure;
+% subplot(1,2,1); hold on;
+% histogram(Gx);
+% xlabel('Slope x');
+% ylabel('Frequency');
+% subplot(1,2,2); hold on;
+% histogram(Gy);
+% xlabel('Slope y');
+% ylabel('Frequency');
+
 

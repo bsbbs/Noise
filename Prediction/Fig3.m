@@ -9,7 +9,7 @@ elseif strcmp(os,'GLNXA64')
     Gitdir = '/gpfs/data/glimcherlab/BoShen/Noise';
 end
 plot_dir = fullfile(rootdir, 'Prediction');
-sim_dir = fullfile(rootdir, 'Prediction');
+sim_dir = fullfile(Gitdir, 'Prediction');
 addpath(genpath(Gitdir));
 
 %% graded color, two panels
@@ -82,13 +82,13 @@ cmap = [];
 h = figure;
 filename = sprintf('Ratio_Model_%iv3max%1.0f_%s', numel(V3), max(V3), '2Panels');
 for i = 1:2
-    subplot(1, 2, i); hold on;
-    if i == 2
+    subplot(1, 2, 3-i); hold on;
+    if i == 1
         v = 0;
         eps = 4;
         startColor = mycols(4,:); % Light-blue
         endColor = mycols(1,:);  % Blue
-    elseif i == 1
+    elseif i == 2
         v = 1;
         eps = 9;
         startColor = mycols(8,:); % Red
