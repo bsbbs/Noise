@@ -12,6 +12,8 @@ plot_dir = fullfile(rootdir, 'Prediction');
 sim_dir = fullfile(Gitdir, 'Prediction');
 addpath(genpath(Gitdir));
 
+Npar = 40;
+mypool = parpool(Npar);
 %% Early and late noise only
 filename = sprintf('SNR_Ovlp_Choice');
 V1mean = 88;

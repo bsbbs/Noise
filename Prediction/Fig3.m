@@ -12,6 +12,8 @@ plot_dir = fullfile(rootdir, 'Prediction');
 sim_dir = fullfile(Gitdir, 'Prediction');
 addpath(genpath(Gitdir));
 
+Npar = 40;
+mypool = parpool(Npar);
 %% graded color, two panels
 V1mean = 88;% 53;
 V2mean = 83;% 58;
