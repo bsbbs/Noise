@@ -62,8 +62,11 @@ max_from_each_distribution = SVs == max(SVs, [], 1);
 probs = squeeze(sum(max_from_each_distribution, 2) / size(SVs, 2));
 CVs = squeeze(std(SVs, [], 2)./mean(SVs, 2));
 
-Ovlps = [];
+Ovlps = nan([1, numel(dat.V3)]);
 dSVrng = [min(SVs(:)), max(SVs(:))];
+if gpuparallel
+    SVs = gather(SVs);
+end
 for v3i = 1:numel(dat.V3)
     pd1 = fitdist(SVs(1,:,v3i)','kernel','Kernel','normal');
     x = dSVrng(1):.1:dSVrng(2);
@@ -75,7 +78,6 @@ for v3i = 1:numel(dat.V3)
 end
 if gpuparallel
     probs = gather(probs);
-    Ovlps = gather(Ovlps);
     CVs = gather(CVs);
 end
 end
