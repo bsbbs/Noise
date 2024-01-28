@@ -58,10 +58,10 @@ if gpuparallel
 else
     SVs = DNP + randn(size(samples))*eta;
 end
+CVs = squeeze(std(SVs, [], 2)./mean(SVs, 2));
 SVs = SVs(1:2,:,:);
 max_from_each_distribution = SVs == max(SVs, [], 1);
 probs = squeeze(sum(max_from_each_distribution, 2) / size(SVs, 2));
-CVs = squeeze(std(SVs, [], 2)./mean(SVs, 2));
 
 Ovlps = nan([1, numel(dat.V3)]);
 dSVrng = [min(SVs(:)), max(SVs(:))];
