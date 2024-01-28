@@ -45,7 +45,7 @@ filename = sprintf('Choice_MixedNoise_eps%1.2f_eta%1.2f', max(epsvec), max(etave
 % simulation
 matfile = fullfile(sim_dir, [filename, '.mat']);
 if ~exist(matfile, 'file')
-    probsa = nan([numel(epsvec), 3, numel(V3)]);
+    probsa = nan([numel(epsvec), 2, numel(V3)]);
     probsb = nan([numel(epsvec), 3, numel(V3)]);
     for i = 1:numel(epsvec)
         fprintf("Level #%i\n",i);
@@ -57,7 +57,7 @@ if ~exist(matfile, 'file')
         dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
         pars = [eta, 1, 1, 1];
         reps = 40;
-        tmpa = nan([reps, 3, numel(V3)]);
+        tmpa = nan([reps, 2, numel(V3)]);
         tmpb = nan([reps, 3, numel(V3)]);
         parfor ri = 1:40
             tmpa(ri,:,:) = dDNaFig2(pars, dat, nsmpls);
