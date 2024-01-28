@@ -24,8 +24,8 @@ V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 sdV1 = epsV1*ones(size(V3))/2;
 sdV2 = epsV2*ones(size(V3))/2;
-chosenItem = randi(3, size(V3)); % dummy variable required by the function, meaningless used here
 etavec = linspace(.8, 1.9, 8); % different levels of late noise
+nsmpls = 1024*1e3;
 filename = sprintf('Ratio_Model_%iv3max%1.0f_%s', numel(V3), max(V3), '2Panels');
 % simulation
 SimDatafile = fullfile(sim_dir, [filename, '.mat']);
