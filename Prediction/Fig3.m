@@ -33,10 +33,6 @@ if exist(SimDatafile,'file')
     load(SimDatafile);
 else
     Ratios = nan(2, numel(etavec), numel(V3));
-    DNOverlaps = Ratios;
-    SVOverlaps = Ratios;
-    tmp = nan(2, numel(etavec), 3, numel(V3));
-    
     for i = 1:2
         if i == 1
             v = 0;
@@ -46,22 +42,21 @@ else
             eps = 9;
         end
         sdV3 = eps*ones(size(V3));
-        dat = table(V1,V2,V3,sdV1,sdV2,sdV3, chosenItem);
+        dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
         for ti = 1:numel(etavec)
             eta = etavec(ti);
-            x = [1, 1, eta]; % M , w, eta
-            dDNbFig2();
-            [probs, dDNPQntls, V3Qntls, dSVQtls, dDNOvlp, dSVOvlp] = dDN(x, dat, 'absorb');
-            DNPStats(i, ti, :, :) = dDNPQntls;
-            DNOverlaps(i, ti, :) = dDNOvlp;
-            V3Stats(i, ti, :, :) = V3Qntls;
-            SVStats(i, ti, :, :) = dSVQtls;
-            SVOverlaps(i, ti, :) = dSVOvlp;
-            Ratios(i,ti,:) = probs(2,:)./(probs(1,:) + probs(2,:));
+            pars = [eta, 1, 1, 1];
+            reps = 40;
+            tmpb = nan([reps, 3, numel(V3)]);
+            parfor ri = 1:40
+                tmpb(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
+            end
+            probs = squeeze(mean(tmpb, 1));
+            Ratios(i,ti,:) = probs(1,:)./(probs(1,:) + probs(2,:));
         end
     end
-    xval = V3'/V1mean;
-    save(SimDatafile, "Ratios","DNPStats","V3Stats","SVStats","DNOverlaps","SVOverlaps","xval",'-mat');
+    xval = V3'/V2mean;
+    save(SimDatafile, "Ratios","xval",'-mat');
 end
 %% visualization
 mycols = [0         0    1.0000
@@ -73,7 +68,7 @@ mycols = [0         0    1.0000
     1.0000    0.2500         0
     1.0000         0         0];
 
-xval = V3'/V1mean;
+xval = V3'/V2mean;
 lt = 0.2;
 rt = 0.8;
 mask = xval >= lt & xval <= rt;
@@ -117,7 +112,7 @@ end
 %% slopes as bars
 h = figure; hold on;
 filename = sprintf('Ratio_Model_%iv3max%1.0f_%s', numel(V3), max(V3), 'Slopes');
-mybar = bar(etavec, fliplr(slope), 1, 'FaceColor','flat');
+mybar = barh(etavec, fliplr(slope), 1, 'FaceColor','flat');
 for k = 1:size(slope,2)
     mybar(k).CData = cmap(:,:,k);
 end

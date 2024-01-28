@@ -56,8 +56,9 @@ if ~exist(matfile, 'file')
         sdV3 = eps*ones(size(V3));
         dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
         pars = [eta, 1, 1, 1];
-        tmpa = nan([10, 3, numel(V3)]);
-        tmpb = nan([10, 3, numel(V3)]);
+        reps = 40;
+        tmpa = nan([reps, 3, numel(V3)]);
+        tmpb = nan([reps, 3, numel(V3)]);
         parfor ri = 1:40
             tmpa(ri,:,:) = dDNaFig2(pars, dat, nsmpls);
             tmpb(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
