@@ -13,11 +13,11 @@ sim_dir = fullfile(Gitdir, 'Prediction');
 addpath(genpath(Gitdir));
 
 %% graded color, two panels
-V1mean = 83;% 53;
-V2mean = 88;% 58;
+V1mean = 88;% 53;
+V2mean = 83;% 58;
 epsV1 = 9; % early noise for V1
 epsV2 = 9; % early noise for V2
-V3 = linspace(0, V1mean, 25)';
+V3 = linspace(0, V2mean, 50)';
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 sdV1 = epsV1*ones(size(V3))/2;
@@ -34,9 +34,6 @@ else
     DNOverlaps = Ratios;
     SVOverlaps = Ratios;
     tmp = nan(2, numel(etavec), 3, numel(V3));
-    DNPStats = tmp;
-    V3Stats = tmp;
-    SVStats = tmp;
     
     for i = 1:2
         if i == 1
@@ -51,6 +48,7 @@ else
         for ti = 1:numel(etavec)
             eta = etavec(ti);
             x = [1, 1, eta]; % M , w, eta
+            dDNbFig2();
             [probs, dDNPQntls, V3Qntls, dSVQtls, dDNOvlp, dSVOvlp] = dDN(x, dat, 'absorb');
             DNPStats(i, ti, :, :) = dDNPQntls;
             DNOverlaps(i, ti, :) = dDNOvlp;
