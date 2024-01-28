@@ -112,14 +112,17 @@ end
 %% slopes as bars
 h = figure; hold on;
 filename = sprintf('Ratio_Model_%iv3max%1.0f_%s', numel(V3), max(V3), 'Slopes');
-mybar = barh(etavec, fliplr(slope), 1, 'FaceColor','flat');
+mybar = barh(etavec', fliplr(slope), 1, 'FaceColor','flat');
 for k = 1:size(slope,2)
-    mybar(k).CData = cmap(:,:,k);
+    mybar(k).CData = cmap(:,:,3-k);
 end
-legend({'Ambiguous','Definitive'});
-ylabel('Slope');
-xlabel('\sigma_{Late}');
-mysavefig(h, filename, plot_dir, 12, [2.7, 2.8]);
+set(gca, 'YDir', 'reverse');
+set(gca, 'XAxisLocation', 'top');
+set(gca, 'YAxisLocation', 'right');
+legend({'Ambiguous','Definitive'}, 'Location', 'northwest');
+xlabel('Slope');
+ylabel('\sigma_{Late}');
+mysavefig(h, filename, plot_dir, 12, [2.8, 2.7]);
 
 %% functions
 function cmap = GradColor(startColor, endColor, numColors)
