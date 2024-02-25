@@ -21,7 +21,7 @@ V2mean = 83;
 V3 = linspace(0, V1mean, 50)';
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
-nsmpls = 1024*1e3;
+nsmpls = 1024*1e3*4;
 % simulation
 matfile = fullfile(sim_dir, [filename, '.mat']);
 if ~exist(matfile, 'file')
@@ -32,16 +32,19 @@ if ~exist(matfile, 'file')
     sdV3 = eps*ones(size(V3));
     dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
     pars = [eta, 1, 1, 1];
-    reps = 40;
+    reps = 10;
     tmp1a = nan([reps, 2, numel(V3)]);
     tmp2a = nan([reps, numel(V3)]);
     tmp3a = nan([reps, 3, numel(V3)]);
     tmp1b = nan([reps, 3, numel(V3)]);
     tmp2b = nan([reps, numel(V3)]);
     tmp3b = nan([reps, 3, numel(V3)]);
-    parfor ri = 1:reps
+    for ri = 1:reps
+        fprintf('Early noise, rep %i', ri);
         [tmp1a(ri,:,:), tmp2a(ri,:), tmp3a(ri,:,:)] = dDNaFig1(pars, dat, nsmpls); % theoritical model
+        fprintf('.');
         [tmp1b(ri,:,:), tmp2b(ri,:), tmp3b(ri,:,:)] = dDNbFig1(pars, dat, nsmpls); % biological model
+        fprintf('.\n');
     end
     probsa = squeeze(mean(tmp1a, 1));
     Ovlpsa = squeeze(mean(tmp2a, 1));
@@ -63,9 +66,12 @@ if ~exist(matfile, 'file')
     tmp1b = nan([reps, 3, numel(V3)]);
     tmp2b= nan([reps, numel(V3)]);
     tmp3b = nan([reps, 3, numel(V3)]);
-    parfor ri = 1:reps
+    for ri = 1:reps
+        fprintf('Late noise, rep %i', ri);
         [tmp1a(ri,:,:), tmp2a(ri,:), tmp3a(ri,:,:)] = dDNaFig1(pars, dat, nsmpls);
+        fprintf('.');
         [tmp1b(ri,:,:), tmp2b(ri,:), tmp3b(ri,:,:)] = dDNbFig1(pars, dat, nsmpls);
+        fprintf('.\n');
     end
     probsaL = squeeze(mean(tmp1a, 1));
     OvlpsaL = squeeze(mean(tmp2a, 1));
@@ -80,10 +86,10 @@ end
 %%
 h = figure;
 subplot(3,2,1); hold on;
-plot(V3, 1./CVsa(1,:), 'r:', 'LineWidth', 1);
-plot(V3, 1./CVsb(1,:), 'r-', 'LineWidth', 1);
-plot(V3, 1./CVsa(2,:), 'r:', 'LineWidth', 1);
-plot(V3, 1./CVsb(2,:), 'r-', 'LineWidth', 1);
+plot(V3, 1./CVsa(1,:), 'r:', 'LineWidth', 2);
+plot(V3, 1./CVsb(1,:), 'r-', 'LineWidth', 2);
+plot(V3, 1./CVsa(2,:), 'r:', 'LineWidth', 2);
+plot(V3, 1./CVsb(2,:), 'r-', 'LineWidth', 2);
 xlabel('V3');
 ylabel('SNR');
 xlim([0, V1mean]);
@@ -94,10 +100,10 @@ legend({'Theoritical','Biological'}, 'Location', 'northeast', 'FontSize',10);
 mysavefig(h, filename, plot_dir, 12, [6, 8]);
 
 subplot(3,2,2); hold on;
-plot(V3, 1./CVsaL(1,:), 'c:', 'LineWidth', 1);
-plot(V3, 1./CVsbL(1,:), 'c-', 'LineWidth', 1);
-plot(V3, 1./CVsaL(2,:), 'c:', 'LineWidth', 1);
-plot(V3, 1./CVsbL(2,:), 'c-', 'LineWidth', 1);
+plot(V3, 1./CVsaL(1,:), 'c:', 'LineWidth', 2);
+plot(V3, 1./CVsbL(1,:), 'c-', 'LineWidth', 2);
+plot(V3, 1./CVsaL(2,:), 'c:', 'LineWidth', 2);
+plot(V3, 1./CVsbL(2,:), 'c-', 'LineWidth', 2);
 xlabel('V3');
 ylabel('SNR');
 xlim([0, V1mean]);
@@ -107,8 +113,8 @@ xlim([0, V1mean]);
 mysavefig(h, filename, plot_dir, 12, [6, 8]);
 
 subplot(3,2,3); hold on;
-plot(V3, Ovlpsa, 'r:', 'LineWidth', 1);
-plot(V3, Ovlpsb, 'r-', 'LineWidth', 1);
+plot(V3, Ovlpsa, 'r:', 'LineWidth', 2);
+plot(V3, Ovlpsb, 'r-', 'LineWidth', 2);
 xlabel('V3');
 ylabel('% Overlap | V1, V2');
 xlim([0, V1mean]);
@@ -118,8 +124,8 @@ xlim([0, V1mean]);
 mysavefig(h, filename, plot_dir, 12, [6, 8]);
 
 subplot(3,2,4); hold on;
-plot(V3, OvlpsaL, 'c:', 'LineWidth', 1);
-plot(V3, OvlpsbL, 'c-', 'LineWidth', 1);
+plot(V3, OvlpsaL, 'c:', 'LineWidth', 2);
+plot(V3, OvlpsbL, 'c-', 'LineWidth', 2);
 xlabel('V3');
 ylabel('% Overlap | V1, V2');
 xlim([0, V1mean]);
@@ -130,10 +136,10 @@ mysavefig(h, filename, plot_dir, 12, [6, 8]);
 
 subplot(3,2,5); hold on;
 ratio = probsa(1,:)./(probsa(1,:) + probsa(2,:))*100;
-plot(V3, ratio, 'r:', 'LineWidth', 1);
+plot(V3, ratio, 'r:', 'LineWidth', 2);
 plot([V1mean, V2mean], [1, 1]*min(ratio), 'kv', 'MarkerFaceColor','k');
 ratio = probsb(1,:)./(probsb(1,:) + probsb(2,:))*100;
-plot(V3, ratio, 'r-', 'LineWidth', 1);
+plot(V3, ratio, 'r-', 'LineWidth', 2);
 xlabel('V3');
 ylabel('% Correct | V1, V2');
 xlim([0, V1mean]);
@@ -144,14 +150,14 @@ mysavefig(h, filename, plot_dir, 12, [6, 8]);
 
 subplot(3,2,6); hold on;
 ratio = probsaL(1,:)./(probsaL(1,:) + probsaL(2,:))*100;
-plot(V3, ratio, 'c:', 'LineWidth', 1);
+plot(V3, ratio, 'c:', 'LineWidth', 2);
 plot([V1mean, V2mean], [1, 1]*min(ratio), 'kv', 'MarkerFaceColor', 'k');
 ratio = probsbL(1,:)./(probsbL(1,:) + probsbL(2,:))*100;
-plot(V3, ratio, 'c-', 'LineWidth', 1);
+plot(V3, ratio, 'c-', 'LineWidth', 2);
 xlabel('V3');
 ylabel('% Correct | V1, V2');
 xlim([0, V1mean]);
-ylim([61,65]);
+% ylim([61,65]);
 % yticks = get(gca, 'YTick');
 % yticklabels = arrayfun(@(v) sprintf('%2.1f', v), yticks, 'UniformOutput', false);
 % set(gca, 'YTickLabel', yticklabels);

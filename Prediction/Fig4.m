@@ -1,4 +1,4 @@
-% Figure 3. Predictions on the design matrix
+% Figure 4. Predictions on the design matrix
 %% define directories
 [os, ~, ~] = computer;
 if strcmp(os,'MACI64')
@@ -67,7 +67,7 @@ mycols = [0         0    1.0000
     1.0000    0.5000         0
     1.0000    0.2500         0
     1.0000         0         0];
-
+etavec = etavec(1:6);
 xval = V3'/V2mean;
 lt = 0.2;
 rt = 0.8;
@@ -83,11 +83,13 @@ for i = 1:2
         eps = 4;
         startColor = mycols(4,:); % Light-blue
         endColor = mycols(1,:);  % Blue
+        yrng = [68.5, 74.5];
     elseif i == 2
         v = 1;
         eps = 9;
         startColor = mycols(8,:); % Red
         endColor = mycols(5,:); % Pink
+        yrng = [67.3, 72.45];
     end
     cmap(:,:,i) = GradColor(startColor, endColor, numel(etavec));
     
@@ -100,13 +102,14 @@ for i = 1:2
         slope(ti,i) = coefficients(1);
     end
     plot([V1mean, V2mean]/V1mean, [1, 1]*min(ratio(:)), 'kv', 'MarkerFaceColor', 'k', 'MarkerSize', 5);
+    ylim(yrng);
     plot([lt, lt], [ylim], 'k--');
     plot([rt, rt], [ylim], 'k--');
-    mylg = legend(lg, {'0.80','0.96','1.11','1.27','1.43','1.59','1.74','1.90'}, 'Location', "northeastoutside", 'Box','off');
+    mylg = legend(lg, {'0.80','0.96','1.11','1.27','1.43','1.59'}, 'Location', "northeastoutside", 'Box','off');
     title(mylg, 'Late noise');
     xlabel('Scaled V3');
     ylabel('% Correct | V1, V2');
-    mysavefig(h, filename, plot_dir, 12, [7, 2.8]);
+    mysavefig(h, filename, plot_dir, 12, [7.27, 2.37]);
 end
 
 %% slopes as bars
@@ -118,11 +121,13 @@ for k = 1:size(slope,2)
 end
 set(gca, 'YDir', 'reverse');
 set(gca, 'XAxisLocation', 'top');
-set(gca, 'YAxisLocation', 'right');
-legend({'Ambiguous','Definitive'}, 'Location', 'northwest');
+%set(gca, 'YAxisLocation', 'right');
+set(gca, 'YColor', 'none')
+set(gca, 'YTick', []);
+%legend({'Vague','Precise'}, 'Location', 'northwest');
 xlabel('Slope');
-ylabel('\sigma_{Late}');
-mysavefig(h, filename, plot_dir, 12, [2.8, 2.7]);
+%ylabel('\sigma_{Late}');
+mysavefig(h, filename, plot_dir, 12, [2.06, 1.59]*1.1);
 
 %% functions
 function cmap = GradColor(startColor, endColor, numColors)

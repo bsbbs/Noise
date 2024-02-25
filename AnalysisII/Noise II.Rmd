@@ -160,7 +160,7 @@ abline(lm(bidvar ~ bidmean, data = patchdat), col = 'blue', lwd = 3)
 # title(ylab = 'Bid variance', mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
 # title(xlab = "Bid mean", mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
 axis(1, at = c(seq(0,90,20)),  tck = -0.02, padj = -1, cex.axis = 1)
-axis(2, tck = -0.02, at = c(seq(0,500,100)), padj = 1, cex.axis = 1)
+axis(2, tck = -0.02, at = c(seq(0,500,200)), padj = 1, cex.axis = 1)
 title(ylab = 'Bid variance', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
 title(xlab = "Bid mean ($)", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
 #legend('topleft',c('Precise',' '), text.col = c('red','blue'), pch = 20, cex = .8, col = c('red',NA), bty = 'n')
@@ -176,7 +176,7 @@ for (s in 1:length(subID))
 patchdat <- mrgdat[mrgdat$touched == 0,]
 abline(lm(bidvar ~ bidmean, data = patchdat), col = 'red', lwd = 3)
 legend('topright',c('Amgiguous','Definitive'), text.col = c('red','blue'), pch = 20, cex = .8, col = c('red','blue'))
-dev.copy(pdf,file.path(out_dir,sprintf("Paper_BidVariance_B.pdf")),height=3.4, width=3.1) # height=4.2, width=3.885
+dev.copy(pdf,file.path(out_dir,sprintf("Paper_BidVariance_B.pdf")),height=3.9, width=3.5) # height=4.2, width=3.885
 dev.off()
 ```
 
@@ -275,7 +275,7 @@ lines(c(barx[1,1], barx[2,1]), c(0.23, 0.23), lwd =1, col = 1)
 lines(c(barx[1,2], barx[2,2]), c(.198, .198), lwd =1, col = 1)
 lines(c(xm[1], xm[1], xm[2], xm[2]),c(0.23,0.27,0.27,.198))
 text(mean(xm), .57,'***')
-dev.copy(pdf,file.path(out_dir,'LateNoiseReg.pdf'), height=4, width=3)
+dev.copy(pdf,file.path(out_dir,'LateNoiseReg.pdf'), height=5, width=3.47)
 dev.off()
 ```
 
@@ -629,7 +629,7 @@ for (ci in condlist) # decision noise
     # title(xlab = "Scaled V3", mgp = c(1.2,0,0), font.lab = 1, cex.lab = 1)
     axis(1, at = c(seq(LowestV3, 1, .2)),  tck = -0.02, padj = -1, cex.axis = 1)
     axis(2, tck = -0.02, at = seq(63, 75, 3), padj = 1, cex.axis = 1)
-    title(ylab = '% Correct (V1 & V2)', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+    title(ylab = '% Correct | V1, V2', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
     title(xlab = "Scaled V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
   }else{points(v3vec[cut], acc[cut], cex = (Ntrial[cut])/800, col = mycol)}
   lines(v3vec[cut], acc[cut], col = mycol)
@@ -637,7 +637,7 @@ for (ci in condlist) # decision noise
   #abline(test, col = mycol)
 }
 #legend(x = .25, y = 73.7, condnames, cex = .8, text.col = condcolors, bty = 'n')
-dev.copy(pdf, file.path(out_dir,sprintf("Choice~IDV3scldtomin_SldWndwWght_with0.pdf")), height=5.28, width=7.0834)
+dev.copy(pdf, file.path(out_dir,sprintf("Choice~IDV3scldtomin_SldWndwWght_with0.pdf")), height=6.28, width=5.86)
 dev.off()
 ```
 # Sliding windows, weighted, segments
@@ -696,10 +696,15 @@ dev.off()
 
 Sldwndwdat$TimePressure <- factor(Sldwndwdat$TimePressure, levels = c('Low','High'))
 Sldwndwdat$Vagueness <- factor(Sldwndwdat$Vagueness, levels = c('Precise','Vague'))
-summary(test <- lm(acc ~ v3, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Precise' & Sldwndwdat$TimePressure == 'High',]))
-summary(test <- lm(acc ~ v3*TimePressure, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Precise',]))
+summary(test <- lm(acc ~ v3*TimePressure*Vagueness, weights = Ntrial, data = Sldwndwdat))
 summary(test <- lm(acc ~ v3, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Vague' & Sldwndwdat$TimePressure == 'Low',]))
+summary(test <- lm(acc ~ v3, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Precise' & Sldwndwdat$TimePressure == 'High',]))
+summary(test <- lm(acc ~ v3, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Vague' & Sldwndwdat$TimePressure == 'High',]))
 summary(test <- lm(acc ~ v3*TimePressure, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Vague',]))
+summary(test <- lm(acc ~ v3, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Precise' & Sldwndwdat$TimePressure == 'Low',]))
+summary(test <- lm(acc ~ v3*TimePressure, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Precise',]))
+summary(test <- lm(acc ~ v3*Vagueness, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$TimePressure == 'Low',]))
+summary(test <- lm(acc ~ v3*Vagueness, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$TimePressure == 'High',]))
 ```
 # Manipulation check, 2x2 design
 ```{r}
