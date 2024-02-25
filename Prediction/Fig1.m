@@ -21,7 +21,7 @@ V2mean = 83;
 V3 = linspace(0, V1mean, 50)';
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
-nsmpls = 1024*1e3*4;
+nsmpls = 1024*1e3;
 % simulation
 matfile = fullfile(sim_dir, [filename, '.mat']);
 if ~exist(matfile, 'file')
@@ -32,14 +32,14 @@ if ~exist(matfile, 'file')
     sdV3 = eps*ones(size(V3));
     dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
     pars = [eta, 1, 1, 1];
-    reps = 10;
+    reps = 10*4;
     tmp1a = nan([reps, 2, numel(V3)]);
     tmp2a = nan([reps, numel(V3)]);
     tmp3a = nan([reps, 3, numel(V3)]);
     tmp1b = nan([reps, 3, numel(V3)]);
     tmp2b = nan([reps, numel(V3)]);
     tmp3b = nan([reps, 3, numel(V3)]);
-    for ri = 1:reps
+    parfor ri = 1:reps
         fprintf('Early noise, rep %i', ri);
         [tmp1a(ri,:,:), tmp2a(ri,:), tmp3a(ri,:,:)] = dDNaFig1(pars, dat, nsmpls); % theoritical model
         fprintf('.');
