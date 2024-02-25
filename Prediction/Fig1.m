@@ -66,7 +66,7 @@ if ~exist(matfile, 'file')
     tmp1b = nan([reps, 3, numel(V3)]);
     tmp2b= nan([reps, numel(V3)]);
     tmp3b = nan([reps, 3, numel(V3)]);
-    for ri = 1:reps
+    parfor ri = 1:reps
         fprintf('Late noise, rep %i', ri);
         [tmp1a(ri,:,:), tmp2a(ri,:), tmp3a(ri,:,:)] = dDNaFig1(pars, dat, nsmpls);
         fprintf('.');
