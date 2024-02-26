@@ -49,24 +49,26 @@ end
 D1 = sum(D1, 1)*wp + Mp;
 D2 = sum(D2, 1)*wp + Mp;
 D3 = sum(D3, 1)*wp + Mp;
-D = [D1; D2; D3];
-clear D1 D2 D3;
+% D = [D1; D2; D3];
 % The product of divisive normalization before adding late noise
-DNP = Rmax*samples./D;
+DNP = Rmax*samples./[D1; D2; D3];
+clear D1 D2 D3;
 if gpuparallel
     SVs = max(DNP + gpuArray.randn(size(samples))*eta, 0);
 else
     SVs = max(DNP + randn(size(samples))*eta, 0);
 end
+clear DNP;
 max_from_each_distribution = SVs == max(SVs, [], 1);
 probs = squeeze(sum(max_from_each_distribution, 2) / size(SVs, 2));
+clear max_from_each_distribution;
 CVs = squeeze(std(SVs, [], 2)./mean(SVs, 2));
 
 Ovlps = nan([1, numel(dat.V3)]);
-dSVrng = [min(SVs(:)), max(SVs(:))];
 if gpuparallel
     SVs = gather(SVs);
 end
+dSVrng = [min(SVs(:)), max(SVs(:))];
 for v3i = 1:numel(dat.V3)
     pd1 = fitdist(SVs(1,:,v3i)','kernel','Kernel','normal');
     x = dSVrng(1):.1:dSVrng(2);
