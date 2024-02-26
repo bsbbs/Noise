@@ -175,10 +175,10 @@ epsline = sin(phi)*9;
 etaline = cos(phi)*3.63;
 prb = plot(etaline, epsline, '-', 'Color', [85, 85, 85]/255, 'LineWidth', 2);
 
-phis = [0, .2, .35, .47, .6, .7, .8, 1]*pi/2;
-epsspots = sin(phis)*9;
-etaspots = cos(phis)*3.63;
-for ci = 1:numel(phis)
+phi = [0, .2, .35, .47, .6, .7, .8, 1]*pi/2;
+epsspots = sin(phi)*9;
+etaspots = cos(phi)*3.63;
+for ci = 1:numel(phi)
     plot(etaspots(ci), epsspots(ci), '.', 'Color', mycols(ci,:), 'MarkerSize',24);
     plot(etaspots(ci), epsspots(ci), 'o', 'Color', [85, 85, 85]/255, 'MarkerSize', 8);
 end
@@ -194,22 +194,11 @@ mysavefig(h, filename, plot_dir, 12, [10, 3.6]);
 subplot(1,2,2); hold on;
 il = 7;
 [etamesh, epsmesh] = meshgrid(etavec, epsvec);
-%contour(etamesh, epsmesh, slope, 30);
-%colormap(bluewhitered);
+contour(etamesh, epsmesh, slope, 30);
+colormap(bluewhitered);
 cb = colorbar;
 
-N = 9;
-mygray = gray(N);
-mag = linspace(.2,2,N);
-for magi = 1:N
-    epsline = sin(phi)*9*mag(magi);
-    etaline = cos(phi)*3.63*mag(magi);
-    plot(etaline, epsline, '-', 'Color', mygray(magi,:), 'LineWidth', .5);
-end
-
 [Gx, Gy] = gradient(slope);
-Gx = RUNAverg(Gx, il, il);
-Gy = RUNAverg(Gy, il, il);
 
 norm = sqrt(Gx.^2 + Gy.^2);
 rate = (norm.^.4)./(norm);
@@ -218,11 +207,12 @@ Gy = Gy.*rate;
 
 Xd = RUNAverg(etamesh, il, il);
 Yd = RUNAverg(epsmesh, il, il);
-Ud = Gx; %RUNAverg(Gx, il, il);
-Vd = Gy; %RUNAverg(Gy, il, il);
+Ud = RUNAverg(Gx, il, il);
+Vd = RUNAverg(Gy, il, il);
 
-quiver(Xd,Yd,Ud,Vd,'Color','red');
+quiver(Xd,Yd,Ud,Vd,'Color','k');
 
+plot(etaline, epsline, '-', 'Color', [85, 85, 85]/255, 'LineWidth', 1);
 % ylabel(cb, 'Slope');
 ylabel('\sigma_{Early noise}');
 xlabel('\sigma_{Late noise}');
