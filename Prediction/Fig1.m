@@ -33,7 +33,7 @@ if ~exist(matfile, 'file')
     dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
     pars = [eta, 1, 1, 1];
     reps = 10*4;
-    tmp1a = nan([reps, 2, numel(V3)]);
+    tmp1a = nan([reps, 3, numel(V3)]);
     tmp2a = nan([reps, numel(V3)]);
     tmp3a = nan([reps, 3, numel(V3)]);
     tmp1b = nan([reps, 3, numel(V3)]);
@@ -60,7 +60,7 @@ if ~exist(matfile, 'file')
     sdV3 = eps*ones(size(V3));
     dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
     pars = [eta, 1, 1, 1];
-    tmp1a = nan([reps, 2, numel(V3)]);
+    tmp1a = nan([reps, 3, numel(V3)]);
     tmp2a = nan([reps, numel(V3)]);
     tmp3a = nan([reps, 3, numel(V3)]);
     tmp1b = nan([reps, 3, numel(V3)]);
