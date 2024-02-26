@@ -45,7 +45,7 @@ filename = sprintf('Choice_MixedNoise_eps%1.2f_eta%1.2f', max(epsvec), max(etave
 % simulation
 matfile = fullfile(sim_dir, [filename, '.mat']);
 if ~exist(matfile, 'file')
-    probsa = nan([numel(epsvec), 2, numel(V3)]);
+    probsa = nan([numel(epsvec), 3, numel(V3)]);
     probsb = nan([numel(epsvec), 3, numel(V3)]);
     for i = 1:numel(epsvec)
         fprintf("Level #%i\n",i);
