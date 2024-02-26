@@ -1,0 +1,94 @@
+Loading matlab/R2021b
+  Loading requirement: cuda/9.1
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2021 The MathWorks, Inc.
+             R2021b Update 6 (9.11.0.2207237) 64-bit (glnxa64)
+                             February 23, 2023
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+Starting parallel pool (parpool) using the 'local' profile ...
+Connected to the parallel pool (number of workers: 40).
+Early noise, rep 6..
+Early noise, rep 33..
+Early noise, rep 2..
+Early noise, rep 10..
+Early noise, rep 20..
+Early noise, rep 30..
+Early noise, rep 22..
+Early noise, rep 26..
+Early noise, rep 19..
+Early noise, rep 21..
+Early noise, rep 29..
+Early noise, rep 15..
+Early noise, rep 23..
+Early noise, rep 24..
+Early noise, rep 1..
+Early noise, rep 5..
+Early noise, rep 16..
+Early noise, rep 32..
+Early noise, rep 25..
+Early noise, rep 38..
+Early noise, rep 3..
+Early noise, rep 4..
+Early noise, rep 9..
+Early noise, rep 11..
+Early noise, rep 14..
+Early noise, rep 17..
+Early noise, rep 31..
+Early noise, rep 7..
+Early noise, rep 8..
+Early noise, rep 28..
+Early noise, rep 36..
+Early noise, rep 37..
+Early noise, rep 12..
+Early noise, rep 40..
+Early noise, rep 13..
+Early noise, rep 27..
+Early noise, rep 35..
+Early noise, rep 39..
+Early noise, rep 34..
+Early noise, rep 18..
+Late noise, rep 1..
+Late noise, rep 19..
+Late noise, rep 22..
+Late noise, rep 23..
+Late noise, rep 24..
+Late noise, rep 33..
+Late noise, rep 15..
+Late noise, rep 20..
+Late noise, rep 29..
+Late noise, rep 2..
+Late noise, rep 26..
+Late noise, rep 30..
+Late noise, rep 6..
+Late noise, rep 10..
+Late noise, rep 21..
+Late noise, rep 28..
+Late noise, rep 37..
+Late noise, rep 3..
+Late noise, rep 14..
+Late noise, rep 4..
+Late noise, rep 7..
+Late noise, rep 12..
+Late noise, rep 13..
+Late noise, rep 27..
+Late noise, rep 34..
+Late noise, rep 32..
+Late noise, rep 38..
+Late noise, rep 40..
+Late noise, rep 16..
+Late noise, rep 17..
+Late noise, rep 31..
+Late noise, rep 8..
+Late noise, rep 9..
+Late noise, rep 25..
+Late noise, rep 11..
+Late noise, rep 36..
+Late noise, rep 18..
+Late noise, rep 35..
+Late noise, rep 5..
+Late noise, rep 39..
