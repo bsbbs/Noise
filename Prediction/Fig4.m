@@ -97,11 +97,15 @@ for i = 1:2
     lg = [];
     for ti = 1:numel(etavec)
         ratio = squeeze(Ratios(i, ti, :))'*100;
-        lg(ti) = plot(xval, ratio, '-', 'LineWidth', 2, 'Color', cmap(ti,:,i));
+        if ti == 2 || ti == 5
+            lg(ti) = plot(xval, ratio, '-', 'LineWidth', 2, 'Color', cmap(ti,:,i));
+        else
+            lg(ti) = plot(xval, ratio, '--', 'LineWidth', 2, 'Color', cmap(ti,:,i));
+        end
         coefficients = polyfit(xval(mask), ratio(mask), 1);
         slope(ti,i) = coefficients(1);
     end
-    plot([V1mean, V2mean]/V1mean, [1, 1]*min(ratio(:)), 'kv', 'MarkerFaceColor', 'k', 'MarkerSize', 5);
+    plot([V1mean, V2mean]/V2mean, [1, 1]*min(ratio(:)), 'kv', 'MarkerFaceColor', 'k', 'MarkerSize', 5);
     ylim(yrng);
     plot([lt, lt], [ylim], 'k--');
     plot([rt, rt], [ylim], 'k--');
