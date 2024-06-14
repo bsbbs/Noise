@@ -43,7 +43,7 @@ Matlab code was developped with Matlab 2023a (The Mathworks Inc., 2023).
 
 ### OS Requirements
 
-The package development version is tested on *Mac OSX*, *Linux* and *Windows* operating systems. The 'R' code would be compatible with all of those operating systems when ['R'](https://www.r-project.org/#!) and ['RStudio'](https://posit.co/download/rstudio-desktop/) are properly set.
+The package development version is tested on *Mac OSX*, *Linux* and *Windows* operating systems. The 'R' code would be compatible with all of those operating systems when [`R`](https://www.r-project.org/#!) and [`RStudio`](https://posit.co/download/rstudio-desktop/) are properly set.
 
 # Citation
 
