@@ -1,7 +1,6 @@
 # Origins of noise in both improving and degrading decision making
 
-[![arXiv shield](https://img.shields.io/badge/arXiv-1709.01233-red.svg?style=flat)]([https://doi.org/10.1101/2024.03.26.586597])
-![Static Badge](https://img.shields.io/badge/bioRXiv-10.1101%2F2024.03.26.586597-red.svg?style=flat&link=https%3A%2F%2Fdoi.org%2F10.1101%2F2024.03.26.586597)
+[![Static Badge](https://img.shields.io/badge/bioRXiv-10.1101%2F2024.03.26.586597-red.svg?style=flat)](https://doi.org/10.1101/2024.03.26.586597)
 
 
 __Bo Shen, Jailyn Wilson, Duc Nguyen, Paul Glimcher, Kenway Louie__
@@ -30,29 +29,24 @@ This is a repository for a manuscript under review, titled "Origins of noise in 
 
 # System Requirements
 
-## Hardware Requirements
+## Hardware and Software Requirements
 
-The [Matlab code](./)`lol` package requires only a standard computer with enough RAM to support the operations defined by a user. For minimal performance, this will be a computer with about 2 GB of RAM. For optimal performance, we recommend a computer with the following specs:
+The 'R' code was developped on [R 4.3.3](https://www.r-project.org/#!). Excution of the 'R' code requires only a standard computer with enough RAM. For minimal performance, this will be a computer with about 2 GB of RAM.
 
-RAM: 16+ GB  
-CPU: 4+ cores, 3.3+ GHz/core
+The 'Matlab' code was developped with GPU parallel computation. For optimal performance, we recommend a computer with a graphic card. The code was developped on a Windows-11 laptop with the following specs:
 
-The runtimes below are generated using a computer with the recommended specs (16 GB RAM, 4 cores@3.3 GHz) and internet of speed 25 Mbps.
+RAM: 16.0 GB
+CPU: Intel(R) Core(TM) i7-10870H CPU @ 2.20GHz 
+GPU: NVIDIA GeForce RTX 3070 Laptop GPU
 
-## Software Requirements
+Matlab code was developped on Matlab 2023a (The Mathworks Inc., 2023).
 
 ### OS Requirements
 
-The package development version is tested on *Linux* and  operating systems. The developmental version of the package has been tested on the following systems:
-
-Linux: Ubuntu 16.04  
-Mac OSX:  
-Windows:  
-
-The CRAN package should be compatible with Windows, Mac, and Linux operating systems.
+The package development version is tested on *Mac OSX*, *Linux* and *Windows* operating systems. The 'R' code would be compatible with all of those operating systems when ['R'](https://www.r-project.org/#!) and ['RStudio'](https://posit.co/download/rstudio-desktop/) are properly set.
 
 # Citation
 
-For usage of the package and associated manuscript, please cite our [bioRXiv preprint] (https://www.biorxiv.org/content/10.1101/2024.03.26.586597v2).
+For usage of the package and associated manuscript, please cite our [bioRXiv preprint](https://www.biorxiv.org/content/10.1101/2024.03.26.586597v2).
 
 
