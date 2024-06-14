@@ -3,7 +3,7 @@
 [![Static Badge](https://img.shields.io/badge/bioRXiv-10.1101%2F2024.03.26.586597-red.svg?style=flat)](https://doi.org/10.1101/2024.03.26.586597)
 
 
-__Bo Shen, Jailyn Wilson, Duc Nguyen, Paul Glimcher, Kenway Louie__
+__Authors: Bo Shen, Jailyn Wilson, Duc Nguyen, Paul Glimcher, Kenway Louie__
 
 __New York University, Grossman School of Medicine__
 
@@ -35,9 +35,9 @@ The 'R' code was developped on [R 4.3.3](https://www.r-project.org/#!). Excution
 
 The 'Matlab' code was developped with GPU parallel computation. For optimal performance, we recommend a computer with a graphic card. The code was developped on a Windows-11 laptop with the following specs:
 
-RAM: 16.0 GB
-CPU: Intel(R) Core(TM) i7-10870H CPU @ 2.20GHz 
-GPU: NVIDIA GeForce RTX 3070 Laptop GPU
+RAM: 16.0 GB  
+CPU: Intel(R) Core(TM) i7-10870H CPU @ 2.20GHz   
+GPU: NVIDIA GeForce RTX 3070 Laptop GPU  
 
 Matlab code was developped on Matlab 2023a (The Mathworks Inc., 2023).
 
