@@ -31,9 +31,9 @@ This is a repository for a manuscript under review, titled "Origins of noise in 
 
 ## Hardware and Software Requirements
 
-The 'R' code was developped with [R 4.3.3](https://www.r-project.org/#!). Excution of the 'R' code requires only a standard computer with enough RAM. For minimal performance, this will be a computer with about 2 GB of RAM.
+The `R` code was developped with [R 4.3.3](https://www.r-project.org/#!). Excution of the `R` code requires only a standard computer with enough RAM. For minimal performance, this will be a computer with about 2 GB of RAM.
 
-The 'Matlab' code was developped with GPU parallel computation. For optimal performance, we recommend a computer with a graphic card. The code was developped on a Windows-11 laptop with the following specs:
+The `Matlab` code was developped with GPU parallel computation. For optimal performance, we recommend a computer with a graphic card. The code was developped on a Windows-11 laptop with the following specs:
 
 RAM: 16.0 GB  
 CPU: Intel(R) Core(TM) i7-10870H CPU @ 2.20GHz   
