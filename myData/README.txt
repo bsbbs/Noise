@@ -1,5 +1,5 @@
-- TrnsfrmData.csv and TrnsfrmData.mat contain the same set of behavioral dataset from 60 Craigslist subjects we collected at NYU until Nov 2022, in format of Matlab and text respectively.
-- CorrectItems.cvs contains every item's ID, mapped with the detailed information of the amazon goods.
+- TrnsfrmData.csv contains the subset of behavioral dataset from 60 Craigslist subjects we collected at NYU until Nov 2022.
+- CorrectItems.cvs contains every item's ID and their market prices to the date of the experiment.
 
 A list of variables in TrnsfrmData:
 - Group: The randomization of each subject, that determines which half of the items were precise (definitive) to them and the other half items are vague (ambiguous) to them.
