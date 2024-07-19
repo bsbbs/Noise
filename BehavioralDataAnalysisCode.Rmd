@@ -251,7 +251,6 @@ axis(2, at = seq(0,.2,.05), labels = seq(50,70,5), tck = -0.02, padj = .7, cex.a
 # axis(2, at = seq(0,.4,.1), labels = seq(50,90,10), tck = -0.03, padj = .7, cex.axis = 1.0, lwd = 1.4)
 title(ylab = expression(paste('% Correct | V1, V2                ')), mgp = c(2,0,0), font.lab = 1, cex.lab = 1.0)
 abline(h = 0, lty = 2, col = 8)
-
 # ci <- 0
 # fat <- 0.3
 # for (TimePressure in c('Low','High'))
@@ -282,11 +281,56 @@ dev.off()
 
 # Statistical testing, conditional choice accuracy over scaled V3
 ```{r}
-mtest1 <- glm(choice ~  V3scld*TimePressure, family = "binomial", data = grpdcsn[grpdcsn$choice == 1 | grpdcsn$choice == 0 & grpdcsn$Vagueness == 'Precise' & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
+mtest1 <- glm(choice ~  VDscld*V3scld + TimePressure, family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$Vagueness == 'Precise' & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
 summary(mtest1)
-mtest2 <- glm(choice ~  V3scld*TimePressure, family = "binomial", data = grpdcsn[grpdcsn$choice == 1 | grpdcsn$choice == 0 & grpdcsn$Vagueness == 'Vague' & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
+mtest2 <- glm(choice ~  V3scld*TimePressure, family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$Vagueness == 'Vague' & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
 summary(mtest2)
+lmtest1 <- glmer(choice ~ VDscld*V3scld + TimePressure + (1|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$Vagueness == 'Precise' & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
+summary(lmtest1)
+lmtest2 <- glmer(choice ~ VDscld*V3scld + TimePressure + (1|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$Vagueness == 'Vague' & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
+summary(lmtest2)
+
+lmtest3 <- glmer(choice ~ 0 + VDscld + VDscld:V3scld + Vagueness + TimePressure + (0 + VDscld|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
+summary(lmtest3)
+
+lmtest3 <- glmer(choice ~ VDscld + VDscld:V3scld:varbid3scld + (0 + VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),])
+summary(lmtest3)
+lmtest3 <- glmer(choice ~ VD + VD:V3:varbid3 + (0 + VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),])
+summary(lmtest3)
+lmtest3 <- glmer(choice ~ V3scld + V3scld:varbid3scld + (0 + VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),])
+summary(lmtest3)
+lmtest3 <- glmer(choice ~ V3scld + V3scld:varbid3scld + (0 + VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),])
+summary(lmtest3)
+lmtest3 <- glmer(choice ~ V3 + V3:varbid3 + (0 + VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),])
+summary(lmtest3)
+
+
+lmtest4 <- glmer(choice ~ VD + VD:varbid3 + VD:V3:Vagueness:TimePressure + VD:TimePressure + (VD|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
+summary(lmtest4)
+
+
+# Test independent conditions first
+summary(lmtest <- glmer(choice ~ V3scld*varbid3scld + (0 + VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
+summary(lmtest <- glmer(choice ~ VDscld + V3scld*varbid3scld + (0 + VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
+summary(lmtest <- glmer(choice ~ VDscld+ VDscld:V3scld + (1|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
+
+# whether a linear regression able to capture the impact from early-noise variance 
+summary(lmtest <- glmer(choice ~ V1 + V2 + varbid1 + varbid2 + (1|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
+summary(lmtest <- glmer(choice ~ V1 + V2 + V3 + varbid1 + varbid2 + (1|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
+summary(lmtest <- glmer(choice ~ V1 + V2 + V3 + varbid1 + varbid2 + varbid3 + (1|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
+summary(lmtest <- glmer(choice ~ V1 + V2 + varbid1 + varbid2 + varbid3 + (1|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
+
 ```
+
+# Visualization
+```{r}
+subID
+for (subj in subID)
+{
+  
+}
+```
+
 ## check on reaction time
 ```{r}
 RTIndv <- aggregate(RT ~ TimePressure + subID, data = grpdcsn[grpdcsn$timeout == 0,], FUN = mean)
