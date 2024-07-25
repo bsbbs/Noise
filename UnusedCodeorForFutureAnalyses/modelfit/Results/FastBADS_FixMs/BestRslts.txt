@@ -1,0 +1,2 @@
+subID	modeli	name	Mp	delta	wp	nll	nllsd	success	iterations
+1	2	LinearDistrb	2.25532531738281	-0.414669609069824	NaN	245.75170901247	0.0311075458004245	2	16
