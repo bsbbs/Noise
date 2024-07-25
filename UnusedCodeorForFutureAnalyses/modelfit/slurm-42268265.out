@@ -1,0 +1,314 @@
+Loading matlab/R2021b
+  Loading requirement: cuda/9.1
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2021 The MathWorks, Inc.
+             R2021b Update 6 (9.11.0.2207237) 64-bit (glnxa64)
+                             February 23, 2023
+
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/arrShow/customColormaps] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/arrShow/cursorPosFcn] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/arrShow/scripts] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/arrShow/supportFunctions] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/arrShow] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/mritools/matlab/NIfTI_20140122] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/mritools/matlab] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/mritools] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/rpg-degibbs-master/lib] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/rpg-degibbs-master] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/matlab-schemer-master] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/export_fig] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/matlab-utilities] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/vdspiral] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/mapVBVD] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/ModelBasedMy] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/quantification] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/registrtation] 
+[Warning: Directory permission denied:
+/gpfs/data/fieremanslab/jeff/mfile/functions] 
+[Warning: Directory permission denied: /gpfs/data/fieremanslab/jeff/mfile] 
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+    ----------------------------------------------------
+	Your license will expire in 5 days.
+	Please contact your system administrator or
+	MathWorks to renew this license.
+    ----------------------------------------------------
+Starting parallel pool (parpool) using the 'local' profile ...
+Connected to the parallel pool (number of workers: 40).
+Subject 1:
+	Model 1
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 251.416 +/- 0.0896134 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 314.391 +/- 0.032014 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 248.19 +/- 0.0364805 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 341.607 +/- 0.0301431 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 329.574 +/- 0.0309195 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 336.414 +/- 0.024083 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 338.277 +/- 0.0324516 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 299.911 +/- 0.0279029 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 300.24 +/- 0.0245422 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 248.076 +/- 0.0421926 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 306.956 +/- 0.028938 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 347.273 +/- 0.0338408 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 273.876 +/- 0.0266771 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 248.197 +/- 0.0400371 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 247.954 +/- 0.0463691 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 286.753 +/- 0.0264091 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 267.797 +/- 0.0283785 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 250.27 +/- 0.0497933 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 253.324 +/- 0.0368197 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 249.836 +/- 0.0375617 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 248.471 +/- 0.0447864 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 306.605 +/- 0.0250283 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 247.967 +/- 0.0389258 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 250.909 +/- 0.0276012 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 247.89 +/- 0.0457783 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 334.95 +/- 0.0258785 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 248.335 +/- 0.0336599 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 251.146 +/- 0.060221 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 251.119 +/- 0.0456172 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 315.478 +/- 0.0249096 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 247.981 +/- 0.0462085 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: mesh size less than OPTIONS.TolMesh.
+Estimated function value at minimum: 259.309 +/- 0.036697 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 264.875 +/- 0.0858418 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: mesh size less than OPTIONS.TolMesh.
+Estimated function value at minimum: 268.151 +/- 0.0373693 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: mesh size less than OPTIONS.TolMesh.
+Estimated function value at minimum: 248.472 +/- 0.0464505 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: mesh size less than OPTIONS.TolMesh.
+Estimated function value at minimum: 247.872 +/- 0.0338895 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 268.504 +/- 0.0313238 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 248.061 +/- 0.0431126 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: mesh size less than OPTIONS.TolMesh.
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 258.46 +/- 0.0418703 (mean +/- SEM from 30 samples).
+
+Estimated function value at minimum: 249.471 +/- 0.0437495 (mean +/- SEM from 30 samples).
+
+nll = 247.872409
+	Model 2
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+Beginning optimization of a STOCHASTIC objective fcn.
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 246.12 +/- 0.0562205 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 245.724 +/- 0.0496278 (mean +/- SEM from 30 samples).
+
+
+Optimization terminated: change in the function value less than OPTIONS.TolFun.
+Estimated function value at minimum: 246.002 +/- 0.0378033 (mean +/- SEM from 30 samples).
+

@@ -52,7 +52,7 @@ for subj = 1:numel(sublist)
     %%
     fprintf('Subject %d:\n', subj);
     dat = mt(mt.subID == sublist(subj), :);
-    for modeli = 2:5
+    for modeli = 1:5
         switch modeli
             case 1
                 nLLfunc = @(x) McFadden(x, dat);
