@@ -38,7 +38,7 @@ options.Display = 'final';
 options.UncertaintyHandling = true;    %s Function is stochastic
 options.NoiseFinalSamples = 30;
 mode = 'absorb';
-Rslts = table('Size', [0 10], 'VariableTypes', {'double', 'double', 'string', 'double', 'double', 'double', 'double', 'logical', 'uint16'},...
+Rslts = table('Size', [0 9], 'VariableTypes', {'double', 'double', 'string', 'double', 'double', 'double', 'double', 'logical', 'uint16'},...
     'VariableNames', {'subID', 'modeli', 'name', 'Mp', 'wp', 'nll', 'nllsd', 'success', 'iterations'});
 testfile = fullfile(svdir, AnalysName, 'AllRslts.txt');
 fp = fopen(testfile, 'w+');
@@ -108,9 +108,9 @@ for subj = 1:numel(sublist)
         filename = fullfile(mtrxdir, sprintf('Subj%02i_Mdl%i.mat', subj, modeli));
         save(filename, 'xOpt', 'fval', 'exitflag', 'output');
         if modeli <= 2
-            new_row = table(subj, modeli, {name}, xOpt(1), xOpt(2), NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(subj, modeli, {name}, xOpt(1), NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         else
-            new_row = table(subj, modeli, {name}, xOpt(1), xOpt(2), xOpt(3), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(subj, modeli, {name}, xOpt(1), xOpt(2), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         end
         Rslts = [Rslts; new_row];
         writetable(Rslts, fullfile(outdir, 'BestRslts.txt'), 'Delimiter', '\t');
