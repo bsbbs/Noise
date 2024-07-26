@@ -127,7 +127,6 @@ else
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
 eta = 1; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem'});
 num_samples = 20000;
 samples = [];
@@ -162,7 +161,6 @@ else
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
 eta = 1; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem'});
 num_samples = 20000;
 Ntrl = size(dat,1);
@@ -201,8 +199,7 @@ else
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
 eta = 1; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
-wp = x(3); % do the same transformation on w
+wp = x(2); % do the same transformation on w
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem'});
 num_samples = 20000;
 samples = [];
@@ -243,8 +240,7 @@ else
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
 eta = 1; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
-wp = x(3); % do the same transformation on w
+wp = x(2); % do the same transformation on w
 scl = 1; % scaling parameter on the early noise
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem'});
 num_samples = 20000;
@@ -315,8 +311,7 @@ else
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
 eta = 1; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
-wp = x(3); % do the same transformation on w
+wp = x(2); % do the same transformation on w
 scl = 1; % scaling parameter on the early noise
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem'});
 num_samples = 20000;
