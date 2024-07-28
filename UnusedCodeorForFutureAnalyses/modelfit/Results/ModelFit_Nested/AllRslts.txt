@@ -1,0 +1,1 @@
+subID	Model	randi	Mp0	delta0	wp0	scl0	Mp	delta	wp	scl	nll	nllsd	success	iterations
