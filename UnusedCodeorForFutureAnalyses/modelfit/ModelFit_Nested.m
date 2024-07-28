@@ -126,13 +126,13 @@ for subj = 1:numel(sublist)
         filename = fullfile(mtrxdir, sprintf('Subj%02i_Mdl%i.mat', subj, modeli));
         save(filename, 'xOpt', 'fval', 'exitflag', 'output');
         if modeli == 1
-            new_row = table(subj, modeli, {name}, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(subj, modeli, {name}, xOpt(1), xOpt(2), NaN, NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         elseif modeli == 2
-            new_row = table(subj, modeli, {name}, xOpt(1:2), NaN, xOpt(3), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(subj, modeli, {name}, xOpt(1), xOpt(2), NaN, xOpt(3), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         elseif modeli == 3
-            new_row = table(subj, modeli, {name}, xOpt, NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(subj, modeli, {name}, xOpt(1), xOpt(2), xOpt(3), NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         elseif modeli >= 4
-            new_row = table(subj, modeli, {name}, xOpt, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(subj, modeli, {name}, xOpt(1), xOpt(2), xOpt(3), xOpt(4), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         end
         Rslts = [Rslts; new_row];
         writetable(Rslts, fullfile(outdir, 'BestRslts.txt'), 'Delimiter', '\t');
