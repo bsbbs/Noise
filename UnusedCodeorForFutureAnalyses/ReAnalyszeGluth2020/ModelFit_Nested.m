@@ -1,7 +1,7 @@
 %% define directoriress
 % Switch to the working directory
 % rtdir = '/Users/bs3667/Noise/modelfit';
-rtdir = '/gpfs/data/glimcherlab/BoShen/Noise/UnusedCodeorForFutureAnalyses/ReAnalyzeLouie2013';
+rtdir = '/gpfs/data/glimcherlab/BoShen/Noise/UnusedCodeorForFutureAnalyses/ReAnalyszeGluth2020';
 cd(rtdir);
 
 % Define I/O directories
