@@ -51,7 +51,8 @@ fp = fopen(testfile, 'w+');
 fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', ...
     'subID', 'Model', 'randi', 'Mp0', 'delta0', 'wp0', 'scl0', 'Mp', 'delta', 'wp', 'scl', 'nll', 'nllsd', 'success', 'iterations');
 fclose(fp);
-Npar = 40;
+Myclust = parcluster();
+Npar = Myclust.NumWorkers;
 mypool = parpool(Npar);
 sublist = unique(mt.subID);
 sublist = sublist(~ismember(sublist, blacklist));
