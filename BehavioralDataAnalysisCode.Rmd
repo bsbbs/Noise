@@ -1536,11 +1536,11 @@ sort(wp$wp)
 ```
 ## Model fitting results - Non-negative & dummyTime
 ```{r}
-Analysis <- '/Users/bs3667/Noise/UnusedCodeorForFutureAnalyses/modelfit/Results/FastBADS_FixMs'
+Analysis <- '/Users/bs3667/Noise/UnusedCodeorForFutureAnalyses/modelfit/Results/ModelFit_Nested/'
 out_dir <- file.path(Analysis,'plot')
 if (!dir.exists(out_dir)){dir.create(out_dir)}
 fastbads <- read.table(file.path(Analysis,'BestRslts.txt'), header = TRUE, sep = '\t')
-# fastbads <- fastbads[fastbads$subID < 24,]
+fastbads <- fastbads[fastbads$subID < 47,]
 fastbads$subID <- as.factor(fastbads$subID)
 fastbads$name <- factor(fastbads$name, levels = c('McFadden','LinearDistrb','DN','dDNb','dDNd'))
 names <- levels(fastbads$name)
@@ -1653,6 +1653,17 @@ for (mdli in 3:5)
   plot(Mp ~ wp, data = fastbads[fastbads$modeli == mdli,], log ='y', xlab = 'wp',ylab = 'Mp', main = names[mdli], pch = 20)
 }
 dev.copy(pdf,file.path(out_dir,sprintf("Mp~wp.pdf")),height=5, width=5)
+dev.off()
+# scaling parameter
+par(mfrow=c(2,2))
+for (mdli in c(2,4,5))
+{
+  bars <- fastbads$scl[fastbads$modeli == mdli]
+  hist(bars, 40, probability = TRUE, xlab = "Scale", main = names[mdli], bty = "n")
+  lines(density(bars))
+  legend('topleft',as.expression(bquote(mean~scale == .(sprintf('%1.3f', mean(bars))))), bty = 'n')
+}
+dev.copy(pdf,file.path(out_dir,sprintf("scl.pdf")),height=5, width=5)
 dev.off()
 ```
 ## Model fitting results, Louie et al., 2011 - Non-negative & dummyTime
