@@ -10,7 +10,7 @@ svdir = fullfile(rtdir, 'Results');
 if ~exist(svdir, 'dir')
     mkdir(svdir);
 end
-AnalysName = 'ModelFit_Nested';
+AnalysName = 'ModelFit_NestedII';
 outdir = fullfile(svdir, AnalysName);
 if ~exist(outdir, 'dir')
     mkdir(outdir);
@@ -31,6 +31,12 @@ load(fullfile(datadir, 'TrnsfrmData.mat'));
 % blacklist = [22102401, 22102405, 22110306]; % these subjects report they aimed to choose smaller-value items.
 % mt = mt(~ismember(mt.subID, blacklist),:);
 sublist = unique(mt.subID);
+blacklist = [22102405; 22102705; 22102708; 22071913; 22110306];
+IDOrder = [];
+for bl = 1:numel(blacklist)
+    IDOrder = [IDOrder, find(sublist == blacklist(bl))];
+end
+disp(IDOrder);
 % disp(head(mt));
 %% Maximum likelihood fitting to the choice behavior
 options = bads('defaults');     % Default options
@@ -48,6 +54,7 @@ fclose(fp);
 Npar = 40;
 mypool = parpool(Npar);
 sublist = unique(mt.subID);
+sublist = sublist(~ismember(sublist, blacklist));
 for subj = 1:numel(sublist)
     %%
     fprintf('Subject %d:\n', subj);
@@ -72,27 +79,27 @@ for subj = 1:numel(sublist)
         end
         fprintf('\tModel %i\n', modeli);
         % shared parameters for all models
-        LB = [0, -2]; % [Mp, delta]
-        UB = [1000, 4];
-        PLB = [1, -.2];
-        PUB = [100, .4];
+        LB = [0, -4]; % [Mp, delta]
+        UB = [1000, 8];
+        PLB = [1, -.4];
+        PUB = [100, .8];
         % nest other parameters
         if modeli == 2 % nest scaling on early noise for model 2
             LB = [LB, 0]; % [Mp, delta, scl]
-            UB = [UB, 4];
-            PLB = [PLB, .2];
+            UB = [UB, 8];
+            PLB = [PLB, 0];
             PUB = [PUB, 2];
         end
         if modeli == 3 % nest divisive normalization for model 3
             LB = [LB, 0]; % [Mp, delta, wp]
-            UB = [UB, 4];
+            UB = [UB, 5];
             PLB = [PLB, 0];
             PUB = [PUB, 1.4];
         end
         if modeli >= 4 % nest both for models 4 and 5
             LB = [LB, 0, 0]; % [Mp, delta, wp, scl]
-            UB = [UB, 4, 4];
-            PLB = [PLB, 0, .2];
+            UB = [UB, 5, 8];
+            PLB = [PLB, 0, 0];
             PUB = [PUB, 1.4, 2];
         end
         
@@ -105,13 +112,13 @@ for subj = 1:numel(sublist)
             [xOpt,fval,exitflag,output] = bads(nLLfunc,x0,LB,UB,PLB,PUB,[],options);
              % 'Mp', 'delta', 'wp', 'scl',
             if modeli == 1
-                dlmwrite(testfile, [subj, modeli, i, x0, NaN, NaN, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                dlmwrite(testfile, [sublist(subj), modeli, i, x0, NaN, NaN, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
             elseif modeli == 2
-                dlmwrite(testfile, [subj, modeli, i, x0(1:2), NaN, x0(3), xOpt(1:2), NaN, xOpt(3), fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                dlmwrite(testfile, [sublist(subj), modeli, i, x0(1:2), NaN, x0(3), xOpt(1:2), NaN, xOpt(3), fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
             elseif modeli == 3
-                dlmwrite(testfile, [subj, modeli, i, x0, NaN, xOpt, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                dlmwrite(testfile, [sublist(subj), modeli, i, x0, NaN, xOpt, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
             elseif modeli >= 4
-                dlmwrite(testfile, [subj, modeli, i, x0, xOpt, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                dlmwrite(testfile, [sublist(subj), modeli, i, x0, xOpt, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
             end
             params{i} = xOpt;
             nLL(i) = fval;
@@ -126,13 +133,13 @@ for subj = 1:numel(sublist)
         filename = fullfile(mtrxdir, sprintf('Subj%02i_Mdl%i.mat', subj, modeli));
         save(filename, 'xOpt', 'fval', 'exitflag', 'output');
         if modeli == 1
-            new_row = table(subj, modeli, {name}, xOpt(1), xOpt(2), NaN, NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(sublist(subj), modeli, {name}, xOpt(1), xOpt(2), NaN, NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         elseif modeli == 2
-            new_row = table(subj, modeli, {name}, xOpt(1), xOpt(2), NaN, xOpt(3), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(sublist(subj), modeli, {name}, xOpt(1), xOpt(2), NaN, xOpt(3), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         elseif modeli == 3
-            new_row = table(subj, modeli, {name}, xOpt(1), xOpt(2), xOpt(3), NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(sublist(subj), modeli, {name}, xOpt(1), xOpt(2), xOpt(3), NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         elseif modeli >= 4
-            new_row = table(subj, modeli, {name}, xOpt(1), xOpt(2), xOpt(3), xOpt(4), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+            new_row = table(sublist(subj), modeli, {name}, xOpt(1), xOpt(2), xOpt(3), xOpt(4), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         end
         Rslts = [Rslts; new_row];
         writetable(Rslts, fullfile(outdir, 'BestRslts.txt'), 'Delimiter', '\t');

@@ -141,15 +141,17 @@ mrgdat$bidmean <- mrgdat$bid.x
 mrgdat$bidvar <- mrgdat$bid.y
 Rgtest <- lmer(bidvar ~ bidmean * touched + (1|subID), data = mrgdat)
 summary(Rgtest)
+# test on the mean bidding values between precise and vague items
+summary(test <- aov(bidmean ~ touched + Error(subID), data = mrgdat))
+
 # test only on V3
-# raw values, all super significant!
 V3vars <- aggregate(varbid3 ~ V3 + ID3 + subID + Vagueness, data = grpdcsn, FUN = mean)
-contrasts(V3vars$Vagueness) <- contr.treatment(levels(V3vars$Vagueness))
+summary(test <- aov(V3 ~ Vagueness + Error(subID), data = V3vars))
+tmpdat <- grpdcsn
+tmpdat$chosenV3 <- as.numeric(tmpdat$chosenItem == 3)
+ChrV3 <- aggregate(chosenV3 ~ Vagueness + subID, data = tmpdat, FUN = mean)
+summary(test <- aov(chosenV3 ~ Vagueness + Error(subID), data = ChrV3))
 summary(test <- lmer(varbid3 ~ V3*Vagueness + (1|subID), data = V3vars))
-# rescaled values, all super significant!
-V3scldvars <- aggregate(varbid3scld ~ V3scld + ID3 + subID + Vagueness, data = grpdcsn, FUN = mean)
-contrasts(V3scldvars$Vagueness) <- contr.treatment(levels(V3scldvars$Vagueness))
-summary(test <- lmer(varbid3scld ~ V3scld*Vagueness + (1|subID), data = V3scldvars))
 ```
 # visualize bidding behavior as a group
 ```{r}
@@ -1540,12 +1542,31 @@ Analysis <- '/Users/bs3667/Noise/UnusedCodeorForFutureAnalyses/modelfit/Results/
 out_dir <- file.path(Analysis,'plot')
 if (!dir.exists(out_dir)){dir.create(out_dir)}
 fastbads <- read.table(file.path(Analysis,'BestRslts.txt'), header = TRUE, sep = '\t')
-fastbads <- fastbads[fastbads$subID < 47,]
+blacklistorder <- c(21,33,48,51,57) # the same as the blacklist defined above, but with order number instead of subject ID
+fastbads <- fastbads[!fastbads$subID %in% blacklistorder,]
 fastbads$subID <- as.factor(fastbads$subID)
+subOrder <- unique(fastbads$subID)
 fastbads$name <- factor(fastbads$name, levels = c('McFadden','LinearDistrb','DN','dDNb','dDNd'))
 names <- levels(fastbads$name)
 fastbads$modeli <- as.factor(fastbads$modeli)
 str(fastbads)
+# convert AIC and BIC
+ICpool <- c()
+for (si in 1:length(subOrder))
+{
+  N <- sum(grpdcsn$subID == subID[si] & !is.na(grpdcsn$choice)) # number of data points
+  for (mdli in 1:5) # number of parameters
+  {
+    if (mdli == 1){k <- 2}
+    if (mdli == 2 | mdli == 3){k <- 3}
+    if (mdli >= 4){k <- 4}
+    nLL <- fastbads$nll[fastbads$subID == subOrder[si] & fastbads$modeli == mdli]
+    AIC <- 2*k + 2*nLL
+    BIC <- k*log(N) + 2*nLL
+    ICpool <- rbind(ICpool, data.frame(subID = subOrder[si], modeli = mdli, AIC = AIC, BIC = BIC))
+  }
+}
+fastbads <- merge(fastbads, ICpool, by = c('subID','modeli'))
 # Model comparison
 par(mfrow=c(2,2))
 for (mdli in 1)
@@ -1562,6 +1583,35 @@ for (mdli in 1)
 dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_McFadden.pdf")),height=5, width=5)
 dev.off()
 par(mfrow=c(2,2))
+for (mdli in 1)
+{
+  for (mdlj in 2:5)
+  {
+    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'AIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_McFadden.AIC.pdf")),height=5, width=5)
+dev.off()
+par(mfrow=c(2,2))
+for (mdli in 1)
+{
+  for (mdlj in 2:5)
+  {
+    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_McFadden.BIC.pdf")),height=5, width=5)
+dev.off()
+
+par(mfrow=c(2,2))
 for (mdli in 2)
 {
   for (mdlj in 3:5)
@@ -1575,6 +1625,35 @@ for (mdli in 2)
 }
 dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_Mdl2.pdf")),height=5, width=5)
 dev.off()
+par(mfrow=c(2,2))
+for (mdli in 2)
+{
+  for (mdlj in 3:5)
+  {
+    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'AIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_Mdl2.AIC.pdf")),height=5, width=5)
+dev.off()
+par(mfrow=c(2,2))
+for (mdli in 2)
+{
+  for (mdlj in 3:5)
+  {
+    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_Mdl2.BIC.pdf")),height=5, width=5)
+dev.off()
+
 par(mfrow=c(1,2))
 for (mdli in 3)
 {
@@ -1588,6 +1667,34 @@ for (mdli in 3)
   }
 }
 dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_DN.pdf")),height=2.5, width=5)
+dev.off()
+par(mfrow=c(1,2))
+for (mdli in 3)
+{
+  for (mdlj in 4:5)
+  {
+    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_DN.AIC.pdf")),height=2.5, width=5)
+dev.off()
+par(mfrow=c(1,2))
+for (mdli in 3)
+{
+  for (mdlj in 4:5)
+  {
+    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_DN.BIC.pdf")),height=2.5, width=5)
 dev.off()
 # Model comparison
 par(mfrow=c(2,2))
@@ -1623,7 +1730,6 @@ wilcox_test <- wilcox.test(sample_data, mu = 0, alternative = "greater")
 # Print the result
 print(wilcox_test)
 
-
 # Distribution of Mp
 par(mfrow=c(2,3))
 for (mdli in 1:5)
@@ -1642,10 +1748,13 @@ for (mdli in 1:5)
   bars <- fastbads$delta[fastbads$modeli == mdli]
   hist(bars, 40, probability = TRUE, xlab = expression(delta), main = names[mdli], bty = "n")
   lines(density(bars))
-  legend('topleft',as.expression(bquote(mean~delta == .(sprintf('%1.3f', mean(bars))))), bty = 'n')
+  test <- t.test(bars)
+  legend('topleft',as.expression(bquote(mean~delta == .(sprintf('%1.3f\np = %1.3f', mean(bars), test$p.value)))), bty = 'n')
+  
 }
 dev.copy(pdf,file.path(out_dir,sprintf("delta.pdf")),height=5, width=7.5)
 dev.off()
+
 # Mp & wp colinearity
 par(mfrow=c(2,2))
 for (mdli in 3:5)
@@ -1664,6 +1773,12 @@ for (mdli in c(2,4,5))
   legend('topleft',as.expression(bquote(mean~scale == .(sprintf('%1.3f', mean(bars))))), bty = 'n')
 }
 dev.copy(pdf,file.path(out_dir,sprintf("scl.pdf")),height=5, width=5)
+dev.off()
+# BIC and scaling correlation
+dBIC <- fastbads$BIC[fastbads$modeli == 4] - fastbads$BIC[fastbads$modeli == 3]
+scale <- fastbads$scl[fastbads$modeli == 4]
+plot(scale, dBIC, pch = 20, cex = .5, xlab = "Scale in dDNb", ylab = as.expression(bquote(Delta~"BIC (dDNb - DN)")))
+dev.copy(pdf,file.path(out_dir,sprintf("scl~dBIC.pdf")),height=4, width=4)
 dev.off()
 ```
 ## Model fitting results, Louie et al., 2011 - Non-negative & dummyTime
