@@ -45,7 +45,7 @@ fp = fopen(testfile, 'w+');
 fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', ...
     'subID', 'Model', 'randi', 'Mp0', 'wp0', 'scl0', 'Mp', 'wp', 'scl', 'nll', 'nllsd', 'success', 'iterations');
 fclose(fp);
-Npar = 48;
+Npar = 40;
 mypool = parpool(Npar);
 sublist = unique(mt.subID);
 for subj = 1:numel(sublist)
