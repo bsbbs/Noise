@@ -40,7 +40,7 @@ options.NoiseFinalSamples = 30;
 mode = 'absorb';
 Rslts = table('Size', [0 10], 'VariableTypes', {'double', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'logical', 'uint16'},...
     'VariableNames', {'subID', 'modeli', 'name', 'Mp', 'wp', 'scl', 'nll', 'nllsd', 'success', 'iterations'});
-testfile = fullfile(svdir, AnalysName, 'AllRslts.txt');
+testfile = fullfile(svdir, AnalysName, 'AllRsltsII.txt');
 fp = fopen(testfile, 'w+');
 fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', ...
     'subID', 'Model', 'randi', 'Mp0', 'wp0', 'scl0', 'Mp', 'wp', 'scl', 'nll', 'nllsd', 'success', 'iterations');
@@ -49,7 +49,7 @@ Myclust = parcluster();
 Npar = Myclust.NumWorkers;
 mypool = parpool(Npar);
 sublist = unique(mt.subID);
-for subj = 1:numel(sublist)
+for subj = 25:numel(sublist)
     %%
     fprintf('Subject %d:\n', subj);
     dat = mt(mt.subID == sublist(subj), :);
@@ -136,7 +136,7 @@ for subj = 1:numel(sublist)
             new_row = table(subj, modeli, {name}, xOpt(1), xOpt(2), xOpt(3), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         end
         Rslts = [Rslts; new_row];
-        writetable(Rslts, fullfile(outdir, 'BestRslts.txt'), 'Delimiter', '\t');
+        writetable(Rslts, fullfile(outdir, 'BestRsltsII.txt'), 'Delimiter', '\t');
         fprintf('nll = %f\n', fval);
     end
 end
