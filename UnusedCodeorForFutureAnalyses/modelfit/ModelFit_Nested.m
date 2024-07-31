@@ -47,10 +47,12 @@ mode = 'absorb';
 Rslts = table('Size', [0 11], 'VariableTypes', {'double', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'double', 'logical', 'uint16'},...
     'VariableNames', {'subID', 'modeli', 'name', 'Mp', 'delta', 'wp', 'scl', 'nll', 'nllsd', 'success', 'iterations'});
 testfile = fullfile(svdir, AnalysName, 'AllRslts.txt');
-fp = fopen(testfile, 'w+');
-fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', ...
-    'subID', 'Model', 'randi', 'Mp0', 'delta0', 'wp0', 'scl0', 'Mp', 'delta', 'wp', 'scl', 'nll', 'nllsd', 'success', 'iterations');
-fclose(fp);
+if ~exist(testfile, 'file')
+    fp = fopen(testfile, 'w+');
+    fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', ...
+        'subID', 'Model', 'randi', 'Mp0', 'delta0', 'wp0', 'scl0', 'Mp', 'delta', 'wp', 'scl', 'nll', 'nllsd', 'success', 'iterations');
+    fclose(fp);
+end
 Myclust = parcluster();
 Npar = Myclust.NumWorkers;
 mypool = parpool(Npar);
@@ -79,60 +81,64 @@ for subj = 1:numel(sublist)
                 name = 'dDNd'; %, cut SIGMA, independent';
         end
         fprintf('\tModel %i\n', modeli);
-        % shared parameters for all models
-        LB = [0, -4]; % [Mp, delta]
-        UB = [1000, 8];
-        PLB = [1, -.4];
-        PUB = [100, .8];
-        % nest other parameters
-        if modeli == 2 % nest scaling on early noise for model 2
-            LB = [LB, 0]; % [Mp, delta, scl]
-            UB = [UB, 8];
-            PLB = [PLB, 0];
-            PUB = [PUB, 2];
-        end
-        if modeli == 3 % nest divisive normalization for model 3
-            LB = [LB, 0]; % [Mp, delta, wp]
-            UB = [UB, 5];
-            PLB = [PLB, 0];
-            PUB = [PUB, 1.4];
-        end
-        if modeli >= 4 % nest both for models 4 and 5
-            LB = [LB, 0, 0]; % [Mp, delta, wp, scl]
-            UB = [UB, 5, 8];
-            PLB = [PLB, 0, 0];
-            PUB = [PUB, 1.4, 2];
-        end
-        
-        nLL = [];
-        params = {};
-        success = [];
-        res = {};
-        parfor i = 1:Npar
-            x0 = PLB + (PUB - PLB) .* rand(size(PLB));
-            [xOpt,fval,exitflag,output] = bads(nLLfunc,x0,LB,UB,PLB,PUB,[],options);
-             % 'Mp', 'delta', 'wp', 'scl',
-            if modeli == 1
-                dlmwrite(testfile, [sublist(subj), modeli, i, x0, NaN, NaN, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
-            elseif modeli == 2
-                dlmwrite(testfile, [sublist(subj), modeli, i, x0(1:2), NaN, x0(3), xOpt(1:2), NaN, xOpt(3), fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
-            elseif modeli == 3
-                dlmwrite(testfile, [sublist(subj), modeli, i, x0, NaN, xOpt, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
-            elseif modeli >= 4
-                dlmwrite(testfile, [sublist(subj), modeli, i, x0, xOpt, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
-            end
-            params{i} = xOpt;
-            nLL(i) = fval;
-            success(i) = exitflag;
-            res{i} = output;
-        end
-        besti = find(nLL == min(nLL));
-        xOpt = params{besti};
-        fval = nLL(besti);
-        exitflag = success(besti);
-        output = res{besti};
         filename = fullfile(mtrxdir, sprintf('Subj%02i_Mdl%i.mat', subj, modeli));
-        save(filename, 'xOpt', 'fval', 'exitflag', 'output');
+        if ~exist(filename, 'file')
+            % shared parameters for all models
+            LB = [0, -4]; % [Mp, delta]
+            UB = [1000, 8];
+            PLB = [1, -.4];
+            PUB = [100, .8];
+            % nest other parameters
+            if modeli == 2 % nest scaling on early noise for model 2
+                LB = [LB, 0]; % [Mp, delta, scl]
+                UB = [UB, 8];
+                PLB = [PLB, 0];
+                PUB = [PUB, 2];
+            end
+            if modeli == 3 % nest divisive normalization for model 3
+                LB = [LB, 0]; % [Mp, delta, wp]
+                UB = [UB, 5];
+                PLB = [PLB, 0];
+                PUB = [PUB, 1.4];
+            end
+            if modeli >= 4 % nest both for models 4 and 5
+                LB = [LB, 0, 0]; % [Mp, delta, wp, scl]
+                UB = [UB, 5, 8];
+                PLB = [PLB, 0, 0];
+                PUB = [PUB, 1.4, 2];
+            end
+
+            nLL = [];
+            params = {};
+            success = [];
+            res = {};
+            parfor i = 1:Npar
+                x0 = PLB + (PUB - PLB) .* rand(size(PLB));
+                [xOpt,fval,exitflag,output] = bads(nLLfunc,x0,LB,UB,PLB,PUB,[],options);
+                % 'Mp', 'delta', 'wp', 'scl',
+                if modeli == 1
+                    dlmwrite(testfile, [sublist(subj), modeli, i, x0, NaN, NaN, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                elseif modeli == 2
+                    dlmwrite(testfile, [sublist(subj), modeli, i, x0(1:2), NaN, x0(3), xOpt(1:2), NaN, xOpt(3), fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                elseif modeli == 3
+                    dlmwrite(testfile, [sublist(subj), modeli, i, x0, NaN, xOpt, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                elseif modeli >= 4
+                    dlmwrite(testfile, [sublist(subj), modeli, i, x0, xOpt, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                end
+                params{i} = xOpt;
+                nLL(i) = fval;
+                success(i) = exitflag;
+                res{i} = output;
+            end
+            besti = find(nLL == min(nLL));
+            xOpt = params{besti};
+            fval = nLL(besti);
+            exitflag = success(besti);
+            output = res{besti};
+            save(filename, 'xOpt', 'fval', 'exitflag', 'output');
+        else
+            load(filename);
+        end
         if modeli == 1
             new_row = table(sublist(subj), modeli, {name}, xOpt(1), xOpt(2), NaN, NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         elseif modeli == 2
@@ -144,7 +150,7 @@ for subj = 1:numel(sublist)
         end
         Rslts = [Rslts; new_row];
         writetable(Rslts, fullfile(outdir, 'BestRslts.txt'), 'Delimiter', '\t');
-        fprintf('nll = %f\n', fval);
+        fprintf('Subject %d, model %i, nll = %f\n', subj, modeli, fval);
     end
 end
 
