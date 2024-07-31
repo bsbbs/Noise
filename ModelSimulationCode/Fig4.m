@@ -15,15 +15,15 @@ addpath(genpath(Gitdir));
 Npar = 40;
 mypool = parpool(Npar);
 %% graded color, two panels
-V1mean = 88;% 53;
-V2mean = 83;% 58;
-epsV1 = 9; % early noise for V1
-epsV2 = 9; % early noise for V2
+V1mean = 88;
+V2mean = 83;
+epsV1 = 4; % early noise for V1
+epsV2 = 4; % early noise for V2
 V3 = linspace(0, V2mean, 50)';
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
-sdV1 = epsV1*ones(size(V3))/2;
-sdV2 = epsV2*ones(size(V3))/2;
+sdV1 = epsV1*ones(size(V3));
+sdV2 = epsV2*ones(size(V3));
 etavec = linspace(.8, 1.9, 8); % different levels of late noise
 nsmpls = 1024*1e3;
 filename = sprintf('Ratio_Model_%iv3max%1.0f_%s', numel(V3), max(V3), '2Panels');
@@ -58,6 +58,7 @@ else
     xval = V3'/V2mean;
     save(SimDatafile, "Ratios","xval",'-mat');
 end
+
 %% visualization
 mycols = [0         0    1.0000
          0    0.3333    0.8333

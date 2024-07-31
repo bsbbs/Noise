@@ -1783,16 +1783,34 @@ dev.off()
 ```
 ## Model fitting results, Louie et al., 2011 - Non-negative & dummyTime
 ```{r}
-Analysis <- '/Users/bs3667/Noise/UnusedCodeorForFutureAnalyses/ReAnalyzeLouie2013/Results/FastBADS_FixMs'
+Analysis <- '/Users/bs3667/Noise/UnusedCodeorForFutureAnalyses/ReAnalyzeLouie2013/Results/ModelFit_Nested'
 out_dir <- file.path(Analysis,'plot')
 if (!dir.exists(out_dir)){dir.create(out_dir)}
+mt <- read.csv('/Users/bs3667/Noise/UnusedCodeorForFutureAnalyses/ReAnalyzeLouie2013/TrnsfrmData.csv', header = TRUE)
+subOrder <- unique(mt$subID)
 fastbads <- read.table(file.path(Analysis,'BestRslts.txt'), header = TRUE, sep = '\t')
-# fastbads <- fastbads[fastbads$subID < 24,]
 fastbads$subID <- as.factor(fastbads$subID)
 fastbads$name <- factor(fastbads$name, levels = c('McFadden','LinearDistrb','DN','dDNb','dDNd'))
 names <- levels(fastbads$name)
 fastbads$modeli <- as.factor(fastbads$modeli)
 str(fastbads)
+# convert AIC and BIC
+ICpool <- c()
+for (si in subOrder)
+{
+  N <- sum(mt$subID == si & !is.na(mt$chosenItem)) # number of data points
+  for (mdli in 1:5) # number of parameters
+  {
+    if (mdli == 1){k <- 1}
+    if (mdli == 2 | mdli == 3){k <- 2}
+    if (mdli >= 4){k <- 3}
+    nLL <- fastbads$nll[fastbads$subID == si & fastbads$modeli == mdli]
+    AIC <- 2*k + 2*nLL
+    BIC <- k*log(N) + 2*nLL
+    ICpool <- rbind(ICpool, data.frame(subID = subOrder[si], modeli = mdli, AIC = AIC, BIC = BIC))
+  }
+}
+fastbads <- merge(fastbads, ICpool, by = c('subID','modeli'))
 # Model comparison
 par(mfrow=c(2,2))
 for (mdli in 1)
@@ -1809,6 +1827,35 @@ for (mdli in 1)
 dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_McFadden.pdf")),height=5, width=5)
 dev.off()
 par(mfrow=c(2,2))
+for (mdli in 1)
+{
+  for (mdlj in 2:5)
+  {
+    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'AIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_McFadden.AIC.pdf")),height=5, width=5)
+dev.off()
+par(mfrow=c(2,2))
+for (mdli in 1)
+{
+  for (mdlj in 2:5)
+  {
+    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_McFadden.BIC.pdf")),height=5, width=5)
+dev.off()
+
+par(mfrow=c(2,2))
 for (mdli in 2)
 {
   for (mdlj in 3:5)
@@ -1821,6 +1868,34 @@ for (mdli in 2)
   }
 }
 dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_Mdl2.pdf")),height=5, width=5)
+dev.off()
+par(mfrow=c(2,2))
+for (mdli in 2)
+{
+  for (mdlj in 3:5)
+  {
+    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'AIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_Mdl2.AIC.pdf")),height=5, width=5)
+dev.off()
+par(mfrow=c(2,2))
+for (mdli in 2)
+{
+  for (mdlj in 3:5)
+  {
+    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_Mdl2.BIC.pdf")),height=5, width=5)
 dev.off()
 par(mfrow=c(1,2))
 for (mdli in 3)
@@ -1835,6 +1910,34 @@ for (mdli in 3)
   }
 }
 dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_DN.pdf")),height=2.5, width=5)
+dev.off()
+par(mfrow=c(1,2))
+for (mdli in 3)
+{
+  for (mdlj in 4:5)
+  {
+    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_DN.AIC.pdf")),height=2.5, width=5)
+dev.off()
+par(mfrow=c(1,2))
+for (mdli in 3)
+{
+  for (mdlj in 4:5)
+  {
+    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_DN.BIC.pdf")),height=2.5, width=5)
 dev.off()
 # Model comparison
 par(mfrow=c(2,2))
