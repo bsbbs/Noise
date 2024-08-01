@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /gpfs/data/glimcherlab/BoShen/Noise/Prediction
+cd /gpfs/data/glimcherlab/BoShen/Noise/ModelSimulationCode
 module load cuda/11.8
 module load matlab/R2021b
-matlab -nodisplay -r Fig1
+matlab -nodisplay -r Fig4
