@@ -1,2 +1,0 @@
-slurmstepd-a100-4002: error: execve(): /gpfs/data/glimcherlab/BoShen/Noise/ModelSimulationCode/batch: Permission denied
-srun: error: a100-4002: task 0: Exited with exit code 13
