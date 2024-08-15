@@ -40,7 +40,7 @@ options.UncertaintyHandling = true;    %s Function is stochastic
 options.NoiseFinalSamples = 30;
 Rslts = table('Size', [0 11], 'VariableTypes', {'double', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'double', 'logical', 'uint16'},...
     'VariableNames', {'subID', 'modeli', 'name', 'Mp', 'delta', 'wp', 'scl', 'nll', 'nllsd', 'success', 'iterations'});
-testfile = fullfile(svdir, AnalysName, 'AllRslts.txt');
+testfile = fullfile(Fitdir, 'AllRslts.txt');
 if ~exist(testfile, 'file')
     fp = fopen(testfile, 'w+');
     fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', ...
