@@ -8,6 +8,9 @@ elseif strcmp(os,'GLNXA64')
     % rootdir = '/gpfs/data/glimcherlab/BoShen/NoiseProject';
     rootdir = '/scratch/bs3667/NoiseProject';
     Gitdir = '~/Noise';
+elseif strcmp(os, 'PCWIN64')
+    rootdir = 'C:\Users\Bo\NYU Langone Health Dropbox\Shen Bo\Bo Shen Working files\NoiseProject';
+    Gitdir = 'C:\Users\Bo\Documents\GitHub\Noise';
 end
 plot_dir = fullfile(rootdir, 'Prediction','Fig1');
 sim_dir = fullfile(rootdir, 'Prediction','Fig1');
@@ -206,6 +209,7 @@ if ~exist(matfile, 'file')
     end
     probsb(:,i) = squeeze(mean(tmp1b, 1));
     Ovlpsb(:,i) = squeeze(mean(tmp2b, 1));
+    end
     save(matfile, "probsb", "Ovlpsb");
 else
     load(matfile);
