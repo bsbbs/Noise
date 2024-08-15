@@ -26,9 +26,6 @@ end
 % Switch to the working directory
 cd(Fitdir);
 
-%% load packages
-addpath(genpath('/gpfs/data/glimcherlab/BoShen/bads'));
-% addpath(genpath('/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject/Modelfit/bads-master'));
 %% load data
 load(fullfile(datadir, 'TrnsfrmData.mat'));
 % blacklist = [22102401, 22102405, 22110306]; % these subjects report they aimed to choose smaller-value items.
