@@ -1,19 +1,21 @@
 % Figure 4. Predictions on the design matrix
 %% define directories
-[os, ~, ~] = computer;
-if strcmp(os,'MACI64')
-    rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject';
-    Gitdir = '~/Noise';
-elseif strcmp(os,'GLNXA64')
-    rootdir = '/gpfs/data/glimcherlab/BoShen/Noise';
-    Gitdir = '/gpfs/data/glimcherlab/BoShen/Noise';
+DefineIO;
+plot_dir = fullfile(rootdir, 'Prediction','Fig1');
+sim_dir = fullfile(rootdir, 'Prediction','Fig1');
+if ~exist(plot_dir, 'dir')
+    mkdir(plot_dir);
 end
-plot_dir = fullfile(rootdir, 'Prediction');
-sim_dir = fullfile(Gitdir, 'Prediction');
-addpath(genpath(Gitdir));
+if ~exist(sim_dir,'dir')
+    mkdir(sim_dir);
+end
 
-Npar = 40;
+%% loading parrellel CPU cores
+Myclust = parcluster();
+Npar = Myclust.NumWorkers;
 mypool = parpool(Npar);
+reps = Npar; % 40; % repetition of simulations to make the results smooth
+
 %% graded color, two panels
 V1mean = 88;
 V2mean = 83;
@@ -25,7 +27,7 @@ V2 = V2mean*ones(size(V3));
 sdV1 = epsV1*ones(size(V3));
 sdV2 = epsV2*ones(size(V3));
 etavec = linspace(.8, 1.9, 8); % different levels of late noise
-nsmpls = 1024*1e3;
+products = {'Probability'};
 filename = sprintf('Ratio_Model_%iv3max%1.0f_%s', numel(V3), max(V3), '2Panels');
 % simulation
 SimDatafile = fullfile(sim_dir, [filename, '.mat']);
@@ -46,10 +48,9 @@ else
         for ti = 1:numel(etavec)
             eta = etavec(ti);
             pars = [eta, 1, 1, 1];
-            reps = 40;
             tmpb = nan([reps, 3, numel(V3)]);
-            parfor ri = 1:40
-                tmpb(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
+            parfor ri = 1:reps
+                [tmpb(ri,:,:), ~, ~] = dnDNM(dat, pars, 'biological', products); % biological model
             end
             probs = squeeze(mean(tmpb, 1));
             Ratios(i,ti,:) = probs(1,:)./(probs(1,:) + probs(2,:));

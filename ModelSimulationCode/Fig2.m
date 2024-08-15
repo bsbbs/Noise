@@ -1,46 +1,29 @@
 % Figure 2. Intertwisted magnitude of noise 
 %% define directories
-[os, ~, ~] = computer;
-if strcmp(os,'MACI64')
-    rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject';
-    Gitdir = '~/Noise';
-elseif strcmp(os,'GLNXA64')
-    rootdir = '/gpfs/data/glimcherlab/BoShen/Noise';
-    Gitdir = '/gpfs/data/glimcherlab/BoShen/Noise';
+DefineIO;
+plot_dir = fullfile(rootdir, 'Prediction','Fig2');
+sim_dir = fullfile(rootdir, 'Prediction','Fig2');
+if ~exist(plot_dir, 'dir')
+    mkdir(plot_dir);
 end
-plot_dir = fullfile(rootdir, 'Prediction');
-sim_dir = fullfile(Gitdir, 'Prediction');
-addpath(genpath(Gitdir));
-
-% Npar = 40;
-% mypool = parpool(Npar);
+if ~exist(sim_dir,'dir')
+    mkdir(sim_dir);
+end
+%% loading parrellel CPU cores
+Myclust = parcluster();
+Npar = Myclust.NumWorkers;
+mypool = parpool(Npar);
+reps = Npar; % 40; % repetition of simulations to make the results smooth
 %% Mixed noise 
 V1mean = 88;
 V2mean = 83;
 V3 = linspace(0, V1mean, 50)';
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
-nsmpls = 1024*1e3;
-
-% h = figure; hold on;
-% epsvec = linspace(0, 9, 8);
-% etavec = linspace(3.63, 0, 8);
-% plot(epsvec, etavec, '.-');
-% phi = atan((epsvec/9)./(etavec/3.63));
-%phi = linspace(0, pi/2, 8);
 phi = [0, .2, .35, .47, .6, .7, .8, 1]*pi/2;
 epsvec = sin(phi)*9;
 etavec = cos(phi)*3.63;
-% for i = 1:numel(epsvec)
-%     plot([0,epsvec(i)], [0, etavec(i)],'b-');
-% end
-% phi = linspace(0, pi/2, 8);
-% epsvec = sin(phi)*9;
-% etavec = cos(phi)*3.63;
-% for i = 1:numel(epsvec)
-%     plot([0,epsvec(i)], [0, etavec(i)],'r-');
-% end
-
+products = {'Probability'};
 filename = sprintf('Choice_MixedNoise_eps%1.2f_eta%1.2f', max(epsvec), max(etavec));
 % simulation
 matfile = fullfile(sim_dir, [filename, '.mat']);
@@ -56,12 +39,11 @@ if ~exist(matfile, 'file')
         sdV3 = eps*ones(size(V3));
         dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
         pars = [eta, 1, 1, 1];
-        reps = 40;
         tmpa = nan([reps, 3, numel(V3)]);
         tmpb = nan([reps, 3, numel(V3)]);
-        parfor ri = 1:40
-            tmpa(ri,:,:) = dDNaFig2(pars, dat, nsmpls);
-            tmpb(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
+        parfor ri = 1:reps
+            [tmpa(ri,:,:), ~, ~] = dnDNM(dat, pars, 'none', products); % no-constraint model
+            [tmpb(ri,:,:), ~, ~] = dnDNM(dat, pars, 'biological', products); % biological model
         end
         probsa(i,:,:) = squeeze(mean(tmpa, 1));
         probsb(i,:,:) = squeeze(mean(tmpb, 1));
@@ -73,8 +55,6 @@ end
 
 %% visualization
 h = figure; hold on;
-% mycols = [winter(4); flip(autumn(5))];
-% mycols(5,:) = [];
 mycols = [0         0    1.0000
          0    0.3333    0.8333
          0    0.6667    0.6667
@@ -125,15 +105,10 @@ V3 = linspace(0, V1mean, 50)';
 x = V3/V2mean;
 mask = x > .2 & x < .8;
 epsvec = linspace(0, 13, 101);
-%[epsmesh, V3mesh] = meshgrid(epsvec, V3vec);
-%V3 = V3mesh(:);
-%eps = epsmesh(:);
-
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 nsmpls = 1024*1e3;
 etavec = linspace(0, 3.63*13/9, 100);
-
 matfile = fullfile(sim_dir, [filename, '.mat']);
 if ~exist(matfile, 'file')
     slope = nan([numel(epsvec), numel(etavec)]);
@@ -155,7 +130,6 @@ if ~exist(matfile, 'file')
             end
             probs = squeeze(mean(tmp, 1));
             ratio = probs(1,:)./(probs(1,:) + probs(2,:))*100;
-            %ratio = reshape(ratio, numel(V3), numel(epsvec));
             coefficients = polyfit(x(mask), ratio(mask), 1);
             slope(i,j) = coefficients(1);
         end
@@ -194,8 +168,6 @@ mysavefig(h, filename, plot_dir, 12, [10, 3.6]);
 subplot(1,2,2); hold on;
 il = 7;
 [etamesh, epsmesh] = meshgrid(etavec, epsvec);
-%contour(etamesh, epsmesh, slope, 30);
-%colormap(bluewhitered);
 cb = colorbar;
 
 N = 9;
@@ -206,43 +178,23 @@ for magi = 1:N
     etaline = cos(phi)*3.63*mag(magi);
     plot(etaline, epsline, '-', 'Color', mygray(magi,:), 'LineWidth', .5);
 end
-
 [Gx, Gy] = gradient(slope);
 Gx = RUNAverg(Gx, il, il);
 Gy = RUNAverg(Gy, il, il);
-
 norm = sqrt(Gx.^2 + Gy.^2);
 rate = (norm.^.4)./(norm);
 Gx = Gx.*rate;
 Gy = Gy.*rate;
-
 Xd = RUNAverg(etamesh, il, il);
 Yd = RUNAverg(epsmesh, il, il);
-Ud = Gx; %RUNAverg(Gx, il, il);
-Vd = Gy; %RUNAverg(Gy, il, il);
-
+Ud = Gx;
+Vd = Gy;
 quiver(Xd,Yd,Ud,Vd,'Color','red');
-
-% ylabel(cb, 'Slope');
 ylabel('\sigma_{Early noise}');
 xlabel('\sigma_{Late noise}');
 xlim([min(etavec), max(etavec)]);
 ylim([min(epsvec), max(epsvec)]);
-
-% h.PaperUnits = 'inches';
-% h.PaperPosition = [0 0 5+5, 3.6];
-% saveas(h,fullfile(outdir,sprintf('%s.pdf',filename)),'pdf');
 mysavefig(h, filename, plot_dir, 12, [9.9, 3.6]);
-
-% h = figure;
-% subplot(1,2,1); hold on;
-% histogram(Gx);
-% xlabel('Slope x');
-% ylabel('Frequency');
-% subplot(1,2,2); hold on;
-% histogram(Gy);
-% xlabel('Slope y');
-% ylabel('Frequency');
 
 %% averaging function
 function Dp = RUNAverg(D, p, q)
@@ -257,5 +209,3 @@ for i = 1:p:(n-p+1)
     end
 end
 end
-
-

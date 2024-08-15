@@ -1,17 +1,6 @@
 % Figure 1. Generating the predictions for the early and late noise
 %% define directories
-[os, ~, ~] = computer;
-if strcmp(os,'MACI64')
-    rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject';
-    Gitdir = '~/Noise';
-elseif strcmp(os,'GLNXA64')
-    % rootdir = '/gpfs/data/glimcherlab/BoShen/NoiseProject';
-    rootdir = '/scratch/bs3667/NoiseProject';
-    Gitdir = '~/Noise';
-elseif strcmp(os, 'PCWIN64')
-    rootdir = 'C:\Users\Bo\NYU Langone Health Dropbox\Shen Bo\Bo Shen Working files\NoiseProject';
-    Gitdir = 'C:\Users\Bo\Documents\GitHub\Noise';
-end
+DefineIO;
 plot_dir = fullfile(rootdir, 'Prediction','Fig1');
 sim_dir = fullfile(rootdir, 'Prediction','Fig1');
 if ~exist(plot_dir, 'dir')
@@ -20,7 +9,7 @@ end
 if ~exist(sim_dir,'dir')
     mkdir(sim_dir);
 end
-addpath(genpath(Gitdir));
+
 %% loading parrellel CPU cores
 Myclust = parcluster();
 Npar = Myclust.NumWorkers;
