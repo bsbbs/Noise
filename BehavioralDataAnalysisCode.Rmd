@@ -294,61 +294,16 @@ dev.off()
 # Statistical testing, conditional choice accuracy over scaled V3
 ```{r}
 # by excluding those subjects who show a negative logistic slope
-blacklist <- c(blacklist, '22071903', '22102703', '22071904', '22102704', '22072003', '22102401', '22071912', '22102503','22102702')
-blacklist <- c(blacklist, '22102708', '22071913', '22110306', '22102405', '22102705')
-grpdcsn$Conditions <- (as.numeric(grpdcsn$TimePressure)-1)*2+as.numeric(grpdcsn$Vagueness)
-# 1-HighTimePressure&Precise, 2-HighTimePressure&Vague, 3-LowTimePressure&Precise, 4-LowTimePressure&Vague
-grpdcsn$Conditions <- as.numeric(grpdcsn$Conditions) #as.factor(grpdcsn$Conditions)
-contrasts(grpdcsn$TimePressure) <- contr.treatment(levels(grpdcsn$TimePressure))
-contrasts(grpdcsn$Vagueness) <- contr.treatment(levels(grpdcsn$Vagueness))
-  # regression effect for each condition
-# with exclusion
+blacklist <- c('22102708', '22071913', '22110306', '22102405', '22102705', '22071903', '22102703', '22071904', '22102704', '22072003', '22102401', '22071912', '22102503','22102702')
 
-# without exclusion
-  # regression comparisons between pairs of conditions
-custom_contrasts <- matrix(c(
-  1, 1, -1, -1,
-  1, -1, 1, -1,
-  -1, 1, 1, -1
-), ncol = 2, byrow = FALSE)
-contrasts(grpdcsn$Conditions) <- custom_contrasts
-
-  1, 0, 0, -1,
-  1, -1, 0, 0,
-  0, 0, 1, -1
-# with exclusion
-lmtest3 <- glmer(choice ~ VDscld + VDscld:V3 + VDscld:V3:Conditions + (VDscld|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,])
-summary(lmtest3)
-# without exclusion
-  
-  
-
-mtest1 <- glm(choice ~  VDscld*V3scld + TimePressure, family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$Vagueness == 'Precise' & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
-summary(mtest1)
-mtest2 <- glm(choice ~  V3scld*TimePressure, family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$Vagueness == 'Vague' & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
-summary(mtest2)
-lmtest1 <- glmer(choice ~ VDscld*V3scld + TimePressure + (1|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$Vagueness == 'Precise' & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
-summary(lmtest1)
-lmtest2 <- glmer(choice ~ VDscld*V3scld + TimePressure + (1|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$Vagueness == 'Vague' & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
-summary(lmtest2)
-
-lmtest3 <- glmer(choice ~ 0 + VDscld + VDscld:V3scld + Vagueness + TimePressure + (0 + VDscld|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
-summary(lmtest3)
-
-lmtest3 <- glmer(choice ~ VDscld + VDscld:V3scld:varbid3scld + (0 + VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),])
-summary(lmtest3)
-
-lmtest3 <- glmer(choice ~ V3scld + V3scld:varbid3scld + (VDscld + 0|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),])
-summary(lmtest3) # significantly positive (p = .0284) V3scld:varbid3scld, larger variance on the distractor will drive the context effects to be more positive (unstable when adding random effect intercept)
-lmtest3 <- glmer(choice ~ V3scld + V3scld:varbid3scld + (VDscld + 0|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),])
-summary(lmtest3) # non, high time pressure, you don't see such a effect
-lmtest3 <- glmer(choice ~ V3scld + V3scld:varbid3scld + (0 + VDscld|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),])
-summary(lmtest3)
-
-
+# test include VD or VDscld
+summary(lm1 <- glmer(choice ~ VD + (VD|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
+summary(lm2 <- glmer(choice ~ VDscld + (VDscld|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
 
 # let's see if that was because of the intercept effect. Yes, the effect still remains, thought less significant
 summary(lmtest3 <- glmer(choice ~ VDscld + VDscld:V3 + VDscld:TimePressure + VDscld:Vagueness + VDscld:V3:Vagueness:TimePressure + (VDscld|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
+
+
 # marginal significance
 lmtest3 <- glmer(choice ~ VDscld + VDscld:V3:Vagueness:TimePressure + (VDscld|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])
 summary(lmtest3)
@@ -361,12 +316,18 @@ summary(lmtest3)
 # quite significant!
 lmtest3 <- glmer(choice ~ VDscld + VDscld:V3:Vagueness:TimePressure + (VDscld|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,])
 summary(lmtest3)
-lmtest3 <- glmer(choice ~ VDscld + VDscld:V3scld:Vagueness:TimePressure + (VDscld|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,])
+lmtest3 <- glmer(choice ~ VD + VD:V3scld:Vagueness:TimePressure + (VD|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,])
 summary(lmtest3)
 
 # let's see if that was because of the intercept effect. Yes, the effect still remains, thought less significant
 lmtest3 <- glmer(choice ~ VDscld + VDscld:V3scld + VDscld:TimePressure + VDscld:Vagueness + VDscld:V3scld:Vagueness:TimePressure + (VDscld|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,])
 summary(lmtest3)
+
+contrasts(grpdcsn$TimePressure) <- contr.sum(levels(grpdcsn$TimePressure))
+contrasts(grpdcsn$Vagueness) <- contr.sum(levels(grpdcsn$Vagueness))
+lmtest3 <- glmer(choice ~ TimePressure + Vagueness + V3scld:Vagueness + V3scld:TimePressure + (1|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),]) # & !grpdcsn$subID %in% blacklist
+summary(lmtest3)
+
 
 # What if to capture the choice accuracy regardless of the target-value differences?
 lmtest3x <- glmer(choice ~ V3*Vagueness*TimePressure + (1|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,])
@@ -386,33 +347,21 @@ summary(model)
 model <- glmer(
   choice ~ VDscld + V3scld + Vagueness*TimePressure + VDscld:Vagueness + VDscld:TimePressure + V3scld:Vagueness + V3scld:TimePressure + VDscld:V3scld:(Vagueness*TimePressure)  + (1 + VDscld | subID),
   data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) ,], # & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8 & !grpdcsn$subID %in% blacklist
-  family = binomial(link = "logit"),
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
+  family = binomial(link = "logit")
 )
 summary(model)
 
-# timepressure modulates, but why not vagueness?
-model <- glmer(
-  choice ~ VDscld + V3scld + varbid3scld + VDscld:varbid3scld + VDscld:TimePressure + V3scld:varbid3scld + V3scld:TimePressure + VDscld:V3scld:(varbid3scld*TimePressure)  + (1 + VDscld | subID),
-  data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .1 & grpdcsn$V3scld <= .9 & !grpdcsn$subID %in% blacklist,],
-  family = binomial(link = "logit"),
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
-)
-summary(model)
+
+summary(test <- glmer(choice ~ VDscld + V3scld + TimePressure + Vagueness + V3scld:TimePressure + V3scld:Vagueness + V3scld:TimePressure:Vagueness + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >=.2 & grpdcsn$V3scld <= .8,]))
+
+
+
 
 # see the trends of four conditions by regression
 # That works! With and without blacklist subjects! set or release the middle range v3scld!
 grpdcsn$Conditions <- as.numeric(grpdcsn$Conditions)
 model <- glmer(
   choice ~ VDscld + V3scld + VDscld:Conditions + V3scld:Conditions + VDscld:V3scld:Conditions + (VDscld|subID),
-  data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),],
-  family = binomial(link = "logit"),
-  control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
-)
-summary(model)
-# the raw scale data results differently
-model <- glmer(
-  choice ~ VD + V3 + VD:Conditions + V3:Conditions + VD:V3:Conditions + (VD|subID),
   data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),],
   family = binomial(link = "logit"),
   control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
@@ -443,50 +392,8 @@ model <- glm(
   family = binomial(link = "logit"))
 summary(model)
 
-# Test independent conditions - almost no effects
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
 
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,]))
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,]))
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,]))
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,]))
-
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,]))
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,]))
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,]))
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,]))
-
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8 & !grpdcsn$subID %in% blacklist,]))
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8 & !grpdcsn$subID %in% blacklist,]))
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8 & !grpdcsn$subID %in% blacklist,]))
-summary(lmtest <- glmer(choice ~ VD*V3 + (VD|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8 & !grpdcsn$subID %in% blacklist,]))
-
-
-
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
-
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,]))
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,]))
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,]))
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & !grpdcsn$subID %in% blacklist,]))
-
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,]))
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,]))
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,]))
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,]))
-
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8 & !grpdcsn$subID %in% blacklist,]))
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8 & !grpdcsn$subID %in% blacklist,]))
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Precise' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8 & !grpdcsn$subID %in% blacklist,]))
-summary(lmtest <- glmer(choice ~ VDscld*V3scld + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$Vagueness == 'Vague' & (grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8 & !grpdcsn$subID %in% blacklist,]))
-
-# medium split
+# Medium split
 par(mfrow = c(2,2))
 CHRMsplt <- c()
 for (tp in c('High','Low'))
@@ -498,9 +405,9 @@ for (tp in c('High','Low'))
     if (vague == 'Precise' & tp == 'Low'){mycol <- '#00FF80'}
     if (vague == 'Vague' & tp == 'High'){mycol <- '#FFBF00'}
     
-    for (si in subjlist) # [!subjlist %in% blacklist]
+    for (si in subjlist[!subjlist %in% blacklist]) # 
     {
-      sectdat <- grpdcsn[grpdcsn$subID == si & grpdcsn$TimePressure == tp & grpdcsn$Vagueness == vague,]
+      sectdat <- grpdcsn[grpdcsn$subID == si & grpdcsn$TimePressure == tp & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8 & grpdcsn$Vagueness == vague,]
       v3m <- median(sectdat$V3)
       chrL <- mean(sectdat$choice[sectdat$V3<=v3m & (sectdat$choice == 1 | sectdat$choice == 0) & !is.na(sectdat$choice)])
       chrH <- mean(sectdat$choice[sectdat$V3>=v3m & (sectdat$choice == 1 | sectdat$choice == 0) & !is.na(sectdat$choice)])
@@ -512,28 +419,9 @@ for (tp in c('High','Low'))
     text(.7, .4, sprintf('t(%i) = %1.2f, p = %1.3f',test$parameter["df"], test$statistic, test$p.value))
   }
 }
-dev.copy(pdf,file.path(out_dir,'ChoiceRatioMediumSplit.pdf'), height=7, width=7) # [PositiveLogisticSubjects]
+dev.copy(pdf,file.path(out_dir,'ChoiceRatioMediumSplit[PositiveLogisticSubjects].pdf'), height=7, width=7) # 
 dev.off()
 
-
-# trinary choice regression
-# Install and load the necessary packages
-install.packages("nnet")
-library(nnet)
-
-# Example dataset
-# Assuming grpdcsn is your dataset with a trinary outcome variable 'Choice'
-# with levels "A", "B", "C"
-# grpdcsn <- read.csv("path/to/your/dataset.csv")
-
-# Convert 'Choice' to a factor
-grpdcsn$Choice <- factor(grpdcsn$chosenItem, levels = c("1", "2", "3"))
-
-# Fit the multinomial logistic regression model
-model <- multinom(Choice ~ V1 + V2 + V3, data = grpdcsn)
-
-# Summary of the model
-summary(model)
 
 ## visualizing V3 distributions
 library(RColorBrewer)
@@ -760,6 +648,51 @@ dev.copy(pdf,file.path(out_dir,sprintf("ChoiceDeMean~IDV3scldtomin_SldWndwWght[S
 dev.off()
 
 ```
+## check between-subjects variance
+```{r}
+blacklist <- c('22102708', '22071913', '22110306', '22102405', '22102705', '22071903', '22102703', '22071904', '22102704', '22072003', '22102401', '22071912', '22102503','22102702')
+# mixed-effects
+contrasts(grpdcsn$TimePressure) <- contr.sum(levels(grpdcsn$TimePressure))
+contrasts(grpdcsn$Vagueness) <- contr.sum(levels(grpdcsn$Vagueness))
+summary(test <- glmer(choice ~ VDscld + V3scld + TimePressure + Vagueness + V3scld:TimePressure + V3scld:Vagueness + V3scld:TimePressure:Vagueness + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >=.2 & grpdcsn$V3scld <= .8,]))
+summary(lmtest3 <- glmer(choice ~ VDscld + TimePressure + Vagueness + V3scld:TimePressure:Vagueness + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >=.2 & grpdcsn$V3scld <= .8,])) # & !grpdcsn$subID %in% blacklist
+
+# Fixed effects
+contrasts(grpdcsn$TimePressure) <- contr.sum(levels(grpdcsn$TimePressure))
+contrasts(grpdcsn$Vagueness) <- contr.sum(levels(grpdcsn$Vagueness))
+summary(test <- glm(choice ~ V3scld + TimePressure + Vagueness + V3scld:TimePressure + V3scld:Vagueness + V3scld:TimePressure:Vagueness, family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >=.2 & grpdcsn$V3scld <= .8,])) #  & grpdcsn$V3scld >=.2 & grpdcsn$V3scld <= .8 & !grpdcsn$subID %in% blacklist
+summary(test <- glm(choice ~ TimePressure + Vagueness + V3scld:TimePressure:Vagueness, family = "binomial", data = grpdcsn[grpdcsn$choice!=2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >=.2 & grpdcsn$V3scld <= .8,]))
+
+# between-subject variances
+BtwnEffs <- aggregate(choice ~ subID + TimePressure + Vagueness, data = grpdcsn[!is.na(grpdcsn$choice) & grpdcsn$chosenItem != 3 & !grpdcsn$subID %in% blacklist,], FUN = mean)
+tmp <- aggregate(V3scld ~ subID + TimePressure + Vagueness, data = grpdcsn[!is.na(grpdcsn$choice) & grpdcsn$chosenItem != 3 & !grpdcsn$subID %in% blacklist,], FUN = mean)
+BtwnEffs <- merge(BtwnEffs, tmp, by = c('subID','TimePressure','Vagueness'))
+summary(test <- lm(choice ~ V3scld + TimePressure + Vagueness + V3scld:TimePressure + V3scld:Vagueness + V3scld:TimePressure:Vagueness, data = BtwnEffs))
+
+summary(test <- lm(choice ~ V3scld:TimePressure:Vagueness, data = BtwnEffs))
+summary(test <- lm(choice ~ V3scld, data = BtwnEffs))
+
+par(mfrow = c(1,2))
+for (v in c('Vague','Precise')) # decision noise
+{
+  for (tp in c('High','Low')) # representation noise
+  {
+    if (v == 'Vague' & tp == 'Low'){mycol <- 'red'}
+    if (v == 'Precise' & tp == 'High'){mycol <- 'blue'}
+    if (v == 'Precise' & tp == 'Low'){mycol <- '#00FF80'}
+    if (v == 'Vague' & tp == 'High'){mycol <- '#FFBF00'}
+    onesect <- BtwnEffs[BtwnEffs$Vagueness == v & BtwnEffs$TimePressure == tp,]
+    if (tp == 'High'){plot(choice ~ V3scld, data = onesect, pch = 20, col = mycol, ylab = '% Choice | V1, V2', xlab = 'Scaled V3')}else{points(choice ~ V3scld, data = onesect, pch = 20, col = mycol)}
+    rgrss <- lm(choice ~ V3scld, data = onesect)
+    show(summary(rgrss)$coefficients[8])
+    abline(rgrss, col = mycol, lty = 2)
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Choice~IDV3scldtomin_BtwnEffs.pdf")),height=6.28, width=5.86)
+dev.off()
+
+
+```
 
 
 ## check on reaction time
@@ -918,7 +851,7 @@ dev.off()
 ```
 # Pool subjects, choice accuracy as scaled V3
 ```{r}
-AccID3 <- c()
+AccV3scld <- c()
 Rgress <- c()
 subID <- unique(grpdcsn$subID)
 Vagueness <- unique(grpdcsn$Vagueness)
@@ -949,13 +882,13 @@ for (v in Vagueness) # decision noise
     test <- lm(acc ~ V3scld, data = onesect, weights = Ntrial)
     if (!is.na(test$coefficients[2])){abline(test, col = mycol)}
     Rgress <- rbind(Rgress, data.frame(Vagueness = v, TimePressure = tp, t(test$coefficients)))
-    AccID3 <- rbind(AccID3, data.frame(Vagueness = v, TimePressure = tp, onesect))
+    AccV3scld <- rbind(AccV3scld, data.frame(Vagueness = v, TimePressure = tp, onesect))
   }
 }
 legend('topleft',c('Precise:Low','Vague:Low','Precise:High','Vauge:High'), text.col = c('red','blue','pink','lightblue'), bty = 'n')
-dev.copy(pdf,file.path(out_dir,sprintf("Choice~IDV3scldtominval_Pool.pdf")),height=4, width=4)
+dev.copy(pdf,file.path(out_dir,sprintf("Choice~V3scldtominval_Pool.pdf")),height=4, width=4)
 dev.off()
-write.table(AccID3, file = file.path('/Users/bs3667/Dropbox (NYU Langone Health)/CESS-Bo/myData', 'AccVarV3scld.txt'), quote = FALSE, sep = "\t", eol = "\n", row.names = FALSE)
+write.table(AccV3scld, file = file.path('/Users/bs3667/Dropbox (NYU Langone Health)/CESS-Bo/myData', 'AccVarV3scld.txt'), quote = FALSE, sep = "\t", eol = "\n", row.names = FALSE)
 ```
 # Sliding windows, unweighted
 ```{r}
@@ -1081,7 +1014,7 @@ for (ci in condlist) # decision noise
   if (v == 'Precise' & tp == 'High'){mycol <- 'blue'}
   if (v == 'Precise' & tp == 'Low'){mycol <- '#00FF80'}
   if (v == 'Vague' & tp == 'High'){mycol <- '#FFBF00'}
-  onesect <- AccID3[AccID3$Vagueness == v & AccID3$TimePressure == tp & AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,]
+  onesect <- AccV3scld[AccV3scld$Vagueness == v & AccV3scld$TimePressure == tp & AccV3scld$V3scld >= LowestV3 & AccV3scld$V3scld <= HighestV3,]
   acc <- c()
   Ntrial <- c()
   v3vec <- seq(LowestV3, 1, .015)
@@ -1112,7 +1045,7 @@ for (ci in condlist) # decision noise
   #abline(test, col = mycol)
 }
 #legend(x = .25, y = 73.7, condnames, cex = .8, text.col = condcolors, bty = 'n')
-dev.copy(pdf, file.path(out_dir,sprintf("Choice~IDV3scldtomin_SldWndwWght_with0.pdf")), height=6.28, width=5.86)
+dev.copy(pdf, file.path(out_dir,sprintf("Choice~V3scldtomin_SldWndwWght_with0.pdf")), height=6.28, width=5.86)
 dev.off()
 ```
 # Sliding windows, weighted, segments
@@ -1138,7 +1071,7 @@ for (ci in condlist) # decision noise
   if (v == 'Precise' & tp == 'High'){mycol <- 'blue'}
   if (v == 'Precise' & tp == 'Low'){mycol <- '#00FF80'}
   if (v == 'Vague' & tp == 'High'){mycol <- '#FFBF00'}
-  onesect <- AccID3[AccID3$Vagueness == v & AccID3$TimePressure == tp & AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,]
+  onesect <- AccV3scld[AccV3scld$Vagueness == v & AccV3scld$TimePressure == tp & AccV3scld$V3scld >= LowestV3 & AccV3scld$V3scld <= HighestV3,]
   acc <- c()
   Ntrial <- c()
   v3vec <- seq(LowestV3, 1, .015)
@@ -1196,10 +1129,209 @@ arrows(barx, means$slope+means$se, barx, means$slope-means$se, code = 3, angle =
 #lines(c(barx[1,2], barx[2,2]), c(15.198, 15.198), lwd =1, col = 1)
 #lines(c(xm[1], xm[1], xm[2], xm[2]),c(0.23,0.27,0.27,.198))
 #text(mean(xm), 15.57,'***')
-dev.copy(pdf,file.path(out_dir,'Choice~IDV3scldtomin_SldWndwWght_with0_slope.pdf'), height=4, width=3)
+dev.copy(pdf,file.path(out_dir,'Choice~V3scldtomin_SldWndwWght_with0_slope.pdf'), height=4, width=3)
 dev.off()
 ```
+# Early noise based on bidding but not conditions
+```{r}
+# medium-split based on bidding variances
+subID <- unique(grpdcsn$subID)
+TimePressure <- unique(grpdcsn$TimePressure)
+AccID3 <- c()
+for (s in 1:length(subID))
+{
+  indvdat <- grpdcsn[grpdcsn$subID == subID[s],]
+  for (tp in TimePressure)
+  {
+    sectdat <- indvdat[indvdat$TimePressure == tp & indvdat$chosenItem != 3 & !is.na(indvdat$chosenItem),]
+    v3ID <- unique(sectdat$ID3)
+    acc <- aggregate(choice ~ ID3, data = sectdat, FUN = mean)
+    colnames(acc) <- c('ID3','acc')
+    Ntrial <- aggregate(trial ~ ID3, data = sectdat, FUN = length)
+    colnames(Ntrial) <- c('ID3','Ntrial')
+    bid <- aggregate(V3scld ~ ID3, data = sectdat, FUN = mean)
+    varbid3 <- aggregate(varbid3scld ~ ID3, data = sectdat, FUN = mean)
+    onesect <- merge(acc, bid, by = 'ID3')
+    onesect <- merge(onesect, Ntrial, by = 'ID3')
+    onesect <- merge(onesect, varbid3, by = 'ID3')
+    AccID3 <- rbind(AccID3, data.frame(subID = subID[s], TimePressure = tp, onesect))
+  }
+}
+AccID3$acc <- AccID3$acc*100
+```
+# Sliding windows, weighted, including zero
+```{r}
+condlist <- c(1,4,2,3)
+condnames <- c('Vague-Low','Precise-Low','Vauge-High','Precise-High')
+condcolors <- c('red','#00FF80','#FFBF00','blue')
+vaguevec <- c('Vague','Precise','Vague','Precise')
+timevec <- c('Low','Low','High','High')
+LowestV3 <- 0 # chose V3 higher than zero, to avoid the effect when V3 = 0, the early noise cannot be effectively regulated
+HighestV3 <- 1
+# par(mfrow = c(1, 2))
+i <- 0
+vi <- 0 
+for (v in c('Vague','Precise'))
+{
+  vi <- vi + 1
+  ti <- 0
+  for (tp in c('Low','High')) # decision noise
+  {
+    ti <- ti + 1
+    i <- i + 1
+    if (v == 'Vague' & tp == 'Low'){mycol <- 'red'}
+    if (v == 'Precise' & tp == 'High'){mycol <- 'blue'}
+    if (v == 'Precise' & tp == 'Low'){mycol <- '#00FF80'}
+    if (v == 'Vague' & tp == 'High'){mycol <- '#FFBF00'}
+    onesect <- AccID3[AccID3$TimePressure == tp & AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,]
+    v3vec <- seq(LowestV3, HighestV3, .015)
+    acc <- c()
+    Ntrial <- c()
+    for (v3 in v3vec)
+    {
+      mask <- onesect$V3scld > v3 -.15 & onesect$V3scld < v3 + .15
+      medval <- median(onesect$varbid3scld[mask])
+      if (v == 'Vague'){maskv <- onesect$varbid3scld[mask] >= medval}
+      if (v == 'Precise'){maskv <- onesect$varbid3scld[mask] <= medval}
+      Ntrial <- rbind(Ntrial, sum(onesect$Ntrial[mask][maskv]))
+      acc <- rbind(acc, weighted.mean(onesect$acc[mask][maskv],onesect$Ntrial[mask][maskv]))
+    }
+    #Sldwndwdat <- rbind(Sldwndwdat, data.frame(v3 = v3vec[cut], acc = acc[cut], Ntrial = Ntrial[cut], TimePressure = tp, Vagueness = v))
+    cut <- Ntrial > 400
+    if (i == 1){plot(v3vec[cut], acc[cut], cex = (Ntrial[cut])/800, col = mycol, 
+                     xlim = c(LowestV3, HighestV3), ylim = c(61,73), xlab=' ', ylab=' ', 
+                     axes = FALSE, frame.plot = FALSE)
+      axis(1, at = c(seq(LowestV3, HighestV3, .2)),  tck = -0.02, padj = -1, cex.axis = 1)
+      axis(2, tck = -0.02, at = seq(63, 72, 3), padj = 1, cex.axis = 1)
+      title(ylab = '% Correct | V1, V2', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+      title(xlab = "Scaled V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+    }
+    points(v3vec[cut], acc[cut], cex = (Ntrial[cut])/800, col = mycol)
+    lines(v3vec[cut], acc[cut], col = mycol)
+  }
+}
+#legend(x = .25, y = 73.7, condnames, cex = .8, text.col = condcolors, bty = 'n')
+dev.copy(pdf, file.path(out_dir,sprintf("Choice~MedSpltV3scldtomin_SldWndwWght_with0.pdf")), height=6.28, width=5.86)
+dev.off()
+```
+# Sliding windows, weighted, segments
+```{r}
+LowestV3 <- 0.2 # chose V3 higher than zero, to avoid the effect when V3 = 0, the early noise cannot be effectively regulated
+HighestV3 <- 0.8
+par(mfrow = c(1, 2))
+i <- 0
+vi <- 0 
+for (v in c('Vague','Precise'))
+{
+  vi <- vi + 1
+  ti <- 0
+  for (tp in c('Low','High')) # decision noise
+  {
+    ti <- ti + 1
+    i <- i + 1
+    if (v == 'Vague' & tp == 'Low'){mycol <- 'red'}
+    if (v == 'Precise' & tp == 'High'){mycol <- 'blue'}
+    if (v == 'Precise' & tp == 'Low'){mycol <- '#00FF80'}
+    if (v == 'Vague' & tp == 'High'){mycol <- '#FFBF00'}
+    onesect <- AccID3[AccID3$TimePressure == tp & AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,]
+    v3vec <- seq(LowestV3, HighestV3, .015)
+    acc <- c()
+    Ntrial <- c()
+    for (v3 in v3vec)
+    {
+      mask <- onesect$V3scld > v3 -.15 & onesect$V3scld < v3 + .15
+      medval <- median(onesect$varbid3scld[mask])
+      if (v == 'Vague'){maskv <- onesect$varbid3scld[mask] >= medval}
+      if (v == 'Precise'){maskv <- onesect$varbid3scld[mask] <= medval}
+      Ntrial <- rbind(Ntrial, sum(onesect$Ntrial[mask][maskv]))
+      acc <- rbind(acc, weighted.mean(onesect$acc[mask][maskv],onesect$Ntrial[mask][maskv]))
+    }
+    #Sldwndwdat <- rbind(Sldwndwdat, data.frame(v3 = v3vec[cut], acc = acc[cut], Ntrial = Ntrial[cut], TimePressure = tp, Vagueness = v))
+    cut <- Ntrial > 400
+    if (ti == 1){plot(v3vec[cut], acc[cut], cex = (Ntrial[cut])/800, col = mycol, 
+                     xlim = c(LowestV3, HighestV3), ylim = c(61,73), xlab=' ', ylab=' ', 
+                     axes = FALSE, frame.plot = FALSE)
+      axis(1, at = c(seq(LowestV3, HighestV3, .2)),  tck = -0.02, padj = -1, cex.axis = 1)
+      axis(2, tck = -0.02, at = seq(63, 72, 3), padj = 1, cex.axis = 1)
+      title(ylab = '% Correct | V1, V2', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+      title(xlab = "Scaled V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+    }
+    points(v3vec[cut], acc[cut], cex = (Ntrial[cut])/800, col = mycol)
+    lines(v3vec[cut], acc[cut], col = mycol)
+    test <- lm(acc[cut] ~ v3vec[cut], weights = Ntrial[cut])
+    abline(test, col = mycol)
+    stats <- summary(test)
+  }
+}
+# for legend
+condnames <- c('Precise-Low','Vague-Low','Precise-High','Vauge-High')
+condcolors <- c('#00FF80','red','blue','#FFBF00')
+dev.copy(pdf, file.path(out_dir,sprintf("Choice~MedSpltV3scldtomin_SldWndwWght_Segments.pdf")), height=4.4, width=7.7)
+dev.off()
 
+Sldwndwdat$TimePressure <- factor(Sldwndwdat$TimePressure, levels = c('Low','High'))
+Sldwndwdat$Vagueness <- factor(Sldwndwdat$Vagueness, levels = c('Precise','Vague'))
+summary(test <- lm(acc ~ v3*TimePressure*Vagueness, weights = Ntrial, data = Sldwndwdat))
+summary(test <- lm(acc ~ v3, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Vague' & Sldwndwdat$TimePressure == 'Low',]))
+summary(test <- lm(acc ~ v3, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Precise' & Sldwndwdat$TimePressure == 'High',]))
+summary(test <- lm(acc ~ v3, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Vague' & Sldwndwdat$TimePressure == 'High',]))
+summary(test <- lm(acc ~ v3*TimePressure, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Vague',]))
+summary(test <- lm(acc ~ v3, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Precise' & Sldwndwdat$TimePressure == 'Low',]))
+summary(test <- lm(acc ~ v3*TimePressure, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$Vagueness == 'Precise',]))
+summary(test <- lm(acc ~ v3*Vagueness, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$TimePressure == 'Low',]))
+summary(test <- lm(acc ~ v3*Vagueness, weights = Ntrial, data = Sldwndwdat[Sldwndwdat$TimePressure == 'High',]))
+
+LowestV3 <- 0.2 # chose V3 higher than zero, to avoid the effect when V3 = 0, the early noise cannot be effectively regulated
+HighestV3 <- 0.8
+# par(mfrow = c(1, 2))
+i <- 0
+vi <- 0 
+for (v in c('Vague','Precise'))
+{
+  vi <- vi + 1
+  ti <- 0
+  for (tp in c('Low','High')) # decision noise
+  {
+    ti <- ti + 1
+    i <- i + 1
+    if (v == 'Vague' & tp == 'Low'){mycol <- 'red'}
+    if (v == 'Precise' & tp == 'High'){mycol <- 'blue'}
+    if (v == 'Precise' & tp == 'Low'){mycol <- '#00FF80'}
+    if (v == 'Vague' & tp == 'High'){mycol <- '#FFBF00'}
+    onesect <- AccID3[AccID3$TimePressure == tp & AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,]
+    v3vec <- seq(LowestV3, HighestV3, .015)
+    var3 <- c()
+    Ntrial <- c()
+    for (v3 in v3vec)
+    {
+      mask <- onesect$V3scld > v3 -.15 & onesect$V3scld < v3 + .15
+      medval <- median(onesect$varbid3scld[mask])
+      if (v == 'Vague'){maskv <- onesect$varbid3scld[mask] >= medval}
+      if (v == 'Precise'){maskv <- onesect$varbid3scld[mask] <= medval}
+      Ntrial <- rbind(Ntrial, sum(onesect$Ntrial[mask][maskv]))
+      var3 <- rbind(var3, weighted.mean(onesect$varbid3scld[mask][maskv],onesect$Ntrial[mask][maskv]))
+    }
+    #Sldwndwdat <- rbind(Sldwndwdat, data.frame(v3 = v3vec[cut], acc = acc[cut], Ntrial = Ntrial[cut], TimePressure = tp, Vagueness = v))
+    cut <- Ntrial > 400
+    if (i == 1){plot(v3vec[cut], var3[cut], cex = (Ntrial[cut])/800, col = mycol, 
+                     xlim = c(LowestV3, HighestV3), ylim = c(0,.3),  xlab=' ', ylab=' ', 
+                     axes = FALSE, frame.plot = FALSE)
+      axis(1, at = c(seq(LowestV3, HighestV3, .2)),  tck = -0.02, padj = -1, cex.axis = 1)
+      axis(2, tck = -0.02, at = c(0, .1, .2, .3), padj = 1, cex.axis = 1)
+      title(ylab = 'Variance', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+      title(xlab = "Scaled V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+    }
+    points(v3vec[cut], var3[cut], cex = (Ntrial[cut])/800, col = mycol)
+    # points(onesect$V3scld, onesect$varbid3scld, col = mycol)
+    lines(v3vec[cut], var3[cut], col = mycol)
+    test <- lm(var3[cut] ~ v3vec[cut], weights = Ntrial[cut])
+    abline(test, col = mycol)
+    stats <- summary(test)
+  }
+}
+dev.copy(pdf, file.path(out_dir,sprintf("V3scldVar~MedSpltV3scldtomin_SldWndwWght_Segments.pdf")), height=4.4, width=7.7/2)
+dev.off()
+```
 # Sliding windows on V3 variance
 ```{r}
 condlist <- c(1,4,2,3)
@@ -1545,14 +1677,14 @@ fastbads <- read.table(file.path(Analysis,'BestRslts.txt'), header = TRUE, sep =
 blacklistorder <- c(21,33,48,51,57) # the same as the blacklist defined above, but with order number instead of subject ID
 fastbads <- fastbads[!fastbads$subID %in% blacklistorder,]
 fastbads$subID <- as.factor(fastbads$subID)
-subOrder <- unique(fastbads$subID)
+sublist <- unique(fastbads$subID)
 fastbads$name <- factor(fastbads$name, levels = c('McFadden','LinearDistrb','DN','dDNb','dDNd'))
 names <- levels(fastbads$name)
 fastbads$modeli <- as.factor(fastbads$modeli)
 str(fastbads)
 # convert AIC and BIC
 ICpool <- c()
-for (si in 1:length(subOrder))
+for (si in 1:length(sublist))
 {
   N <- sum(grpdcsn$subID == subID[si] & !is.na(grpdcsn$choice)) # number of data points
   for (mdli in 1:5) # number of parameters
@@ -1560,13 +1692,16 @@ for (si in 1:length(subOrder))
     if (mdli == 1){k <- 2}
     if (mdli == 2 | mdli == 3){k <- 3}
     if (mdli >= 4){k <- 4}
-    nLL <- fastbads$nll[fastbads$subID == subOrder[si] & fastbads$modeli == mdli]
+    nLL <- fastbads$nll[fastbads$subID == sublist[si] & fastbads$modeli == mdli]
     AIC <- 2*k + 2*nLL
     BIC <- k*log(N) + 2*nLL
-    ICpool <- rbind(ICpool, data.frame(subID = subOrder[si], modeli = mdli, AIC = AIC, BIC = BIC))
+    ICpool <- rbind(ICpool, data.frame(subID = sublist[si], modeli = mdli, AIC = AIC, BIC = BIC))
   }
 }
 fastbads <- merge(fastbads, ICpool, by = c('subID','modeli'))
+# list log likelihood
+nlls <- aggregate(nll ~ modeli, data = fastbads, FUN = sum)
+show(nlls)
 # Model comparison
 par(mfrow=c(2,2))
 for (mdli in 1)
@@ -1718,17 +1853,10 @@ for (mdli in 3:5)
   bars <- fastbads$wp[fastbads$modeli == mdli]
   hist(bars, 40, probability = TRUE, xlab = 'wp', main = names[mdli], bty = "n")
   lines(density(bars))
-  legend('topleft',sprintf('mean wp = %.3f', mean(bars)), bty = 'n')
+  legend('topleft',sprintf('mean wp = \n%.3f ± %.3f', mean(bars), sd(bars)/sqrt(length(bars))), bty = 'n')
 }
 dev.copy(pdf,file.path(out_dir,sprintf("wp.pdf")),height=5, width=5)
 dev.off()
-
-# Sample data (non-negative values)
-sample_data <- fastbads$wp[fastbads$modeli == 5]
-# Perform one-sample Wilcoxon signed-rank test against zero
-wilcox_test <- wilcox.test(sample_data, mu = 0, alternative = "greater")
-# Print the result
-print(wilcox_test)
 
 # Distribution of Mp
 par(mfrow=c(2,3))
@@ -1737,7 +1865,7 @@ for (mdli in 1:5)
   bars <- fastbads$Mp[fastbads$modeli == mdli]
   hist(bars, 40, probability = TRUE, xlab = 'Mp', main = names[mdli], bty = "n")
   lines(density(bars))
-  legend('topleft',sprintf('mean Mp = %1.1f', mean(bars)), bty = 'n')
+  legend('topleft',sprintf('mean Mp =\n %1.1f ± %1.1f', mean(bars), sd(bars)/sqrt(length(bars))), bty = 'n')
 }
 dev.copy(pdf,file.path(out_dir,sprintf("Mp.pdf")),height=5, width=7.5)
 dev.off()
@@ -1749,8 +1877,7 @@ for (mdli in 1:5)
   hist(bars, 40, probability = TRUE, xlab = expression(delta), main = names[mdli], bty = "n")
   lines(density(bars))
   test <- t.test(bars)
-  legend('topleft',as.expression(bquote(mean~delta == .(sprintf('%1.3f\np = %1.3f', mean(bars), test$p.value)))), bty = 'n')
-  
+  legend('right',as.expression(bquote(mean~delta == .(sprintf('%1.3f ± %1.3f\np = %1.3f', mean(bars), sd(bars)/sqrt(length(bars)), test$p.value)))), bty = 'n')
 }
 dev.copy(pdf,file.path(out_dir,sprintf("delta.pdf")),height=5, width=7.5)
 dev.off()
@@ -1770,7 +1897,7 @@ for (mdli in c(2,4,5))
   bars <- fastbads$scl[fastbads$modeli == mdli]
   hist(bars, 40, probability = TRUE, xlab = "Scale", main = names[mdli], bty = "n")
   lines(density(bars))
-  legend('topleft',as.expression(bquote(mean~scale == .(sprintf('%1.3f', mean(bars))))), bty = 'n')
+  legend('topleft', sprintf('scl = %1.2f ± %1.2f', mean(bars), sd(bars)/sqrt(length(bars))), bty = 'n')
 }
 dev.copy(pdf,file.path(out_dir,sprintf("scl.pdf")),height=5, width=5)
 dev.off()
@@ -1989,9 +2116,11 @@ dev.off()
 ```
 ## Model fitting results, Gluth et al., 2020 - Non-negative & dummyTime
 ```{r}
-Analysis <- '/Users/bs3667/Noise/UnusedCodeorForFutureAnalyses/ReAnalyszeGluth2020/Results/FastBADS_FixMs'
+Analysis <- '/Users/bs3667/Noise/UnusedCodeorForFutureAnalyses/ReAnalyszeGluth2020/Results/ModelFit_Nested'
 out_dir <- file.path(Analysis,'plot')
 if (!dir.exists(out_dir)){dir.create(out_dir)}
+mt <- read.csv('/Users/bs3667/Noise/UnusedCodeorForFutureAnalyses/ReAnalyszeGluth2020/TrnsfrmData.csv', header = TRUE)
+subIDs <- sort(unique(mt$subID))
 fastbads <- read.table(file.path(Analysis,'BestRslts.txt'), header = TRUE, sep = '\t')
 # fastbads <- fastbads[fastbads$subID < 24,]
 fastbads$subID <- as.factor(fastbads$subID)
@@ -1999,6 +2128,23 @@ fastbads$name <- factor(fastbads$name, levels = c('McFadden','LinearDistrb','DN'
 names <- levels(fastbads$name)
 fastbads$modeli <- as.factor(fastbads$modeli)
 str(fastbads)
+# convert AIC and BIC
+ICpool <- c()
+for (si in 1:length(subIDs))
+{
+  N <- sum(mt$subID == subIDs[si] & !is.na(mt$chosenItem)) # number of data points
+  for (mdli in 1:5) # number of parameters
+  {
+    if (mdli == 1){k <- 1}
+    if (mdli == 2 | mdli == 3){k <- 2}
+    if (mdli >= 4){k <- 3}
+    nLL <- fastbads$nll[fastbads$subID == si & fastbads$modeli == mdli]
+    AIC <- 2*k + 2*nLL
+    BIC <- k*log(N) + 2*nLL
+    ICpool <- rbind(ICpool, data.frame(subID = si, modeli = mdli, AIC = AIC, BIC = BIC))
+  }
+}
+fastbads <- merge(fastbads, ICpool, by = c('subID','modeli'))
 # Model comparison
 par(mfrow=c(2,2))
 for (mdli in 1)
@@ -2015,6 +2161,35 @@ for (mdli in 1)
 dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_McFadden.pdf")),height=5, width=5)
 dev.off()
 par(mfrow=c(2,2))
+for (mdli in 1)
+{
+  for (mdlj in 2:5)
+  {
+    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'AIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_McFadden.AIC.pdf")),height=5, width=5)
+dev.off()
+par(mfrow=c(2,2))
+for (mdli in 1)
+{
+  for (mdlj in 2:5)
+  {
+    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_McFadden.BIC.pdf")),height=5, width=5)
+dev.off()
+
+par(mfrow=c(2,2))
 for (mdli in 2)
 {
   for (mdlj in 3:5)
@@ -2027,6 +2202,34 @@ for (mdli in 2)
   }
 }
 dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_Mdl2.pdf")),height=5, width=5)
+dev.off()
+par(mfrow=c(2,2))
+for (mdli in 2)
+{
+  for (mdlj in 3:5)
+  {
+    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'AIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_Mdl2.AIC.pdf")),height=5, width=5)
+dev.off()
+par(mfrow=c(2,2))
+for (mdli in 2)
+{
+  for (mdlj in 3:5)
+  {
+    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_Mdl2.BIC.pdf")),height=5, width=5)
 dev.off()
 par(mfrow=c(1,2))
 for (mdli in 3)
@@ -2041,6 +2244,34 @@ for (mdli in 3)
   }
 }
 dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_DN.pdf")),height=2.5, width=5)
+dev.off()
+par(mfrow=c(1,2))
+for (mdli in 3)
+{
+  for (mdlj in 4:5)
+  {
+    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_DN.AIC.pdf")),height=2.5, width=5)
+dev.off()
+par(mfrow=c(1,2))
+for (mdli in 3)
+{
+  for (mdlj in 4:5)
+  {
+    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_DN.BIC.pdf")),height=2.5, width=5)
 dev.off()
 # Model comparison
 par(mfrow=c(2,2))

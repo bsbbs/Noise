@@ -10,7 +10,7 @@ svdir = fullfile(rtdir, 'Results');
 if ~exist(svdir, 'dir')
     mkdir(svdir);
 end
-AnalysName = 'ModelFit_NestedII';
+AnalysName = 'ModelFit_Nested';
 outdir = fullfile(svdir, AnalysName);
 if ~exist(outdir, 'dir')
     mkdir(outdir);
@@ -84,26 +84,26 @@ for subj = 1:numel(sublist)
         filename = fullfile(mtrxdir, sprintf('Subj%02i_Mdl%i.mat', subj, modeli));
         if ~exist(filename, 'file')
             % shared parameters for all models
-            LB = [0, -4]; % [Mp, delta]
-            UB = [1000, 8];
-            PLB = [1, -.4];
-            PUB = [100, .8];
+            LB = [0, -2]; % [Mp, delta]
+            UB = [1000, 4];
+            PLB = [1, -.2];
+            PUB = [100, .4];
             % nest other parameters
             if modeli == 2 % nest scaling on early noise for model 2
                 LB = [LB, 0]; % [Mp, delta, scl]
-                UB = [UB, 8];
+                UB = [UB, 4];
                 PLB = [PLB, 0];
                 PUB = [PUB, 2];
             end
             if modeli == 3 % nest divisive normalization for model 3
                 LB = [LB, 0]; % [Mp, delta, wp]
-                UB = [UB, 5];
+                UB = [UB, 4];
                 PLB = [PLB, 0];
                 PUB = [PUB, 1.4];
             end
             if modeli >= 4 % nest both for models 4 and 5
                 LB = [LB, 0, 0]; % [Mp, delta, wp, scl]
-                UB = [UB, 5, 8];
+                UB = [UB, 4, 4];
                 PLB = [PLB, 0, 0];
                 PUB = [PUB, 1.4, 2];
             end

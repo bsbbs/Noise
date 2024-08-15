@@ -10,54 +10,54 @@ end
 
 eta = pars(1); % late noise standard deviation
 scl = pars(2); % scaling for early noise
-wp = pars(3); % weight of normalization
-Mp = pars(4); % baseline normalization
-Rmax = 75;
+w = pars(3); % weight of normalization
+M = pars(4); % baseline normalization
+K = 75;
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3'});
 Ntrl = size(dat,1);
-samples = [];
+Numerator = [];
 for ci = 1:3
     if gpuparallel
         values = gpuArray(data.(['V',num2str(ci)])');
         stds = gpuArray(data.(['sdV', num2str(ci)])')*scl;
-        samples(ci,:,:) = gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+        Numerator(ci,:,:) = gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
     else
         values = data.(['V',num2str(ci)])';
         stds = data.(['sdV', num2str(ci)])'*scl;
-        samples(ci,:,:) = randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+        Numerator(ci,:,:) = randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
     end
 end
-D1 = [];
-D2 = [];
-D3 = [];
+Denominator1 = [];
+Denominator2 = [];
+Denominator3 = [];
 for ci = 1:3
     if gpuparallel
         values = gpuArray(data.(['V',num2str(ci)])');
         stds = gpuArray(data.(['sdV', num2str(ci)])')*scl;
-        D1(ci,:,:) = gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
-        D2(ci,:,:) = gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
-        D3(ci,:,:) = gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+        Denominator1(ci,:,:) = gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+        Denominator2(ci,:,:) = gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+        Denominator3(ci,:,:) = gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
     else
         values = data.(['V',num2str(ci)])';
         stds = data.(['sdV', num2str(ci)])'*scl;
-        D1(ci,:,:) = randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
-        D2(ci,:,:) = randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
-        D3(ci,:,:) = randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+        Denominator1(ci,:,:) = randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+        Denominator2(ci,:,:) = randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
+        Denominator3(ci,:,:) = randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1);
     end
 end
 
-D1 = sum(D1, 1)*wp + Mp;
-D2 = sum(D2, 1)*wp + Mp;
-D3 = sum(D3, 1)*wp + Mp;
+Denominator1 = sum(Denominator1, 1)*w + M;
+Denominator2 = sum(Denominator2, 1)*w + M;
+Denominator3 = sum(Denominator3, 1)*w + M;
 % D = [D1; D2; D3];
 % The product of divisive normalization before adding late noise
-DNP = Rmax*samples./[D1; D2; D3];
+DNP = K*Numerator./[Denominator1; Denominator2; Denominator3];
 % clear D;
-clear D1 D2 D3;
+clear Denominator1 Denominator2 Denominator3;
 if gpuparallel
-    SVs = DNP + gpuArray.randn(size(samples))*eta;
+    SVs = DNP + gpuArray.randn(size(Numerator))*eta;
 else
-    SVs = DNP + randn(size(samples))*eta;
+    SVs = DNP + randn(size(Numerator))*eta;
 end
 clear DNP;
 CVs = squeeze(std(SVs, [], 2)./mean(SVs, 2));

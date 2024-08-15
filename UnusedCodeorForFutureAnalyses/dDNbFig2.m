@@ -10,9 +10,9 @@ end
 
 eta = pars(1); % late noise standard deviation
 scl = pars(2); % scaling for early noise
-wp = pars(3); % weight of normalization
-Mp = pars(4); % baseline normalization
-Rmax = 75;
+w = pars(3); % weight of normalization
+M = pars(4); % baseline normalization
+K = 75;
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3'});
 Ntrl = size(dat,1);
 samples = [];
@@ -46,13 +46,13 @@ for ci = 1:3
     end
 end
 
-D1 = sum(D1, 1)*wp + Mp;
-D2 = sum(D2, 1)*wp + Mp;
-D3 = sum(D3, 1)*wp + Mp;
+D1 = sum(D1, 1)*w + M;
+D2 = sum(D2, 1)*w + M;
+D3 = sum(D3, 1)*w + M;
 D = [D1; D2; D3];
 clear D1 D2 D3;
 % The product of divisive normalization before adding late noise
-DNP = Rmax*samples./D;
+DNP = K*samples./D;
 if gpuparallel
     SVs = max(DNP + gpuArray.randn(size(samples))*eta, 0);
 else

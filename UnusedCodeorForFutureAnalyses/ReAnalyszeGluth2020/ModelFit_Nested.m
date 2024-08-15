@@ -49,7 +49,7 @@ Myclust = parcluster();
 Npar = Myclust.NumWorkers;
 mypool = parpool(Npar);
 sublist = unique(mt.subID);
-for subj = 25:numel(sublist)
+for subj = 1:numel(sublist)
     %%
     fprintf('Subject %d:\n', subj);
     dat = mt(mt.subID == sublist(subj), :);
@@ -207,8 +207,7 @@ else
     SVs = samples/Mp + randn(size(samples))*eta;
     choice = data.chosenItem';
 end
-max_from_each_distribution = SVs == max(SVs, [], 3);
-probs = squeeze(sum(max_from_each_distribution, 1) / size(SVs, 1));
+probs = CalculateProbs(SVs);
 nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
 if gpuparallel
     nll = gather(nll);
@@ -245,8 +244,7 @@ else
     SVs = DNP + randn(size(samples))*eta;
     choice = data.chosenItem';
 end
-max_from_each_distribution = SVs == max(SVs, [], 3);
-probs = squeeze(sum(max_from_each_distribution, 1) / size(SVs, 1));
+probs = CalculateProbs(SVs);
 nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
 if gpuparallel
     nll = gather(nll);
@@ -310,14 +308,21 @@ D3 = sum(D3, 3)*wp + Mp;
 DNP = samples./cat(3, D1, D2, D3);
 clear D1 D2 D3;
 if gpuparallel
-    SVs = DNP + gpuArray.randn(size(samples))*eta;
+    if strcmp(constraint, 'none')
+        SVs = DNP + gpuArray.randn(size(Numerator))*eta;
+    elseif strcmp(constraint, 'biological')
+        SVs = max(DNP + gpuArray.randn(size(Numerator))*eta, 0);
+    end
     choice = gpuArray(data.chosenItem');
 else
-    SVs = DNP + randn(size(samples))*eta;
+    if strcmp(constraint, 'none')
+        SVs = DNP + randn(size(Numerator))*eta;
+    elseif strcmp(constraint, 'biological')
+        SVs = max(DNP + randn(size(Numerator))*eta, 0);
+    end
     choice = data.chosenItem';
 end
-max_from_each_distribution = SVs == max(SVs, [], 3);
-probs = squeeze(sum(max_from_each_distribution, 1) / size(SVs, 1));
+probs = CalculateProbs(SVs);
 nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
 if gpuparallel
     nll = gather(nll);
@@ -381,14 +386,21 @@ end
 DNP = samples./cat(3, D1, D2, D3);
 clear D1 D2 D3;
 if gpuparallel
-    SVs = DNP + gpuArray.randn(size(samples))*eta;
+    if strcmp(constraint, 'none')
+        SVs = DNP + gpuArray.randn(size(Numerator))*eta;
+    elseif strcmp(constraint, 'biological')
+        SVs = max(DNP + gpuArray.randn(size(Numerator))*eta, 0);
+    end
     choice = gpuArray(data.chosenItem');
 else
-    SVs = DNP + randn(size(samples))*eta;
+    if strcmp(constraint, 'none')
+        SVs = DNP + randn(size(Numerator))*eta;
+    elseif strcmp(constraint, 'biological')
+        SVs = max(DNP + randn(size(Numerator))*eta, 0);
+    end
     choice = data.chosenItem';
 end
-max_from_each_distribution = SVs == max(SVs, [], 3);
-probs = squeeze(sum(max_from_each_distribution, 1) / size(SVs, 1));
+probs = CalculateProbs(SVs);
 nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
 if gpuparallel
     nll = gather(nll);

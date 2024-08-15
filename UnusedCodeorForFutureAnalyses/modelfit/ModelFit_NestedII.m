@@ -1,194 +1,161 @@
-%% 
-%% define directories
-[os, ~, ~] = computer;
-if os == 'MACI64'
-    rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject/Modelfit';
-    fitdir = '/Users/bs3667/Noise/UnusedCodeorForFutureAnalyses/modelfit';
-    Gitdir = '/Users/bs3667/Noise';
+%% define directoriress
+% Switch to the working directory
+% rtdir = '/Users/bs3667/Noise/modelfit';
+rtdir = '/gpfs/data/glimcherlab/BoShen/Noise/UnusedCodeorForFutureAnalyses/modelfit';
+cd(rtdir);
+
+% Define I/O directories
+datadir = rtdir;
+svdir = fullfile(rtdir, 'Results');
+if ~exist(svdir, 'dir')
+    mkdir(svdir);
 end
-addpath(genpath(Gitdir));
-%% Loading the data transformed in the code: /Users/bs3667/Noise/modelfit/ModelFit-DataTrnsfrm.m
-load(fullfile(fitdir, 'TrnsfrmData.mat'), 'mt');
-model = 'ModelFit_Nested';
-fit = tdfread(fullfile(fitdir, 'Results', model, 'BestRslts.txt'));
-plot_dir = fullfile(rootdir, model);
-%% Transform data
+AnalysName = 'ModelFit_NestedII';
+outdir = fullfile(svdir, AnalysName);
+if ~exist(outdir, 'dir')
+    mkdir(outdir);
+end
+plotdir = fullfile(outdir, 'plot');
+if ~exist(plotdir, 'dir')
+    mkdir(plotdir);
+end
+mtrxdir = fullfile(outdir, 'Objs');
+if ~exist(mtrxdir, 'dir')
+    mkdir(mtrxdir);
+end
+% load packages
+addpath(genpath('/gpfs/data/glimcherlab/BoShen/bads'));
+% addpath(genpath('/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject/Modelfit/bads-master'));
+%% load data
+load(fullfile(datadir, 'TrnsfrmData.mat'));
+% blacklist = [22102401, 22102405, 22110306]; % these subjects report they aimed to choose smaller-value items.
+% mt = mt(~ismember(mt.subID, blacklist),:);
+sublist = unique(mt.subID);
 blacklist = [22102405; 22102705; 22102708; 22071913; 22110306];
+IDOrder = [];
+for bl = 1:numel(blacklist)
+    IDOrder = [IDOrder, find(sublist == blacklist(bl))];
+end
+disp(IDOrder);
+% disp(head(mt));
+%% Maximum likelihood fitting to the choice behavior
+options = bads('defaults');     % Default options
+options.Display = 'final';
+options.UncertaintyHandling = true;    %s Function is stochastic
+options.NoiseFinalSamples = 30;
+mode = 'absorb';
+Rslts = table('Size', [0 11], 'VariableTypes', {'double', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'double', 'logical', 'uint16'},...
+    'VariableNames', {'subID', 'modeli', 'name', 'Mp', 'delta', 'wp', 'scl', 'nll', 'nllsd', 'success', 'iterations'});
+testfile = fullfile(svdir, AnalysName, 'AllRslts.txt');
+if ~exist(testfile, 'file')
+    fp = fopen(testfile, 'w+');
+    fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', ...
+        'subID', 'Model', 'randi', 'Mp0', 'delta0', 'wp0', 'scl0', 'Mp', 'delta', 'wp', 'scl', 'nll', 'nllsd', 'success', 'iterations');
+    fclose(fp);
+end
+Myclust = parcluster();
+Npar = Myclust.NumWorkers;
+mypool = parpool(Npar);
 sublist = unique(mt.subID);
 sublist = sublist(~ismember(sublist, blacklist));
-fulllist = unique(mt.subID);
-N = length(sublist);
-mtconvert = [];
-for s = 1:N
-    indvtask = mt(mt.subID == Sublist(s),:);
-    Vtrgt = unique([indvtask.V1; indvtask.V2]);
-    mintrgt = min(Vtrgt);
-    if mintrgt > 0 % skip this subject if the min target value is zero, because the values cannot be scaled and the value space does not help in testing of the hypothesis
-        indvtask.V1scld = indvtask.V1/mintrgt;
-        indvtask.V2scld = indvtask.V2/mintrgt;
-        indvtask.V3scld = indvtask.V3/mintrgt;
-        indvtask.sdV1scld = indvtask.sdV1/mintrgt;
-        indvtask.sdV2scld = indvtask.sdV2/mintrgt;
-        indvtask.sdV3scld = indvtask.sdV3/mintrgt;
-        mtconvert = [mtconvert; indvtask];
-    end  
-end
-mtconvert.choice = mtconvert.chosenItem - 1;
-%% Simulation
-for modeli = 1:5
-    simdat = fullfile(plot_dir, sprintf('Model%i_Predict.mat', modeli));
-    if ~exist(simdat, 'file')
-        mtmodel = [];
-        for s = 1:N
-            fprintf('Subject %d:\t', s);
-            dat = mtconvert(mtconvert.subID == sublist(s), :);
-            subjmask = fit.subID == find(fulllist == sublist(s));
-            Mp = fit.Mp(subjmask & fit.modeli == modeli);
-            delta = fit.delta(subjmask & fit.modeli == modeli);
-            switch modeli
-                case 1
-                    %%
-                    x = [Mp, delta];
-                    probs = McFadden(x, dat);
-                    name = 'McFadden';
-                case 2
-                    scl = fit.scl(subjmask & fit.modeli == modeli);
-                    x = [Mp, delta, scl];
-                    probs = Mdl2(x, dat);
-                    name = 'LinearDistrb';
-                case 3
-                    wp = fit.wp(subjmask & fit.modeli == modeli);
-                    x = [Mp, delta, wp];
-                    probs = DN(x, dat);
-                    name = 'DN'; %, cut input, independent';
-                case 4
-                    scl = fit.scl(subjmask & fit.modeli == modeli);
-                    wp = fit.wp(subjmask & fit.modeli == modeli);
-                    x = [Mp, delta, wp, scl];
-                    probs = dDNb(x, dat, 'absorb');
-                    name = 'dDNb'; %, cut input, independent';
-                case 5
-                    scl = fit.scl(subjmask & fit.modeli == modeli);
-                    wp = fit.wp(subjmask & fit.modeli == modeli);
-                    x = [Mp, delta, wp, scl];
-                    probs = dDNd(x, dat, 'absorb');
-                    name = 'dDNd'; %, cut SIGMA, independent';
+for subj = 1:numel(sublist)
+    %%
+    fprintf('Subject %d:\n', subj);
+    dat = mt(mt.subID == sublist(subj), :);
+    for modeli = 1:5
+        switch modeli
+            case 1
+                nLLfunc = @(x) McFadden(x, dat);
+                name = 'McFadden';
+            case 2
+                nLLfunc = @(x) Mdl2(x, dat);
+                name = 'LinearDistrb';
+            case 3
+                nLLfunc = @(x) DN(x, dat);
+                name = 'DN'; %, cut input, independent';
+            case 4
+                nLLfunc = @(x) dDNb(x, dat, mode);
+                name = 'dDNb'; %, cut input, independent';
+            case 5
+                nLLfunc = @(x) dDNd(x, dat, mode);
+                name = 'dDNd'; %, cut SIGMA, independent';
+        end
+        fprintf('\tModel %i\n', modeli);
+        filename = fullfile(mtrxdir, sprintf('Subj%02i_Mdl%i.mat', subj, modeli));
+        if ~exist(filename, 'file')
+            % shared parameters for all models
+            LB = [0, -4]; % [Mp, delta]
+            UB = [1000, 8];
+            PLB = [1, -.4];
+            PUB = [100, .8];
+            % nest other parameters
+            if modeli == 2 % nest scaling on early noise for model 2
+                LB = [LB, 0]; % [Mp, delta, scl]
+                UB = [UB, 8];
+                PLB = [PLB, 0];
+                PUB = [PUB, 2];
             end
-            dat.modelprob1 = probs(:,1);
-            dat.modelprob2 = probs(:,2);
-            dat.modelprob3 = probs(:,3);
-            mtmodel = [mtmodel; dat];
-            fprintf('\n');
-        end
-        mtmodel.ratio = mtmodel.modelprob2./(mtmodel.modelprob1 + mtmodel.modelprob2);
-        save(simdat, "mtmodel", '-mat');
-    else
-        load(simdat);
-    end
-    %% Visualize in sliding windows
-    dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
-    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "V3scld"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
-    colorpalette ={'r','#FFBF00','#00FF80','b'};
-    rgbMatrix = [
-        0, 0, 255;   % Blue
-        255, 192, 203; % Pink
-        173, 216, 230; % Light Blue
-        255, 0, 0     % Red
-        ]/255;
-    Window = 0.15;
-    LowestV3 = 0; %0.2;
-    HighestV3 = 1; %.8;
-    h = figure;
-    filename = sprintf('Model%i_Predict[Full]', modeli);
-    vi = 0;
-    i = 0;
-    for v = [1, 0] % vague, precise
-        vi = vi + 1;
-        subplot(1,2,vi); hold on;
-        for t = [10, 1.5] % low, high
-            i = i + 1;
-            Ntrial = [];
-            choice = [];
-            choicese = [];
-            ratio = [];
-            ratiose = [];
-            sdV3scld = [];
-            v3vec = LowestV3:.015:HighestV3;
-            dat = GrpMean(GrpMean.TimeConstraint == t & GrpMean.Vaguenesscode == v & GrpMean.mean_V3scld >= LowestV3 &  GrpMean.mean_V3scld <= HighestV3,:);
-            for v3 = v3vec
-                section = dat(dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window,:);
-                Ntrial = [Ntrial, sum(section.GroupCount)];
-                choice = [choice, mean(section.mean_choice)];
-                choicese = [choicese, std(section.mean_choice)/sqrt(length(section.mean_choice))];
-                ratio = [ratio, mean(section.mean_ratio)];
-                ratiose = [ratiose, std(section.mean_ratio)/sqrt(length(section.mean_ratio))];
-                sdV3scld = [sdV3scld, mean(section.mean_sdV3scld)];
+            if modeli == 3 % nest divisive normalization for model 3
+                LB = [LB, 0]; % [Mp, delta, wp]
+                UB = [UB, 5];
+                PLB = [PLB, 0];
+                PUB = [PUB, 1.4];
             end
-            cut = Ntrial > 400;
-            % scatter(v3vec(cut), ratio(cut), Ntrial(cut)/80*5, 'color', colorpalette{i});
-            plot(v3vec(cut), choice(cut), '-', 'Color', colorpalette{i}, 'LineWidth', 2);
-            plot(v3vec(cut), ratio(cut), 'k--', 'LineWidth', 2);
-            % fill([v3vec fliplr(v3vec)], [ratio-ratiose fliplr(ratio+ratiose)], rgbMatrix(vi,:), 'FaceAlpha', 0.3, 'EdgeColor', 'none');
+            if modeli >= 4 % nest both for models 4 and 5
+                LB = [LB, 0, 0]; % [Mp, delta, wp, scl]
+                UB = [UB, 5, 8];
+                PLB = [PLB, 0, 0];
+                PUB = [PUB, 1.4, 2];
+            end
+
+            nLL = [];
+            params = {};
+            success = [];
+            res = {};
+            parfor i = 1:Npar
+                x0 = PLB + (PUB - PLB) .* rand(size(PLB));
+                [xOpt,fval,exitflag,output] = bads(nLLfunc,x0,LB,UB,PLB,PUB,[],options);
+                % 'Mp', 'delta', 'wp', 'scl',
+                if modeli == 1
+                    dlmwrite(testfile, [sublist(subj), modeli, i, x0, NaN, NaN, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                elseif modeli == 2
+                    dlmwrite(testfile, [sublist(subj), modeli, i, x0(1:2), NaN, x0(3), xOpt(1:2), NaN, xOpt(3), fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                elseif modeli == 3
+                    dlmwrite(testfile, [sublist(subj), modeli, i, x0, NaN, xOpt, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                elseif modeli >= 4
+                    dlmwrite(testfile, [sublist(subj), modeli, i, x0, xOpt, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                end
+                params{i} = xOpt;
+                nLL(i) = fval;
+                success(i) = exitflag;
+                res{i} = output;
+            end
+            besti = find(nLL == min(nLL));
+            xOpt = params{besti};
+            fval = nLL(besti);
+            exitflag = success(besti);
+            output = res{besti};
+            save(filename, 'xOpt', 'fval', 'exitflag', 'output');
+        else
+            load(filename);
         end
-        xlim([LowestV3, HighestV3]);
-        xlabel('Scaled V3');
-        ylabel('% Correct | V1, V2');
-        mysavefig(h, filename, plot_dir, 12, [8, 4]);
+        if modeli == 1
+            new_row = table(sublist(subj), modeli, {name}, xOpt(1), xOpt(2), NaN, NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+        elseif modeli == 2
+            new_row = table(sublist(subj), modeli, {name}, xOpt(1), xOpt(2), NaN, xOpt(3), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+        elseif modeli == 3
+            new_row = table(sublist(subj), modeli, {name}, xOpt(1), xOpt(2), xOpt(3), NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+        elseif modeli >= 4
+            new_row = table(sublist(subj), modeli, {name}, xOpt(1), xOpt(2), xOpt(3), xOpt(4), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+        end
+        Rslts = [Rslts; new_row];
+        writetable(Rslts, fullfile(outdir, 'BestRslts.txt'), 'Delimiter', '\t');
+        fprintf('Subject %d, model %i, nll = %f\n', subj, modeli, fval);
     end
 end
-%% Visualization in heatmap
-dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
-GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "V3scld"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice", "ratio"]);
-Window = 0.15;
-Varrng = [min(GrpMean.mean_sdV3scld), 1];% max(GrpMean.mean_sdV3scld)];
-Bindow = 0.15;
-h = figure;
-filename = '';
-ti = 0;
-for t = [10, 1.5] % low, high
-    ti = ti + 1;
-    dat = GrpMean(GrpMean.TimeConstraint == t,:);
-    v3vec = LowestV3:.03:1;
-    varvec = Varrng(1):.03:Varrng(2);
-    Ntrial = NaN(numel(varvec), numel(v3vec));
-    ratio = NaN(numel(varvec), numel(v3vec));
-    ratiose = NaN(numel(varvec), numel(v3vec));
-    sdV3scld = NaN(numel(varvec), numel(v3vec));
-    for vi = 1:numel(v3vec)
-        for ri = 1:numel(varvec)
-            v3 = v3vec(vi);
-            r = varvec(ri);
-            maskv3 = dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window;
-            maskr3 = dat.mean_sdV3scld >= r - Bindow & dat.mean_sdV3scld <= r + Bindow;
-            section = dat(maskv3 & maskr3,:);
-            Ntrial(ri,vi) = sum(section.GroupCount);
-            ratio(ri,vi) = mean(section.mean_ratio);
-            ratiose(ri,vi) = std(section.mean_ratio)/sqrt(length(section.mean_ratio));
-            sdV3scld(ri,vi) = mean(section.mean_sdV3scld);
-        end
-    end
 
-    ratio(Ntrial<50) = NaN;
-    subplot(2, 2, 1+(ti-1)*2); hold on;
-    colormap("bone");
-    cmap = bone(numel(varvec));
-    for ri = 1:numel(varvec)
-        plot(v3vec, ratio(ri,:), '.-', 'Color', cmap(ri,:));
-    end
-    xlabel('Scaled V3');
-    ylabel('% Correct (V1 & V2)');
-
-    subplot(2, 2, 2+(ti-1)*2); %hold on;
-    colormap("hot");
-    imagesc(v3vec, varvec, ratio);
-    title('% Correct (V1 & V2)');
-    colorbar;
-    xlabel('Scaled V3');
-    ylabel('V3 Variance');
-end
-mysavefig(h, filename, plot_dir, 12, [10, 8]);
 %% 
-function probs = McFadden(x, dat)
+function nll = McFadden(x, dat)
 if gpuDeviceCount > 0
     gpuparallel = 1;
 else
@@ -217,13 +184,13 @@ else
 end
 max_from_each_distribution = SVs == max(SVs, [], 3);
 probs = squeeze(sum(max_from_each_distribution, 1) / size(SVs, 1));
-% nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
-% if gpuparallel
-%     nll = gather(nll);
-% end
+nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
+if gpuparallel
+    nll = gather(nll);
+end
 end
 
-function probs = Mdl2(x, dat)
+function nll = Mdl2(x, dat)
 if gpuDeviceCount > 0
     gpuparallel = 1;
 else
@@ -257,13 +224,13 @@ else
 end
 max_from_each_distribution = SVs == max(SVs, [], 3);
 probs = squeeze(sum(max_from_each_distribution, 1) / size(SVs, 1));
-% nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
-% if gpuparallel
-%     nll = gather(nll);
-% end
+nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
+if gpuparallel
+    nll = gather(nll);
+end
 end
 
-function probs = DN(x, dat)
+function nll = DN(x, dat)
 if gpuDeviceCount > 0
     gpuparallel = 1;
 else
@@ -296,13 +263,13 @@ else
 end
 max_from_each_distribution = SVs == max(SVs, [], 3);
 probs = squeeze(sum(max_from_each_distribution, 1) / size(SVs, 1));
-% nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
-% if gpuparallel
-%     nll = gather(nll);
-% end
+nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
+if gpuparallel
+    nll = gather(nll);
+end
 end
 
-function probs = dDNb(x, dat, mode) % cut inputs, independent
+function nll = dDNb(x, dat, mode) % cut inputs, independent
 % set the lower boundary for every input value distribution as zero
 % samples in the denominator are independent from the numerator
 % the SIGMA term in the denominator is non-negative after that.
@@ -368,13 +335,13 @@ else
 end
 max_from_each_distribution = SVs == max(SVs, [], 3);
 probs = squeeze(sum(max_from_each_distribution, 1) / size(SVs, 1));
-% nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
-% if gpuparallel
-%     nll = gather(nll);
-% end
+nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
+if gpuparallel
+    nll = gather(nll);
+end
 end
 
-function probs = dDNd(x, dat, mode) % cut SIGMA, independent
+function nll = dDNd(x, dat, mode) % cut SIGMA, independent
 % set the lower boundary for the summed SIGMA in the denominator
 % but not for the input values in the numerator
 % samples in the denominator are independent from the numerator
@@ -440,8 +407,9 @@ else
 end
 max_from_each_distribution = SVs == max(SVs, [], 3);
 probs = squeeze(sum(max_from_each_distribution, 1) / size(SVs, 1));
-% nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
-% if gpuparallel
-%     nll = gather(nll);
-% end
+nll = -sum(log(max(probs(sub2ind(size(probs), 1:size(probs, 1), choice)), eps)));
+if gpuparallel
+    nll = gather(nll);
 end
+end
+
