@@ -69,7 +69,7 @@ if ~exist(matfile, 'file')
     tmp2b= nan([reps, numel(V3)]);
     tmp3b = nan([reps, numel(V3), 3]);
     parfor ri = 1:reps
-        fprintf('Late noise, rep %i', ri);
+        fprintf('Late noise, rep %i\n', ri);
         [tmp1a(ri,:,:), tmp2a(ri,:), tmp3a(ri,:,:)] = dnDNM(dat, pars, 'none', products); % no-constraint model
         fprintf('.');
         [tmp1b(ri,:,:), tmp2b(ri,:), tmp3b(ri,:,:)] = dnDNM(dat, pars, 'biological', products); % biological model
@@ -187,13 +187,14 @@ if ~exist(matfile, 'file')
     probsb = nan([numel(eps3), numel(V3), 3]);
     Ovlpsb = nan([numel(eps3), numel(V3)]);
     for i = 1:numel(eps3)
+        fprintf('eps3 %i/%i\n', i, numel(eps3));
         sdV3 = eps3(i)*ones(size(V3));
         dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
         pars = [eta, 1, 1, 1];
         tmp1b = nan([reps, numel(V3), 3]);
         tmp2b = nan([reps, numel(V3)]);
         parfor ri = 1:reps
-            fprintf('Early noise, rep %i', ri);
+            fprintf('Early noise, rep %i\n', ri);
             [tmp1b(ri,:,:), tmp2b(ri,:), ~] = dnDNM(dat, pars, 'biological', products); % biological model
             % output: probs, Ovlps, CVs
         end
