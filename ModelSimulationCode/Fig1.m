@@ -184,8 +184,8 @@ sdV2 = eps2*ones(size(V3));
 eta = 0;
 % simulation
 if ~exist(matfile, 'file')
-    probsb = nan([numel(esp3), numel(V3), 3]);
-    Ovlpsb = nan([numel(esp3), numel(V3)]);
+    probsb = nan([numel(eps3), numel(V3), 3]);
+    Ovlpsb = nan([numel(eps3), numel(V3)]);
     for i = 1:numel(eps3)
         sdV3 = eps3(i)*ones(size(V3));
         dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
