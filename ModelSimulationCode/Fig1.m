@@ -13,7 +13,7 @@ end
 %% loading parrellel CPU cores
 Myclust = parcluster();
 Npar = Myclust.NumWorkers;
-mypool = parpool(Npar);
+mypool = parpool(Npar/2);
 reps = Npar; % 40; % repetition of simulations to make the results smooth
 %% Early and late noise only
 filename = sprintf('SNR_Ovlp_Choice_v3');
@@ -168,13 +168,13 @@ xlim([0, V1mean]);
 mysavefig(h, filename, plot_dir, 12, [6, 8]);
 
 %% Test a cardinal view of V3 magnitude - V3 variance 
-filename = sprintf('V3mag50_var51_Choice_Ovlp');
+filename = sprintf('V3mag100_var101_Choice_Ovlp');
 matfile = fullfile(sim_dir, [filename, '.mat']);
 products = {'Probability','Overlap'}; % 'Coeff_of_Var',
 V1mean = 88;
 V2mean = 83;
-V3 = linspace(0, V1mean, 50)';
-eps3 = linspace(0,18, 51);
+V3 = linspace(0, V1mean, 100)';
+eps3 = linspace(0,18, 101);
 V1 = V1mean*ones(size(V3));
 eps1 = 9;
 V2 = V2mean*ones(size(V3));
