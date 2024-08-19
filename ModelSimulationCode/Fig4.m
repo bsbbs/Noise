@@ -48,7 +48,7 @@ else
         for ti = 1:numel(etavec)
             eta = etavec(ti);
             pars = [eta, 1, 1, 1];
-            tmpb = nan([reps, 3, numel(V3)]);
+            tmpb = nan([reps, numel(V3), 3]);
             parfor ri = 1:reps
                 [tmpb(ri,:,:), ~, ~] = dnDNM(dat, pars, 'biological', products); % biological model
             end
