@@ -1,8 +1,8 @@
 % Figure 4. Predictions on the design matrix
 %% define directories
 DefineIO;
-plot_dir = fullfile(rootdir, 'Prediction','Fig1');
-sim_dir = fullfile(rootdir, 'Prediction','Fig1');
+plot_dir = fullfile(rootdir, 'Prediction','Fig4');
+sim_dir = fullfile(rootdir, 'Prediction','Fig4');
 if ~exist(plot_dir, 'dir')
     mkdir(plot_dir);
 end
@@ -13,7 +13,7 @@ end
 %% loading parrellel CPU cores
 Myclust = parcluster();
 Npar = Myclust.NumWorkers;
-mypool = parpool(Npar);
+mypool = parpool(Npar/2);
 reps = Npar; % 40; % repetition of simulations to make the results smooth
 
 %% graded color, two panels
@@ -53,7 +53,7 @@ else
                 [tmpb(ri,:,:), ~, ~] = dnDNM(dat, pars, 'biological', products); % biological model
             end
             probs = squeeze(mean(tmpb, 1));
-            Ratios(i,ti,:) = probs(1,:)./(probs(1,:) + probs(2,:));
+            Ratios(i,ti,:) = probs(:,1)./(probs(:,1) + probs(:,2))*100;
         end
     end
     xval = V3'/V2mean;
@@ -98,7 +98,7 @@ for i = 1:2
     
     lg = [];
     for ti = 1:numel(etavec)
-        ratio = squeeze(Ratios(i, ti, :))'*100;
+        ratio = squeeze(Ratios(i, ti, :))';
         if ti == 2 || ti == 5
             lg(ti) = plot(xval, ratio, '-', 'LineWidth', 2, 'Color', cmap(ti,:,i));
         else
