@@ -19,13 +19,13 @@ reps = Npar; % 40; % repetition of simulations to make the results smooth
 %% graded color, two panels
 V1mean = 88;
 V2mean = 83;
-epsV1 = 4; % early noise for V1
-epsV2 = 4; % early noise for V2
+eps1 = 4; % early noise for V1
+eps2 = 4; % early noise for V2
 V3 = linspace(0, V2mean, 50)';
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
-sdV1 = epsV1*ones(size(V3));
-sdV2 = epsV2*ones(size(V3));
+sdV1 = eps1*ones(size(V3));
+sdV2 = eps2*ones(size(V3));
 etavec = linspace(.8, 1.9, 8); % different levels of late noise
 products = {'Probability'};
 filename = sprintf('Ratio_Model_%iv3max%1.0f_%s', numel(V3), max(V3), '2Panels');
@@ -134,6 +134,42 @@ set(gca, 'YTick', []);
 xlabel('Slope');
 %ylabel('\sigma_{Late}');
 mysavefig(h, filename, plot_dir, 12, [2.06, 1.59]*1.1);
+
+%% V3 mean value - variance matrix
+V1mean = 88;
+V2mean = 83;
+eps1 = 4; % early noise for V1
+eps2 = 4; % early noise for V2
+V3 = linspace(0, V1mean, 100)';
+eps3 = linspace(0,18, 101);
+V1 = V1mean*ones(size(V3));
+V2 = V2mean*ones(size(V3));
+sdV1 = eps1*ones(size(V3));
+sdV2 = eps2*ones(size(V3));
+eta = 1.4286; %linspace(.8, 1.9, 8); % different levels of late noise
+products = {'Probability'};
+filename = sprintf('Ratio_Model_%iv3max%1.0f_%ivar3max%1.0f', numel(V3), max(V3), numel(eps3), max(eps3));
+% simulation
+SimDatafile = fullfile(sim_dir, [filename, '.mat']);
+if exist(SimDatafile,'file')
+    load(SimDatafile);
+else
+    Ratios = nan(numel(eps3), numel(V3));
+    for i = 1:numel(eps3)
+        sdV3 = eps3(i)*ones(size(V3));
+        dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
+        pars = [eta, 1, 1, 1];
+        tmpb = nan([reps, numel(V3), 3]);
+        parfor ri = 1:reps
+            [tmpb(ri,:,:), ~, ~] = dnDNM(dat, pars, 'biological', products); % biological model
+        end
+        probs = squeeze(mean(tmpb, 1));
+        Ratios(i,:) = probs(:,1)./(probs(:,1) + probs(:,2))*100;
+    end
+
+    xval = V3'/V2mean;
+    save(SimDatafile, "Ratios", "V3", "xval", '-mat');
+end
 
 %% functions
 function cmap = GradColor(startColor, endColor, numColors)
