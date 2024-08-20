@@ -85,13 +85,13 @@ for i = 1:2
         eps = 4;
         startColor = mycols(4,:); % Light-blue
         endColor = mycols(1,:);  % Blue
-        yrng = [68.5, 74.5];
+        yrng = [68.3, 74.5]+1;
     elseif i == 2
         v = 1;
         eps = 9;
         startColor = mycols(8,:); % Red
         endColor = mycols(5,:); % Pink
-        yrng = [67.3, 72.45];
+        yrng = [67.1, 72.45]+1;
     end
     cmap(:,:,i) = GradColor(startColor, endColor, numel(etavec));
     
@@ -107,7 +107,7 @@ for i = 1:2
         coefficients = polyfit(xval(mask), ratio(mask), 1);
         slope(ti,i) = coefficients(1);
     end
-    plot([V1mean, V2mean]/V2mean, [1, 1]*min(ratio(:)), 'kv', 'MarkerFaceColor', 'k', 'MarkerSize', 5);
+    plot([V1mean, V2mean]/V2mean, [1, 1]*min(ratio(:)), 'kv', 'MarkerFaceColor', [.7,.7,.7], 'MarkerSize', 5);
     ylim(yrng);
     plot([lt, lt], [ylim], 'k--');
     plot([rt, rt], [ylim], 'k--');
@@ -141,14 +141,14 @@ V2mean = 83;
 eps1 = 4; % early noise for V1
 eps2 = 4; % early noise for V2
 V3 = linspace(0, V1mean, 100)';
-eps3 = linspace(0,18, 101);
+eps3 = linspace(0, 18, 101);
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 sdV1 = eps1*ones(size(V3));
 sdV2 = eps2*ones(size(V3));
-eta = 1.4286; %linspace(.8, 1.9, 8); % different levels of late noise
+eta = 1; %1.4286; %linspace(.8, 1.9, 8); % different levels of late noise
 products = {'Probability'};
-filename = sprintf('Ratio_Model_%iv3max%1.0f_%ivar3max%1.0f', numel(V3), max(V3), numel(eps3), max(eps3));
+filename = sprintf('Ratio_Model_%iv3max%1.0f_%ivar3max%1.0f_eta%1.0f', numel(V3), max(V3), numel(eps3), max(eps3), eta);
 % simulation
 SimDatafile = fullfile(sim_dir, [filename, '.mat']);
 if exist(SimDatafile,'file')
@@ -170,6 +170,19 @@ else
     xval = V3'/V2mean;
     save(SimDatafile, "Ratios", "V3", "xval", '-mat');
 end
+%% visualization
+h = figure;
+subplot(1,2,1); hold on;
+imagesc(V3/V2mean, eps3/V2mean, Ratios);
+plot([V1mean, V2mean]/V2mean, [1, 1]*min(eps3), 'kv', 'MarkerFaceColor', [.7,.7,.7]);
+ylabel('\sigma_{Early noise}');
+xlabel('V3');
+ylim([min(eps3/V2mean), max(eps3/V2mean)]);
+xlim([min(V3/V2mean), max(V3/V2mean)]);
+colormap('jet'); % bluewhitered
+cb = colorbar;
+title('% Correct | V1, V2');
+mysavefig(h, filename, plot_dir, 12, [9.9, 3.6]);
 
 %% functions
 function cmap = GradColor(startColor, endColor, numColors)
