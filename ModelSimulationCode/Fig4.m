@@ -141,14 +141,14 @@ V2mean = 83;
 eps1 = 4; % early noise for V1
 eps2 = 4; % early noise for V2
 V3 = linspace(0, V1mean, 100)';
-eps3 = linspace(0, 18, 101);
+eps3 = linspace(0, 60, 101);
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 sdV1 = eps1*ones(size(V3));
 sdV2 = eps2*ones(size(V3));
 eta = 1; %1.4286; %linspace(.8, 1.9, 8); % different levels of late noise
 products = {'Probability'};
-filename = sprintf('Ratio_Model_%iv3max%1.0f_%ivar3max%1.0f_eta%1.0f', numel(V3), max(V3), numel(eps3), max(eps3), eta);
+filename = sprintf('Ratio_Model_%iv3max%1.0f_%ivar3max%1.0f_eta%1.2f', numel(V3), max(V3), numel(eps3), max(eps3), eta);
 % simulation
 SimDatafile = fullfile(sim_dir, [filename, '.mat']);
 if exist(SimDatafile,'file')
@@ -171,19 +171,46 @@ else
     save(SimDatafile, "Ratios", "V3", "xval", '-mat');
 end
 %% visualization
+filename = 'CardinalView_Model';
+etavec = [1.0, 1.4286];
 h = figure;
-subplot(1,2,1); hold on;
-imagesc(V3/V2mean, eps3/V2mean, Ratios);
-plot([V1mean, V2mean]/V2mean, [1, 1]*min(eps3), 'kv', 'MarkerFaceColor', [.7,.7,.7]);
-ylabel('\sigma_{Early noise}');
-xlabel('V3');
-ylim([min(eps3/V2mean), max(eps3/V2mean)]);
-xlim([min(V3/V2mean), max(V3/V2mean)]);
-colormap('jet'); % bluewhitered
-cb = colorbar;
-title('% Correct | V1, V2');
-mysavefig(h, filename, plot_dir, 12, [9.9, 3.6]);
+for i = 1:2
+    eta = etavec(i);
+    simrslts = sprintf('Ratio_Model_%iv3max%1.0f_%ivar3max%1.0f_eta%1.2f', numel(V3), max(V3), numel(eps3), max(eps3), eta);
+    SimDatafile = fullfile(sim_dir, [simrslts, '.mat']);
+    load(SimDatafile);
 
+    subplot(2,2,1+(i-1)*2); hold on;
+    colormap("bone");
+    cmap = bone(numel(eps3));
+    for ri = 1:5:numel(eps3)
+        plot(V3/V2mean, Ratios(ri,:), '.-', 'Color', cmap(ri,:));
+    end
+    xlabel('Scaled V3');
+    ylabel('% Correct | V1, V2');
+    %ylim([.4, .8]);
+    title(sprintf('Late noise eta = %1.2f', eta));
+
+    subplot(2,2,2+(i-1)*2);
+    colormap("jet");
+    imagesc(V3/V2mean, eps3/V2mean, Ratios, [65, 80]);
+    title('');
+    colorbar;
+    xlabel('Scaled V3');
+    ylabel('\sigma_3 (Early noise)');
+    set(gca, 'YDir', 'normal');
+
+    % imagesc(V3/V2mean, eps3/V2mean, Ratios);
+    % plot([V1mean, V2mean]/V2mean, [1, 1]*min(eps3), 'kv', 'MarkerFaceColor', [.7,.7,.7]);
+    % ylabel('\sigma_{Early noise}');
+    % xlabel('V3');
+    % ylim([min(eps3/V2mean), max(eps3/V2mean)]);
+    % xlim([min(V3/V2mean), max(V3/V2mean)]);
+    % colormap('jet'); % bluewhitered
+    % cb = colorbar;
+    % title('% Correct | V1, V2');
+    mysavefig(h, filename, plot_dir, 12, [9.9, 3.6]);
+end
 %% functions
 function cmap = GradColor(startColor, endColor, numColors)
 % Generate the colormap
