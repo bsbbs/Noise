@@ -156,6 +156,7 @@ for ti = 1:numel(etavec)
     if ~exist(SimDatafile,'file')
         Ratios = nan(numel(eps3), numel(V3));
         for i = 1:numel(eps3)
+            fprintf('Mixed noise - late noise %i/%i, early noise %i/%i\n', ti, numel(etavec), i, numel(eps3));
             sdV3 = eps3(i)*ones(size(V3));
             dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
             pars = [eta, 1, 1, 1];
