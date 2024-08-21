@@ -105,9 +105,5 @@ mysavefig(h, sprintf('ChoiceData_V3scld_%s', Treatment), plot_dir, 12, [10, 8]);
 
 
 %% Individual difference in choice accuarcy as a function of mean V3 magnitude and mean V3 variance
-GrpMean = grpstats(mtconvert, ["subID"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld"]);
-h = figure; hold on;
-filename = 'IdvDffrnc_v3_sdv3';
-sectdat = GrpMean;
-plot(sectdat.mean_V3scld, sectdat.mean_sdV3scld, '.');
-
+GrpMean = grpstats(mtconvert, ["subID", "TimeConstraint"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld"]);
+plot(GrpMean.mean_V3scld, GrpMea)
