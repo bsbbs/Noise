@@ -2,16 +2,15 @@
 %% define directories
 [os, ~, ~] = computer;
 if os == 'MACI64'
-    rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject/Modelfit';
-    fitdir = '/Users/bs3667/Noise/UnusedCodeorForFutureAnalyses/modelfit';
-    Gitdir = '/Users/bs3667/Noise';
+    rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject';
+    Gitdir = '~/Noise';
 end
 addpath(genpath(Gitdir));
 %% Loading the data transformed in the code: /Users/bs3667/Noise/modelfit/ModelFit-DataTrnsfrm.m
-load(fullfile(fitdir, 'TrnsfrmData.mat'), 'mt');
-model = 'ModelFit_Nested';
-fit = tdfread(fullfile(fitdir, 'Results', model, 'BestRslts.txt'));
-plot_dir = fullfile(rootdir, model);
+load(fullfile(Gitdir, 'myData', 'TrnsfrmData.mat'), 'mt');
+fitdir = fullfile(rootdir, 'Modelfit');
+fit = tdfread(fullfile(fitdir, 'BestRslts.txt'));
+plot_dir = fullfile(fitdir, 'plot');
 %% Transform data
 blacklist = [22102405; 22102705; 22102708; 22071913; 22110306];
 sublist = unique(mt.subID);
@@ -20,7 +19,7 @@ fulllist = unique(mt.subID);
 N = length(sublist);
 mtconvert = [];
 for s = 1:N
-    indvtask = mt(mt.subID == Sublist(s),:);
+    indvtask = mt(mt.subID == sublist(s),:);
     Vtrgt = unique([indvtask.V1; indvtask.V2]);
     mintrgt = min(Vtrgt);
     if mintrgt > 0 % skip this subject if the min target value is zero, because the values cannot be scaled and the value space does not help in testing of the hypothesis
@@ -35,8 +34,8 @@ for s = 1:N
 end
 mtconvert.choice = mtconvert.chosenItem - 1;
 %% Simulation
-for modeli = 1:5
-    simdat = fullfile(plot_dir, sprintf('Model%i_Predict.mat', modeli));
+for modeli = 1:4
+    simdat = fullfile(fitdir, sprintf('Model%i_Predict.mat', modeli));
     if ~exist(simdat, 'file')
         mtmodel = [];
         for s = 1:N
@@ -139,8 +138,8 @@ for modeli = 1:5
     dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
     GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "V3scld"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice", "ratio"]);
     Window = 0.15;
-    Varrng = [min(GrpMean.mean_sdV3scld), 1];% max(GrpMean.mean_sdV3scld)];
-    Bindow = 0.15;
+    Varrng = [min(GrpMean.mean_sdV3scld), .4];% max(GrpMean.mean_sdV3scld)];
+    Bindow = 0.15/2;
     h = figure;
     filename = sprintf('ModelFit_%i_Heatmap', modeli);
     ti = 0;
@@ -149,7 +148,7 @@ for modeli = 1:5
         ti = ti + 1;
         dat = GrpMean(GrpMean.TimeConstraint == t,:);
         v3vec = LowestV3:.03:HighestV3;
-        varvec = Varrng(1):.03:Varrng(2);
+        varvec = Varrng(1):.015:Varrng(2);
         Ntrial = NaN(numel(varvec), numel(v3vec));
         ratio = NaN(numel(varvec), numel(v3vec));
         ratiose = NaN(numel(varvec), numel(v3vec));
@@ -180,10 +179,10 @@ for modeli = 1:5
         mysavefig(h, filename, plot_dir, 12, [9, 8]);
 
         subplot(2, 2, 2+(ti-1)*2); hold on;
-        colormap("hot");
+        colormap("jet");
         imagesc(v3vec, varvec, ratio);
         c = colorbar('Location', 'northoutside');
-        ylim([0,1]);
+        % ylim([0,1]);
         ylabel(c, '% Correct | V1 & V2');
         xlabel('Scaled V3');
         ylabel('V3 Variance');

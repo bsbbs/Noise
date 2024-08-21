@@ -14,7 +14,9 @@ end
 load(fullfile(Gitdir,'myData','TrnsfrmData.mat'));
 sublist = unique(mt.subID);
 blacklist = [22102405; 22102705; 22102708; 22071913; 22110306];
+sublist = unique(mt.subID);
 sublist = sublist(~ismember(sublist, blacklist));
+
 N = length(sublist);
 mtconvert = [];
 for s = 1:N
