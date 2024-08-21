@@ -146,41 +146,40 @@ V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 sdV1 = eps1*ones(size(V3));
 sdV2 = eps2*ones(size(V3));
-eta = 1; %1.4286; %linspace(.8, 1.9, 8); % different levels of late noise
+etavec = [1.0, 1.4286]; % 1, 1.4286; %linspace(.8, 1.9, 8); % different levels of late noise
 products = {'Probability'};
-filename = sprintf('Ratio_Model_%iv3max%1.0f_%ivar3max%1.0f_eta%1.2f', numel(V3), max(V3), numel(eps3), max(eps3), eta);
-% simulation
-SimDatafile = fullfile(sim_dir, [filename, '.mat']);
-if exist(SimDatafile,'file')
-    load(SimDatafile);
-else
-    Ratios = nan(numel(eps3), numel(V3));
-    for i = 1:numel(eps3)
-        sdV3 = eps3(i)*ones(size(V3));
-        dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
-        pars = [eta, 1, 1, 1];
-        tmpb = nan([reps, numel(V3), 3]);
-        parfor ri = 1:reps
-            [tmpb(ri,:,:), ~, ~] = dnDNM(dat, pars, 'biological', products); % biological model
+for ti = 1:numel(etavec)
+    eta = etavec(ti);
+    filename = sprintf('Ratio_Model_%iv3max%1.0f_%ivar3max%1.0f_eta%1.2f', numel(V3), max(V3), numel(eps3), max(eps3), eta);
+    % simulation
+    SimDatafile = fullfile(sim_dir, [filename, '.mat']);
+    if ~exist(SimDatafile,'file')
+        Ratios = nan(numel(eps3), numel(V3));
+        for i = 1:numel(eps3)
+            sdV3 = eps3(i)*ones(size(V3));
+            dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
+            pars = [eta, 1, 1, 1];
+            tmpb = nan([reps, numel(V3), 3]);
+            parfor ri = 1:reps
+                [tmpb(ri,:,:), ~, ~] = dnDNM(dat, pars, 'biological', products); % biological model
+            end
+            probs = squeeze(mean(tmpb, 1));
+            Ratios(i,:) = probs(:,1)./(probs(:,1) + probs(:,2))*100;
         end
-        probs = squeeze(mean(tmpb, 1));
-        Ratios(i,:) = probs(:,1)./(probs(:,1) + probs(:,2))*100;
+        save(SimDatafile, "Ratios", "V3", "eta", "V2mean", '-mat');
     end
-
-    xval = V3'/V2mean;
-    save(SimDatafile, "Ratios", "V3", "xval", '-mat');
 end
 %% visualization
 filename = 'CardinalView_Model';
 etavec = [1.0, 1.4286];
 h = figure;
-for i = 1:2
-    eta = etavec(i);
+for ti = 1:2
+    eta = etavec(ti);
     simrslts = sprintf('Ratio_Model_%iv3max%1.0f_%ivar3max%1.0f_eta%1.2f', numel(V3), max(V3), numel(eps3), max(eps3), eta);
     SimDatafile = fullfile(sim_dir, [simrslts, '.mat']);
     load(SimDatafile);
 
-    subplot(2,2,1+(i-1)*2); hold on;
+    subplot(2,2,1+(ti-1)*2); hold on;
     colormap("bone");
     cmap = bone(numel(eps3));
     for ri = 1:5:numel(eps3)
@@ -191,7 +190,7 @@ for i = 1:2
     %ylim([.4, .8]);
     title(sprintf('Late noise eta = %1.2f', eta));
 
-    subplot(2,2,2+(i-1)*2);
+    subplot(2,2,2+(ti-1)*2);
     colormap("jet");
     imagesc(V3/V2mean, eps3/V2mean, Ratios, [65, 80]);
     title('');
