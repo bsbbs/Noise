@@ -27,12 +27,27 @@ end
 cd(Fitdir);
 
 %% load data
-load(fullfile(datadir, 'TrnsfrmData.mat'));
-blacklist = [22102405; 22102705; 22102708; 22071913; 22110306];
-mt = mt(~ismember(mt.subID, blacklist),:);
+load(fullfile(Gitdir,'myData','TrnsfrmData.mat'));
 sublist = unique(mt.subID);
-N = numel(sublist);
-% disp(head(mt));
+blacklist = [22102405; 22102705; 22102708; 22071913; 22110306];
+sublist = sublist(~ismember(sublist, blacklist));
+N = length(sublist);
+mtconvert = [];
+for s = 1:N
+    indvtask = mt(mt.subID == sublist(s),:);
+    Vtrgt = unique([indvtask.V1; indvtask.V2]);
+    mintrgt = min(Vtrgt);
+    if mintrgt > 0 % skip this subject if the min target value is zero, because the values cannot be scaled and the value space does not help in testing of the hypothesis
+        indvtask.V1 = indvtask.V1/mintrgt;
+        indvtask.V2 = indvtask.V2/mintrgt;
+        indvtask.V3 = indvtask.V3/mintrgt;
+        indvtask.sdV1 = indvtask.sdV1/mintrgt;
+        indvtask.sdV2 = indvtask.sdV2/mintrgt;
+        indvtask.sdV3 = indvtask.sdV3/mintrgt;
+        mtconvert = [mtconvert; indvtask];
+    end  
+end
+mtconvert.choice = mtconvert.chosenItem - 1;
 %% Maximum likelihood fitting to the choice behavior
 options = bads('defaults');     % Default options
 options.Display = 'final';
@@ -50,7 +65,7 @@ end
 Myclust = parcluster();
 Npar = Myclust.NumWorkers;
 mypool = parpool(Npar);
-dat = mt;
+dat = mtconvert;
 for modeli = 1:4
     switch modeli
         case 1
