@@ -188,8 +188,8 @@ for ti = 1:2
     end
     xlabel('Scaled V3');
     ylabel('% Correct | V1, V2');
-    %ylim([.4, .8]);
     title(sprintf('Late noise eta = %1.2f', eta));
+    mysavefig(h, filename, plot_dir, 12, [10, 8]);
 
     subplot(2,2,2+(ti-1)*2);
     colormap("jet");
@@ -199,17 +199,7 @@ for ti = 1:2
     xlabel('Scaled V3');
     ylabel('\sigma_3 (Early noise)');
     set(gca, 'YDir', 'normal');
-
-    % imagesc(V3/V2mean, eps3/V2mean, Ratios);
-    % plot([V1mean, V2mean]/V2mean, [1, 1]*min(eps3), 'kv', 'MarkerFaceColor', [.7,.7,.7]);
-    % ylabel('\sigma_{Early noise}');
-    % xlabel('V3');
-    % ylim([min(eps3/V2mean), max(eps3/V2mean)]);
-    % xlim([min(V3/V2mean), max(V3/V2mean)]);
-    % colormap('jet'); % bluewhitered
-    % cb = colorbar;
-    % title('% Correct | V1, V2');
-    mysavefig(h, filename, plot_dir, 12, [9.9, 3.6]);
+    mysavefig(h, filename, plot_dir, 12, [10, 8]);
 end
 %% functions
 function cmap = GradColor(startColor, endColor, numColors)

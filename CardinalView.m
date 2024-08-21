@@ -1,5 +1,7 @@
 %% define directories
-DefineIO;
+rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject';
+Gitdir = '~/Noise';
+addpath(genpath(Gitdir));
 plot_dir = fullfile(rootdir, 'AnalysisII','Fig4');
 sim_dir = fullfile(rootdir, 'AnalysisII','Fig4');
 if ~exist(plot_dir, 'dir')
@@ -33,7 +35,6 @@ mtconvert.choice = mtconvert.chosenItem - 1;
 dat = mtconvert(mtconvert.chosenItem ~= 3 & ~isnan(mtconvert.chosenItem),:);
 GrpMeanraw = grpstats(dat, ["subID","TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice"]);
 Treatment = 'Raw'; %'Demean'; %
-LowestV3 = 0;
 Sublist = unique(GrpMeanraw.subID);
 N = length(Sublist);
 if strcmp(Treatment, "Demean")
@@ -48,14 +49,15 @@ elseif strcmp(Treatment, 'Raw')
 end
 %% Choice accuracy in a heatmap of mean value and variance
 Window = .15;
-Bindow = .15;
+Bindow = .15/2;
+LowestV3 = 0;
 h = figure;
 ti = 0;
 for t = [10, 1.5] % low, high
     ti = ti + 1;
     dat = GrpMean(GrpMean.mean_V3scld <= 1 & GrpMean.TimeConstraint == t,:);
     v3vec = LowestV3:.03:max(dat.mean_V3scld);
-    varvec = min(GrpMean.mean_sdV3scld):.03:.7;
+    varvec = min(GrpMean.mean_sdV3scld):.015:.4;
     Ntrial = NaN(numel(varvec), numel(v3vec));
     choice = NaN(numel(varvec), numel(v3vec));
     choicese = NaN(numel(varvec), numel(v3vec));
@@ -83,12 +85,12 @@ for t = [10, 1.5] % low, high
     end
     xlabel('Scaled V3');
     ylabel('% Correct (V1 & V2)');
-    %ylim([.4, .8]);
+    ylim([45, 75]);
     title(sprintf('Time limit %1.1fs', t));
 
     subplot(2,2,2+(ti-1)*2);
     colormap("jet");
-    imagesc(v3vec, varvec, choice, [40, 80]);
+    imagesc(v3vec, varvec, choice, [45, 75]);
     title('');
     colorbar;
     xlabel('Scaled V3');
