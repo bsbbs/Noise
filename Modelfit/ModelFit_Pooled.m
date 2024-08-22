@@ -67,7 +67,7 @@ end
 %mypool = parpool(Npar/2);
 repetition = 48;
 dat = mtconvert;
-for modeli = 1:4
+for modeli = 4
     switch modeli
         case 1
             nLLfunc = @(x) McFadden(x, dat);
@@ -79,7 +79,7 @@ for modeli = 1:4
             nLLfunc = @(x) DNM(x, dat);
             name = 'DNM'; %, cut input, independent';
         case 4
-            nLLfunc = @(x) dnDNM(x, dat, mode);
+            nLLfunc = @(x) dnDNM(x, dat);
             name = 'dnDNM'; %, cut input, independent';
     end
     fprintf('\tModel %i\n', modeli);
@@ -273,7 +273,7 @@ if gpuparallel
 end
 end
 
-function nll = dnDNM(x, dat, mode) % cut inputs, independent
+function nll = dnDNM(x, dat) % cut inputs, independent
 % set the lower boundary for every input value distribution as zero
 % samples in the denominator are independent from the numerator
 % the SIGMA term in the denominator is non-negative after that.
@@ -290,40 +290,37 @@ scl = x(4); % scaling parameter on the early noise
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
 num_samples = 20000;
 Ntrl = size(dat,1);
-if strcmp(mode, 'absorb')
-    samples = [];
-    for ci = 1:3
-        if gpuparallel
-            values = gpuArray(data.(['V',num2str(ci)])');
-            stds = gpuArray(data.(['sdV', num2str(ci)])')*scl;
-            samples(:,:,ci) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
-        else
-            values = data.(['V',num2str(ci)])';
-            stds = data.(['sdV', num2str(ci)])'*scl;
-            samples(:,:,ci) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
-        end
+samples = [];
+for ci = 1:3
+    if gpuparallel
+        values = gpuArray(data.(['V',num2str(ci)])');
+        stds = gpuArray(data.(['sdV', num2str(ci)])')*scl;
+        samples(:,:,ci) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+    else
+        values = data.(['V',num2str(ci)])';
+        stds = data.(['sdV', num2str(ci)])'*scl;
+        samples(:,:,ci) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
     end
-    D1 = [];
-    D2 = [];
-    D3 = [];
-    for ci = 1:3
-        if gpuparallel
-            values = gpuArray(data.(['V',num2str(ci)])');
-            stds = gpuArray(data.(['sdV', num2str(ci)])')*scl;
-            D1(:,:,ci) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
-            D2(:,:,ci) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
-            D3(:,:,ci) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
-        else
-            values = data.(['V',num2str(ci)])';
-            stds = data.(['sdV', num2str(ci)])'*scl;
-            D1(:,:,ci) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
-            D2(:,:,ci) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
-            D3(:,:,ci) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
-        end
-    end
-elseif strcmp(mode, 'cutoff')
-    error('The cutoff boundary algorithm has not been developped yet.');
 end
+D1 = [];
+D2 = [];
+D3 = [];
+for ci = 1:3
+    if gpuparallel
+        values = gpuArray(data.(['V',num2str(ci)])');
+        stds = gpuArray(data.(['sdV', num2str(ci)])')*scl;
+        D1(:,:,ci) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+        D2(:,:,ci) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+        D3(:,:,ci) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+    else
+        values = data.(['V',num2str(ci)])';
+        stds = data.(['sdV', num2str(ci)])'*scl;
+        D1(:,:,ci) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+        D2(:,:,ci) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+        D3(:,:,ci) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
+    end
+end
+
 D1 = sum(D1, 3)*wp + Mp;
 D2 = sum(D2, 3)*wp + Mp;
 D3 = sum(D3, 3)*wp + Mp;
