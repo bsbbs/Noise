@@ -1,0 +1,39 @@
+Loading matlab/R2021b
+  Loading requirement: cuda/9.1
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2021 The MathWorks, Inc.
+             R2021b Update 6 (9.11.0.2207237) 64-bit (glnxa64)
+                             February 23, 2023
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+	Model 4
+[Warning: Error in executing the logged function '@(x)dnDNM(x,dat,mode)' with
+input: [81.67919921875 0.34345703125 0.177734375 1.8271484375]] 
+[> In funlogger (line 113)
+In evalinitmesh (line 31)
+In bads (line 421)
+In ModelFit_Pooled (line 119)] 
+{Not enough input arguments.
+
+Error in mode (line 58)
+if isstring(x)
+
+Error in ModelFit_Pooled>@(x)dnDNM(x,dat,mode) (line 82)
+            nLLfunc = @(x) dnDNM(x, dat, mode);
+
+Error in funlogger (line 98)
+                fval = fun(x);
+
+Error in evalinitmesh (line 31)
+    [yval,optimState] = funlogger(funwrapper,u0,optimState,'iter');
+
+Error in bads (line 421)
+    evalinitmesh(u0,funwrapper,optimState,options,prnt);
+
+Error in ModelFit_Pooled (line 119)
+            [xOpt,fval,exitflag,output] = bads(nLLfunc,x0,LB,UB,PLB,PUB,[],options);
+} 
