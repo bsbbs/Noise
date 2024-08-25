@@ -62,9 +62,9 @@ if ~exist(testfile, 'file')
         'Model', 'randi', 'Mp0', 'delta0', 'wp0', 'scl0', 'Mp', 'delta', 'wp', 'scl', 'nll', 'nllsd', 'success', 'iterations');
     fclose(fp);
 end
-%Myclust = parcluster();
-%Npar = Myclust.NumWorkers;
-%mypool = parpool(Npar/2);
+Myclust = parcluster();
+Npar = Myclust.NumWorkers;
+mypool = parpool(8);
 repetition = 48;
 dat = mtconvert;
 for modeli = 4
@@ -114,7 +114,7 @@ for modeli = 4
         params = {};
         success = [];
         res = {};
-        for i = 1:repetition
+        parfor i = 1:repetition
             x0 = PLB + (PUB - PLB) .* rand(size(PLB));
             [xOpt,fval,exitflag,output] = bads(nLLfunc,x0,LB,UB,PLB,PUB,[],options);
             % 'Mp', 'delta', 'wp', 'scl',
