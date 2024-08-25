@@ -156,47 +156,65 @@ for modeli = 4
 end
 
 %% Post predictive check
-testfile = fullfile(Fitdir, 'AllRslts.txt');
-fit = tdfread(testfile);
-T = struct2table(fit);
 for modeli = 1:4
-    mmask = T.Model == modeli;
-    mT = T(mmask,:);
-    bestfit = mT(mT.nll == min(mT.nll),:);
-    simdat = fullfile(Fitdir, sprintf('Model%i_Predict.mat', modeli));
+    simdat = fullfile(fitdir, sprintf('Model%i_Predict.mat', modeli));
     if ~exist(simdat, 'file')
         mtmodel = [];
+
         fprintf('Model %d:\t', modeli);
         dat = mtconvert;
-        Mp = bestfit.Mp;
-        delta = bestfit.delta;
+        Mp = fit.Mp(subjmask & fit.modeli == modeli);
+        delta = fit.delta(subjmask & fit.modeli == modeli);
         switch modeli
+            switch modeli
+        case 1
+            nLLfunc = @(x) McFadden(x, dat);
+            name = 'McFadden';
+        case 2
+            nLLfunc = @(x) Mdl2(x, dat);
+            name = 'dnLinear';
+        case 3
+            nLLfunc = @(x) DNM(x, dat);
+            name = 'DNM'; %, cut input, independent';
+        case 4
+            nLLfunc = @(x) dnDNM(x, dat);
+            name = 'dnDNM'; %, cut input, independent';
+            end
+            
             case 1
+                %%
                 x = [Mp, delta];
-                [~, probs] = McFadden(x, dat);
+                probs = McFadden(x, dat);
                 name = 'McFadden';
             case 2
-                scl = bestfit.scl;
+                scl = fit.scl(subjmask & fit.modeli == modeli);
                 x = [Mp, delta, scl];
-                [~, probs] = Mdl2(x, dat);
-                name = 'dnLinear';
+                probs = Mdl2(x, dat);
+                name = 'LinearDistrb';
             case 3
-                wp = bestfit.wp;
+                wp = fit.wp(subjmask & fit.modeli == modeli);
                 x = [Mp, delta, wp];
-                [~, probs] = DNM(x, dat);
-                name = 'DNM'; %, cut input, independent';
+                probs = DN(x, dat);
+                name = 'DN'; %, cut input, independent';
             case 4
-                scl = bestfit.scl;
-                wp = bestfit.wp;
+                scl = fit.scl(subjmask & fit.modeli == modeli);
+                wp = fit.wp(subjmask & fit.modeli == modeli);
                 x = [Mp, delta, wp, scl];
-                [~, probs] = dnDNM(x, dat);
-                name = 'dnDNM'; %, cut input, independent';
+                probs = dDNb(x, dat, 'absorb');
+                name = 'dDNb'; %, cut input, independent';
+            case 5
+                scl = fit.scl(subjmask & fit.modeli == modeli);
+                wp = fit.wp(subjmask & fit.modeli == modeli);
+                x = [Mp, delta, wp, scl];
+                probs = dDNd(x, dat, 'absorb');
+                name = 'dDNd'; %, cut SIGMA, independent';
         end
         dat.modelprob1 = probs(:,1);
         dat.modelprob2 = probs(:,2);
         dat.modelprob3 = probs(:,3);
         mtmodel = [mtmodel; dat];
         fprintf('\n');
+
         mtmodel.ratio = mtmodel.modelprob2./(mtmodel.modelprob1 + mtmodel.modelprob2);
         save(simdat, "mtmodel", '-mat');
     else
@@ -204,7 +222,7 @@ for modeli = 1:4
     end
     %% Visualize in sliding windows
     dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
-    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "V3"], "mean", "DataVars", ["V3", "sdV3", "choice","ratio"]);
+    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "V3scld"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
     colorpalette ={'r','#FFBF00','#00FF80','b'};
     rgbMatrix = [
         0, 0, 255;   % Blue
@@ -231,15 +249,15 @@ for modeli = 1:4
             ratiose = [];
             sdV3scld = [];
             v3vec = LowestV3:.015:HighestV3;
-            dat = GrpMean(GrpMean.TimeConstraint == t & GrpMean.Vaguenesscode == v & GrpMean.mean_V3 >= LowestV3 &  GrpMean.mean_V3 <= HighestV3,:);
+            dat = GrpMean(GrpMean.TimeConstraint == t & GrpMean.Vaguenesscode == v & GrpMean.mean_V3scld >= LowestV3 &  GrpMean.mean_V3scld <= HighestV3,:);
             for v3 = v3vec
-                section = dat(dat.mean_V3 >= v3 - Window & dat.mean_V3 <= v3 + Window,:);
+                section = dat(dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window,:);
                 Ntrial = [Ntrial, sum(section.GroupCount)];
                 choice = [choice, mean(section.mean_choice)];
                 choicese = [choicese, std(section.mean_choice)/sqrt(length(section.mean_choice))];
                 ratio = [ratio, mean(section.mean_ratio)];
                 ratiose = [ratiose, std(section.mean_ratio)/sqrt(length(section.mean_ratio))];
-                sdV3scld = [sdV3scld, mean(section.mean_sdV3)];
+                sdV3scld = [sdV3scld, mean(section.mean_sdV3scld)];
             end
             cut = Ntrial > 400;
             % scatter(v3vec(cut), ratio(cut), Ntrial(cut)/80*5, 'color', colorpalette{i});
@@ -254,9 +272,9 @@ for modeli = 1:4
     end
     %% Visualization in heatmap
     dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
-    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "V3"], "mean", "DataVars", ["V3", "sdV3", "choice", "ratio"]);
+    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "V3scld"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice", "ratio"]);
     Window = 0.15;
-    Varrng = [min(GrpMean.mean_sdV3), .4];% max(GrpMean.mean_sdV3scld)];
+    Varrng = [min(GrpMean.mean_sdV3scld), .4];% max(GrpMean.mean_sdV3scld)];
     Bindow = 0.15/2;
     h = figure;
     filename = sprintf('ModelFit_%i_Heatmap', modeli);
@@ -275,13 +293,13 @@ for modeli = 1:4
             for ri = 1:numel(varvec)
                 v3 = v3vec(vi);
                 r = varvec(ri);
-                maskv3 = dat.mean_V3 >= v3 - Window & dat.mean_V3 <= v3 + Window;
-                maskr3 = dat.mean_sdV3 >= r - Bindow & dat.mean_sdV3 <= r + Bindow;
+                maskv3 = dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window;
+                maskr3 = dat.mean_sdV3scld >= r - Bindow & dat.mean_sdV3scld <= r + Bindow;
                 section = dat(maskv3 & maskr3,:);
                 Ntrial(ri,vi) = sum(section.GroupCount);
                 ratio(ri,vi) = mean(section.mean_ratio);
                 ratiose(ri,vi) = std(section.mean_ratio)/sqrt(length(section.mean_ratio));
-                sdV3scld(ri,vi) = mean(section.mean_sdV3);
+                sdV3scld(ri,vi) = mean(section.mean_sdV3scld);
             end
         end
         ratio(Ntrial<50) = NaN;
@@ -310,7 +328,7 @@ end
 
 
 %% functions
-function [nll, probs] = McFadden(x, dat)
+function nll = McFadden(x, dat)
 if gpuDeviceCount > 0
     gpuparallel = 1;
 else
@@ -346,7 +364,7 @@ if gpuparallel
 end
 end
 
-function [nll, probs] = Mdl2(x, dat)
+function nll = Mdl2(x, dat)
 if gpuDeviceCount > 0
     gpuparallel = 1;
 else
@@ -387,7 +405,7 @@ if gpuparallel
 end
 end
 
-function [nll, probs] = DNM(x, dat)
+function nll = DNM(x, dat)
 if gpuDeviceCount > 0
     gpuparallel = 1;
 else
@@ -427,7 +445,7 @@ if gpuparallel
 end
 end
 
-function [nll, probs] = dnDNM(x, dat) % cut inputs, independent
+function nll = dnDNM(x, dat) % cut inputs, independent
 % set the lower boundary for every input value distribution as zero
 % samples in the denominator are independent from the numerator
 % the SIGMA term in the denominator is non-negative after that.
