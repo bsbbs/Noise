@@ -67,7 +67,7 @@ end
 %mypool = parpool(Npar/2);
 repetition = 48;
 dat = mtconvert;
-for modeli = 4
+for modeli = 1:3
     switch modeli
         case 1
             nLLfunc = @(x) McFadden(x, dat);
