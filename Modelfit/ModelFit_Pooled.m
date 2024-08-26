@@ -64,7 +64,7 @@ if ~exist(testfile, 'file')
 end
 Myclust = parcluster();
 Npar = Myclust.NumWorkers;
-mypool = parpool(8);
+% mypool = parpool(8);
 repetition = 48;
 dat = mtconvert;
 for modeli = 1:3

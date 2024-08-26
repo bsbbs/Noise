@@ -1,0 +1,24 @@
+Loading matlab/R2021b
+  Loading requirement: cuda/9.1
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2021 The MathWorks, Inc.
+             R2021b Update 6 (9.11.0.2207237) 64-bit (glnxa64)
+                             February 23, 2023
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+	Model 1
+Model 1, nll = 18333.409153
+	Model 2
+Model 2, nll = 17588.518651
+	Model 3
+Model 3, nll = 15946.496424
+Model 1:	
+{Unrecognized function or variable 'plot_dir'.
+
+Error in ModelFit_Pooled (line 253)
+        mysavefig(h, filename, plot_dir, 12, [8, 4]);
+} 
