@@ -101,6 +101,113 @@ for t = [10, 1.5] % low, high
 end
 mysavefig(h, sprintf('ChoiceData_V3scld_%s', Treatment), plot_dir, 12, [10, 8]);
 
+%% Choice accuracy in a heatmap of Targets difference and variances
+dat = mtconvert(mtconvert.chosenItem ~= 3 & ~isnan(mtconvert.chosenItem),:);
+dat.Vdscld = dat.V2scld - dat.V1scld;
+dat.sdVdscld = sqrt(dat.sdV1scld.^2 + dat.sdV2scld.^2);
+
+Window = .15;
+Bindow = .15/2;
+LowestVd = 0;
+h = figure;
+filename = 'ChoiceData_Targets';
+vdvec = LowestVd:.03:1.5;
+varvec = min(dat.sdVdscld):.015:1;
+Ntrial = NaN(numel(varvec), numel(vdvec));
+choice = NaN(numel(varvec), numel(vdvec));
+% choicese = NaN(numel(varvec), numel(vdvec));
+for vi = 1:numel(vdvec)
+    for ri = 1:numel(varvec)
+        vd = vdvec(vi);
+        r = varvec(ri);
+        maskvd = dat.Vdscld >= vd - Window & dat.Vdscld <= vd + Window;
+        maskrd = dat.sdVdscld >= r - Bindow & dat.sdVdscld <= r + Bindow;
+        section = dat(maskvd & maskrd,:);
+        Ntrial(ri,vi) = length(section.choice);
+        choice(ri,vi) = mean(section.choice)*100;
+        % choicese(ri,vi) = std(section.choice)/sqrt(length(section.choice));
+    end
+end
+colormap("jet");
+imagesc(vdvec, varvec, choice);
+title('');
+colorbar;
+xlabel('Scaled V1 - V2');
+ylabel('V1 & V2 Variance');
+set(gca, 'YDir', 'normal');
+mysavefig(h, filename, plot_dir, 12, [5, 4]);
+
+%% Using logistic slope instead of mean accuracy
+fdat = mtconvert(mtconvert.chosenItem ~= 3 & ~isnan(mtconvert.chosenItem),:);
+fdat.dprime = (fdat.V2scld - fdat.V1scld);%./sqrt(fdat.sdV1scld.^2 + fdat.sdV2scld.^2);
+fdat.choice = double(fdat.choice);
+sublist = unique(dat.subID);
+N = numel(sublist);
+Window = .15;
+Bindow = .15/2;
+LowestV3 = 0;
+h = figure;
+filename = "ChoiceData_LogisticSlope_VD";
+simdat = fullfile(plot_dir, [filename+".mat"]);
+v3vec = LowestV3:.03:1;
+varvec = 0:.015:.4;
+Ntrial = NaN(numel(varvec), numel(v3vec), 2);
+choice = NaN(numel(varvec), numel(v3vec), 2);
+% choicese = NaN(numel(varvec), numel(v3vec));
+sdV3scld = NaN(numel(varvec), numel(v3vec), 2);
+slope = NaN(numel(varvec), numel(v3vec), 2);
+mdprime = NaN(numel(varvec), numel(v3vec), 2);
+if ~exist(simdat, 'file')
+    ti = 0;
+    for t = [10, 1.5] % low, high
+        ti = ti + 1;
+        dat = fdat(fdat.TimeConstraint == t & fdat.V3scld <= 1,:);
+        for vi = 1:numel(v3vec)
+            for ri = 1:numel(varvec)
+                v3 = v3vec(vi);
+                r = varvec(ri);
+                maskv3 = dat.V3scld >= v3 - Window & dat.V3scld <= v3 + Window;
+                maskr3 = dat.sdV3scld >= r - Bindow & dat.sdV3scld <= r + Bindow;
+                section = dat(maskv3 & maskr3,:);
+                Ntrial(ri,vi,ti) = numel(section.trial);
+                choice(ri,vi,ti) = mean(section.choice)*100;
+                
+                % choicese(ri,vi) = std(section.mean_choice)/sqrt(length(section.mean_choice));
+                sdV3scld(ri,vi,ti) = mean(section.sdV3scld);
+                formula = 'choice ~ dprime';
+                maskdp = ~isnan(section.dprime) & (section.dprime)<Inf;
+                mdprime(ri,vi,ti) = mean(section.dprime(maskdp));
+                glm = fitglm(section(maskdp,:),formula,'distr','binomial', 'Intercept', false);
+                slope(ri, vi,ti) = glm.Coefficients.Estimate;
+            end
+        end
+
+        slope(Ntrial<30) = NaN;
+        subplot(2,2,1+(ti-1)*2); hold on;
+        colormap("bone");
+        cmap = bone(numel(varvec));
+        for ri = 1:numel(varvec)
+            plot(v3vec, slope(ri,:,ti), '.-', 'Color', cmap(ri,:));
+        end
+        xlabel('Scaled V3');
+        ylabel('Logistic slope| V1 & V2');
+        % ylim([45, 75]);
+        title(sprintf('Time limit %1.1fs', t));
+
+        subplot(2,2,2+(ti-1)*2);
+        colormap("jet");
+        imagesc(v3vec, varvec, mdprime(:,:,ti));
+        title('');
+        colorbar;
+        xlabel('Scaled V3');
+        ylabel('V3 Variance');
+        set(gca, 'YDir', 'normal');
+    end
+    mysavefig(h, filename, plot_dir, 12, [10, 8]);
+    save(simdat, "slope","mdprime","choice","choicese","Ntrial","sdV3scld",'-mat');
+else
+    load(simdat);
+end
 %% Recovery from the model fitting
 
 

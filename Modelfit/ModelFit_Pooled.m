@@ -159,15 +159,23 @@ end
 testfile = fullfile(Fitdir, 'AllRslts.txt');
 fit = tdfread(testfile);
 T = struct2table(fit);
+V1 = mean(mtconvert.V1);
+V2 = mean(mtconvert.V2);
+sdV1 = mean(mtconvert.sdV1);
+sdV2 = mean(mtconvert.sdV2);
 for modeli = 1:4
     mmask = T.Model == modeli;
     mT = T(mmask,:);
     bestfit = mT(mT.nll == min(mT.nll),:);
-    simdat = fullfile(Fitdir, sprintf('Model%i_Predict.mat', modeli));
+    simdat = fullfile(Fitdir, sprintf('Model%i_Predict[FlatTrgts].mat', modeli));
     if ~exist(simdat, 'file')
         mtmodel = [];
         fprintf('Model %d:\t', modeli);
         dat = mtconvert;
+        dat.V1 = ones(size(mtconvert.V1))*V1;
+        dat.V2 = ones(size(mtconvert.V2))*V2;
+        dat.sdV1 = ones(size(mtconvert.sdV1))*sdV1;
+        dat.sdV2 = ones(size(mtconvert.sdV2))*sdV2;
         Mp = bestfit.Mp;
         delta = bestfit.delta;
         switch modeli
@@ -216,7 +224,7 @@ for modeli = 1:4
     LowestV3 = 0; %0.2;
     HighestV3 = 1; %.8;
     h = figure;
-    filename = sprintf('Model%i_Predict[Full]', modeli);
+    filename = sprintf('Model%i_Predict[FlatTrgts]', modeli);
     vi = 0;
     i = 0;
     for v = [1, 0] % vague, precise
@@ -259,7 +267,7 @@ for modeli = 1:4
     Varrng = [min(GrpMean.mean_sdV3), .4];% max(GrpMean.mean_sdV3scld)];
     Bindow = 0.15/2;
     h = figure;
-    filename = sprintf('ModelFit_%i_Heatmap', modeli);
+    filename = sprintf('ModelFit_%i_Heatmap[FlatTrgts]', modeli);
     ti = 0;
     TimePressure = {'Low','High'};
     for t = [10, 1.5] % low, high
