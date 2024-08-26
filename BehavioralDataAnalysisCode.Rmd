@@ -296,6 +296,12 @@ dev.off()
 # by excluding those subjects who show a negative logistic slope
 blacklist <- c('22102708', '22071913', '22110306', '22102405', '22102705', '22071903', '22102703', '22071904', '22102704', '22072003', '22102401', '22071912', '22102503','22102702')
 
+# Test the basic idea of early noise, both VD and variance significant, for both raw or scaled
+grpdcsn$varVD <- sqrt(grpdcsn$varbid1^2 + grpdcsn$varbid2^2)
+summary(targetearly <- glmer(choice ~  VD + varVD + (VD + varVD|subID), family = 'binomial', data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
+grpdcsn$varVDscld <- sqrt(grpdcsn$varbid1scld^2 + grpdcsn$varbid2scld^2)
+summary(targetearly <- glmer(choice ~  VDscld + varVDscld + (VDscld + varVDscld|subID), family = 'binomial', data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
+
 # test include VD or VDscld
 summary(lm1 <- glmer(choice ~ VD + (VD|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
 summary(lm2 <- glmer(choice ~ VDscld + (VDscld|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0),]))
