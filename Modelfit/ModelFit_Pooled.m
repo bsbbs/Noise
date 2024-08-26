@@ -250,7 +250,7 @@ for modeli = 1:4
         xlim([LowestV3, HighestV3]);
         xlabel('Scaled V3');
         ylabel('% Correct | V1, V2');
-        mysavefig(h, filename, plot_dir, 12, [8, 4]);
+        mysavefig(h, filename, plotdir, 12, [8, 4]);
     end
     %% Visualization in heatmap
     dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
@@ -294,7 +294,7 @@ for modeli = 1:4
         title(TimePressure{ti});
         xlabel('Scaled V3');
         ylabel('% Correct | V1 & V2');
-        mysavefig(h, filename, plot_dir, 12, [9, 8]);
+        mysavefig(h, filename, plotdir, 12, [9, 8]);
 
         subplot(2, 2, 2+(ti-1)*2); hold on;
         colormap("jet");
@@ -304,7 +304,7 @@ for modeli = 1:4
         ylabel(c, '% Correct | V1 & V2');
         xlabel('Scaled V3');
         ylabel('V3 Variance');
-        mysavefig(h, filename, plot_dir, 12, [9, 8]);
+        mysavefig(h, filename, plotdir, 12, [9, 8]);
     end
 end
 
