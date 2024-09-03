@@ -361,6 +361,50 @@ summary(model)
 summary(test <- glmer(choice ~ VDscld + V3scld + TimePressure + Vagueness + V3scld:TimePressure + V3scld:Vagueness + V3scld:TimePressure:Vagueness + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >=.2 & grpdcsn$V3scld <= .8,]))
 
 
+LowestV3 <- .2
+HighestV3 <- .8
+summary(test <- glmer(choice ~ V3scld*varbid3scld + (1|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
+summary(test <- glm(choice ~ V3scld*varbid3scld, family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'Low' & grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
+
+summary(test <- glmer(choice ~ V3scld*varbid3scld + (1|subID), family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
+summary(test <- glm(choice ~ V3scld*varbid3scld, family = "binomial", data = grpdcsn[grpdcsn$TimePressure == 'High' & grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
+
+summary(test <- glmer(choice ~ VDscld + V3scld + V3scld:varbid3scld + varbid3scld + TimePressure + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3 & grpdcsn$varbid3scld <= .2,]))
+# Correlation of Fixed Effects:
+#             (Intr) VDscld V3scld vrbd3s TmPrs1
+# VDscld      -0.429                            
+# V3scld      -0.619 -0.004                     
+# varbid3scld -0.327  0.001  0.326              
+# TimePressr1  0.010 -0.004  0.005 -0.023       
+# V3scld:vrb3  0.325  0.000 -0.393 -0.966  0.014
+contrasts(grpdcsn$TimePressure) <- contr.treatment(levels(grpdcsn$TimePressure))
+summary(test <- glm(choice ~ V3scld + varbid3scld + TimePressure + V3scld:varbid3scld, family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3 & grpdcsn$varbid3scld <= .2,]))
+summary(test <- glm(choice ~ V3scld*varbid3scld*TimePressure, family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3 & grpdcsn$varbid3scld <= .2,]))
+require(car)
+vif(test)
+
+
+# summary(test <- glmer(choice ~ V3*varbid3 + TimePressure + (1|subID), family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
+# summary(test <- glm(choice ~ V3*varbid3 + TimePressure , family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
+# Model failed to converge with max|grad| = 0.079571 (tol = 0.002, component 1)
+# Model is nearly unidentifiable: very large eigenvalue
+#  - Rescale variables?
+# Model is nearly unidentifiable: large eigenvalue ratio
+#  - Rescale variables?
+
+summary(test <- lmer(varbid3scld ~ V3scld + (V3scld|subID), data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3 & grpdcsn$varbid3scld <= .4,]))
+summary(test <- lm(varbid3scld ~ V3scld, data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3 & grpdcsn$varbid3scld <= .4,]))
+
+# test context variance given the data instead of conditions
+medval <- median(grpdcsn$varbid3scld[grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3])
+grpdcsn$VaguenessData <- grpdcsn$varbid3scld > medval
+summary(test <- glm(choice ~ V3scld + VaguenessData + TimePressure + V3scld:VaguenessData, data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
+vif(test)
+summary(mxtest <- glmer(choice ~ V3scld + VaguenessData + TimePressure + V3scld:VaguenessData + (1|subID), family = binomial, data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
+
+# test like the experiment
+summary(test <- glm(choice ~ VaguenessData + TimePressure + V3scld + V3scld:VaguenessData + V3scld:TimePressure, data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
+summary(test <- glm(choice ~ VaguenessData + TimePressure + V3scld:VaguenessData:TimePressure, data = grpdcsn[grpdcsn$choice != 2 & !is.na(grpdcsn$choice) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
 
 
 # see the trends of four conditions by regression
@@ -1199,8 +1243,8 @@ condnames <- c('Vague-Low','Precise-Low','Vauge-High','Precise-High')
 condcolors <- c('red','#00FF80','#FFBF00','blue')
 vaguevec <- c('Vague','Precise','Vague','Precise')
 timevec <- c('Low','Low','High','High')
-LowestV3 <- 0 # chose V3 higher than zero, to avoid the effect when V3 = 0, the early noise cannot be effectively regulated
-HighestV3 <- 1
+LowestV3 <- 0.2 # chose V3 higher than zero, to avoid the effect when V3 = 0, the early noise cannot be effectively regulated
+HighestV3 <- .8
 # par(mfrow = c(1, 2))
 i <- 0
 vi <- 0 
@@ -1244,7 +1288,7 @@ for (v in c('Vague','Precise'))
   }
 }
 #legend(x = .25, y = 73.7, condnames, cex = .8, text.col = condcolors, bty = 'n')
-dev.copy(pdf, file.path(out_dir,sprintf("Choice~MedSpltV3scldtomin_SldWndwWght_with0.pdf")), height=6.28, width=5.86)
+dev.copy(pdf, file.path(out_dir,sprintf("Choice~MedSpltV3scldtomin_SldWndwWght_SegmentsA.pdf")), height=6.28, width=5.86)
 dev.off()
 ```
 # Sliding windows, weighted, segments
@@ -1364,6 +1408,32 @@ for (v in c('Vague','Precise'))
 }
 dev.copy(pdf, file.path(out_dir,sprintf("V3scldVar~MedSpltV3scldtomin_SldWndwWght_Segments.pdf")), height=4.4, width=7.7/2)
 dev.off()
+# statistical tests
+summary(test <- lm(acc ~ V3scld*varbid3scld, data = AccID3[AccID3$TimePressure == 'Low' & AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,]))
+summary(test <- lmer(acc ~ V3scld*varbid3scld + (1|subID), data = AccID3[AccID3$TimePressure == 'Low' & AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,]))
+summary(test <- lm(acc ~ V3scld*varbid3scld, data = AccID3[AccID3$TimePressure == 'High' & AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,]))
+summary(test <- lmer(acc ~ V3scld*varbid3scld + (1|subID), data = AccID3[AccID3$TimePressure == 'High' & AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,]))
+LowestV3 <- 0
+HighestV3 <- .9
+summary(test <- lm(acc ~ V3scld*varbid3scld + TimePressure, data = AccID3[AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,]))
+summary(test <- lmer(acc ~ V3scld*varbid3scld + TimePressure + (1|subID), data = AccID3[AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,]))
+# check the individual difference
+random_effects <- ranef(test)
+flattened_random_effects <- do.call(rbind, lapply(random_effects, function(x) {
+  x$grp <- rownames(x)
+  x
+}))
+rownames(flattened_random_effects) <- NULL
+colnames(flattened_random_effects) <- c('Intercept','subID')
+var3 <- aggregate(varbid3scld ~ subID, data = AccID3[AccID3$TimePressure == 'Low' & AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,], FUN = mean)
+v3 <- aggregate(V3scld ~ subID, data = AccID3[AccID3$TimePressure == 'Low' & AccID3$V3scld >= LowestV3 & AccID3$V3scld <= HighestV3,], FUN = mean)
+tmp <- merge(flattened_random_effects, var3, by = 'subID')
+plot(varbid3scld~Intercept, data = tmp, pch = 20)
+summary(test <- lm(varbid3scld~Intercept, data = tmp))
+tmp <- merge(flattened_random_effects, v3, by = 'subID')
+plot(V3scld~Intercept, data = tmp, pch = 20)
+summary(test <- lm(V3scld~Intercept, data = tmp))
+
 ```
 # Sliding windows on V3 variance
 ```{r}

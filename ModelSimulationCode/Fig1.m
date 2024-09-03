@@ -13,8 +13,8 @@ end
 %% loading parrellel CPU cores
 Myclust = parcluster();
 Npar = Myclust.NumWorkers;
-mypool = parpool(Npar/2);
-reps = Npar; % 40; % repetition of simulations to make the results smooth
+mypool = parpool(20);
+reps = 40; % repetition of simulations to make the results smooth
 %% Early and late noise only
 filename = sprintf('SNR_Ovlp_Choice_v3');
 V1mean = 88;
@@ -33,7 +33,7 @@ if ~exist(matfile, 'file')
     sdV2 = eps*ones(size(V3));
     sdV3 = eps*ones(size(V3));
     dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
-    pars = [eta, 1, 1, 1];
+    pars = [eta,eta,eta, 1, 1, 1];
     tmp1a = nan([reps, numel(V3), 3]); % probs
     tmp2a = nan([reps, numel(V3)]); % Ovlps
     tmp3a = nan([reps, numel(V3), 3]); % CVs
@@ -61,7 +61,7 @@ if ~exist(matfile, 'file')
     sdV2 = eps*ones(size(V3));
     sdV3 = eps*ones(size(V3));
     dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
-    pars = [eta, 1, 1, 1];
+    pars = [eta,eta,eta, 1, 1, 1];
     tmp1a = nan([reps, numel(V3),3]);
     tmp2a = nan([reps, numel(V3)]);
     tmp3a = nan([reps, numel(V3), 3]);
@@ -190,7 +190,7 @@ if ~exist(matfile, 'file')
         fprintf('eps3 %i/%i\n', i, numel(eps3));
         sdV3 = eps3(i)*ones(size(V3));
         dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
-        pars = [eta, 1, 1, 1];
+        pars = [eta,eta,eta, 1, 1, 1];
         tmp1b = nan([reps, numel(V3), 3]);
         tmp2b = nan([reps, numel(V3)]);
         parfor ri = 1:reps
@@ -207,7 +207,7 @@ else
 end
 %% plotting 
 h = figure;
-subplot(1,2,1); hold on;
+subplot(2,2,1); hold on;
 imagesc(V3, eps3, Ovlpsb);
 plot([V1mean, V2mean], [1, 1]*min(eps3), 'v', 'MarkerFaceColor', [.7,.7,.7]);
 ylabel('\sigma_{Early noise}');
@@ -215,19 +215,131 @@ xlabel('V3');
 ylim([min(eps3), max(eps3)]);
 xlim([min(V3), max(V3)]);
 cb = colorbar;
-colormap('jet'); % bluewhitered
-% ylabel(cb, '% Overlap | V1, V2');
-title('% Overlap | V1, V2');
-mysavefig(h, filename, plot_dir, 12, [9.9, 3.6]);
+colormap('jet');
+ylabel(cb, '% Overlap | V1, V2');
+mysavefig(h, filename, plot_dir, 12, [8, 6]);
 
-subplot(1,2,2); hold on;
+exmpls = 1:10:numel(eps3);
+ncols = round(numel(exmpls)*1.2);
+reds = flip([ones(ncols,1), linspace(0,1,ncols)', linspace(0,1,ncols)']); % Gradient from red to white
+subplot(2,2,2); hold on;
+for ri = 1:numel(exmpls)
+    plot(V3, Ovlpsb(exmpls(ri),:), '-', "Color", reds(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
+end
+plot([V1mean, V2mean], [1, 1]*min(Ovlpsb(:)), 'v', 'MarkerFaceColor', [.7,.7,.7]);
+ylabel('% Overlap | V1, V2');
+xlabel('V3');
+xlim([min(V3), max(V3)]);
+mysavefig(h, filename, plot_dir, 12, [8, 6]);
+
+subplot(2,2,3); hold on;
 ratio = probsb(:,:,1)./(probsb(:,:,1) + probsb(:,:,2))*100;
 imagesc(V3, eps3, ratio);
-plot([V1mean, V2mean], [1, 1]*min(eps3), 'kv', 'MarkerFaceColor', [.7,.7,.7]);
+plot([V1mean, V2mean], [1, 1]*min(eps3), 'v', 'MarkerFaceColor', [.7,.7,.7]);
 ylabel('\sigma_{Early noise}');
 xlabel('V3');
 ylim([min(eps3), max(eps3)]);
 xlim([min(V3), max(V3)]);
 cb = colorbar;
-title('% Correct | V1, V2');
-mysavefig(h, filename, plot_dir, 12, [9.9, 3.6]);
+ylabel(cb, '% Correct | V1, V2');
+mysavefig(h, filename, plot_dir, 12, [8, 6]);
+
+subplot(2,2,4); hold on;
+for ri = 1:numel(exmpls)
+    plot(V3, ratio(exmpls(ri),:), '-', "Color", reds(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
+end
+plot([V1mean, V2mean], [1, 1]*min(ratio(:)), 'v', 'MarkerFaceColor', [.7,.7,.7]);
+ylabel('% Correct | V1, V2');
+xlabel('V3');
+xlim([min(V3), max(V3)]);
+mysavefig(h, filename, plot_dir, 12, [8, 6]);
+
+%% Test a cardinal view of V3 magnitude - V3 lalte noise  
+filename = sprintf('V3mag100_latenoise101_Choice_Ovlp');
+matfile = fullfile(sim_dir, [filename, '.mat']);
+products = {'Probability','Overlap'}; % 'Coeff_of_Var',
+V1mean = 88;
+V2mean = 83;
+V3 = linspace(0, V1mean, 100)';
+eta3s = linspace(0, 8, 101)';
+V1 = V1mean*ones(size(V3));
+eta1 = 4;
+V2 = V2mean*ones(size(V3));
+eta2 = 4;
+eps1 = 0;
+eps2 = 0;
+eps3 = 0;
+sdV1 = eps1*ones(size(V3));
+sdV2 = eps2*ones(size(V3));
+sdV3 = eps3*ones(size(V3));
+% simulation
+if ~exist(matfile, 'file')
+    probsb = nan([numel(eta3s), numel(V3), 3]);
+    Ovlpsb = nan([numel(eta3s), numel(V3)]);
+    for i = 1:numel(eta3s)
+        fprintf('eta3 %i/%i\n', i, numel(eta3s));
+        dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
+        pars = [eta1,eta2,eta3s(i), 1, 1, 1];
+        tmp1b = nan([reps, numel(V3), 3]);
+        tmp2b = nan([reps, numel(V3)]);
+        parfor ri = 1:reps
+            fprintf('Late noise, rep %i\n', ri);
+            [tmp1b(ri,:,:), tmp2b(ri,:), ~] = dnDNM(dat, pars, 'biological', products); % biological model
+            % output: probs, Ovlps, CVs
+        end
+        probsb(i,:,:) = squeeze(mean(tmp1b, 1));
+        Ovlpsb(i,:) = squeeze(mean(tmp2b, 1));
+    end
+    save(matfile, "probsb", "Ovlpsb");
+else
+    load(matfile);
+end
+%% plotting 
+h = figure;
+subplot(2,2,1); hold on;
+imagesc(V3, eta3s, Ovlpsb);
+plot([V1mean, V2mean], [1, 1]*min(eta3s), 'v', 'MarkerFaceColor', [.7,.7,.7]);
+ylabel('\sigma_{Early noise}');
+xlabel('V3');
+ylim([min(eta3s), max(eta3s)]);
+xlim([min(V3), max(V3)]);
+cb = colorbar;
+colormap('jet');
+ylabel(cb, '% Overlap | V1, V2');
+mysavefig(h, filename, plot_dir, 12, [8, 6]);
+
+exmpls = 1:10:numel(eta3s);
+ncols = round(numel(exmpls)*1.2);
+blues = flip([linspace(0,1,ncols)', linspace(0,1,ncols)', ones(ncols,1)]); % Gradient from red to white
+subplot(2,2,2); hold on;
+for ri = 1:numel(exmpls)
+    plot(V3, Ovlpsb(exmpls(ri),:), '-', "Color", blues(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
+end
+plot([V1mean, V2mean], [1, 1]*min(Ovlpsb(:)), 'v', 'MarkerFaceColor', [.7,.7,.7]);
+ylabel('% Overlap | V1, V2');
+xlabel('V3');
+xlim([min(V3), max(V3)]);
+mysavefig(h, filename, plot_dir, 12, [8, 6]);
+
+subplot(2,2,3); hold on;
+ratio = probsb(:,:,1)./(probsb(:,:,1) + probsb(:,:,2))*100;
+imagesc(V3, eta3s, ratio);
+plot([V1mean, V2mean], [1, 1]*min(eta3s), 'v', 'MarkerFaceColor', [.7,.7,.7]);
+ylabel('\sigma_{Early noise}');
+xlabel('V3');
+ylim([min(eta3s), max(eta3s)]);
+xlim([min(V3), max(V3)]);
+cb = colorbar;
+ylabel(cb, '% Correct | V1, V2');
+mysavefig(h, filename, plot_dir, 12, [8, 6]);
+
+subplot(2,2,4); hold on;
+for ri = 1:numel(exmpls)
+    plot(V3, ratio(exmpls(ri),:), '-', "Color", blues(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
+end
+plot([V1mean, V2mean], [1, 1]*min(ratio(:)), 'v', 'MarkerFaceColor', [.7,.7,.7]);
+ylabel('% Correct | V1, V2');
+xlabel('V3');
+xlim([min(V3), max(V3)]);
+mysavefig(h, filename, plot_dir, 12, [8, 6]);
+

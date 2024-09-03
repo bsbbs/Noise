@@ -19,10 +19,12 @@ end
 num_samples = 1024*1e3; % number of replication for each set
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3'}); % data comes in with mean values and their early noise std
 Ntrl = size(dat,1); % number of the testing trials
-eta = pars(1); % late noise standard deviation
-scl = pars(2); % scaling for early noise
-w = pars(3); % weight of normalization
-M = pars(4); % baseline normalization
+eta1 = pars(1); % late noise standard deviation
+eta2 = pars(2); % late noise standard deviation
+eta3 = pars(3); % late noise standard deviation
+scl = pars(4); % scaling for early noise
+w = pars(5); % weight of normalization
+M = pars(6); % baseline normalization
 K = 75; % the neural maximum response as assumed
 %% simulation begin...
 Numerator = [];
@@ -68,15 +70,15 @@ DNP = K*Numerator./cat(3, Denominator1, Denominator2, Denominator3);
 clear Denominator1 Denominator2 Denominator3;
 if gpuparallel
     if strcmp(constraint, 'none')
-        SVs = DNP + gpuArray.randn(size(Numerator))*eta;
+        SVs = DNP + cat(3, gpuArray.randn([num_samples, Ntrl])*eta1, gpuArray.randn([num_samples, Ntrl])*eta2, gpuArray.randn([num_samples, Ntrl])*eta3);
     elseif strcmp(constraint, 'biological')
-        SVs = max(DNP + gpuArray.randn(size(Numerator))*eta, 0);
+        SVs = max(DNP + cat(3, gpuArray.randn([num_samples, Ntrl])*eta1, gpuArray.randn([num_samples, Ntrl])*eta2, gpuArray.randn([num_samples, Ntrl])*eta3), 0);
     end
 else
     if strcmp(constraint, 'none')
-        SVs = DNP + randn(size(Numerator))*eta;
+        SVs = DNP + cat(3, randn([num_samples, Ntrl])*eta1, randn([num_samples, Ntrl])*eta2, randn([num_samples, Ntrl])*eta3);
     elseif strcmp(constraint, 'biological')
-        SVs = max(DNP + randn(size(Numerator))*eta, 0);
+        SVs = max(DNP + cat(3, randn([num_samples, Ntrl])*eta1, randn([num_samples, Ntrl])*eta2, randn([num_samples, Ntrl])*eta3), 0);
     end
 end
 clear DNP;
