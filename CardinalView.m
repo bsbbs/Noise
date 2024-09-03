@@ -52,14 +52,15 @@ end
 %% Choice accuracy in a heatmap of mean value and variance
 Window = .15;
 Bindow = .15/2;
-LowestV3 = 0;
+LowestV3 = .2;
+HighestV3 = .8;
 h = figure;
 ti = 0;
 for t = [10, 1.5] % low, high
     ti = ti + 1;
-    dat = GrpMean(GrpMean.mean_V3scld <= 1 & GrpMean.TimeConstraint == t,:);
-    v3vec = LowestV3:.03:max(dat.mean_V3scld);
-    varvec = min(GrpMean.mean_sdV3scld):.015:.4;
+    dat = GrpMean(GrpMean.mean_V3scld <= HighestV3 & GrpMean.mean_V3scld >= LowestV3 & GrpMean.TimeConstraint == t,:);
+    v3vec = LowestV3:.03:HighestV3;
+    varvec = 0:.04:.42;
     Ntrial = NaN(numel(varvec), numel(v3vec));
     choice = NaN(numel(varvec), numel(v3vec));
     choicese = NaN(numel(varvec), numel(v3vec));
@@ -70,6 +71,7 @@ for t = [10, 1.5] % low, high
             r = varvec(ri);
             maskv3 = dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window;
             maskr3 = dat.mean_sdV3scld >= r - Bindow & dat.mean_sdV3scld <= r + Bindow;
+            NtrialV3(ri) = sum(maskr3);
             section = dat(maskv3 & maskr3,:);
             Ntrial(ri,vi) = sum(section.GroupCount);
             choice(ri,vi) = mean(section.mean_choice)*100;
@@ -77,17 +79,17 @@ for t = [10, 1.5] % low, high
             sdV3scld(ri,vi) = mean(section.mean_sdV3scld);
         end
     end
-
-    choice(Ntrial<30) = NaN;
+    % choice(Ntrial<120) = NaN;
+    % choice(NtrialV3<37,:) = NaN;
     subplot(2,2,1+(ti-1)*2); hold on;
-    colormap("bone");
-    cmap = bone(numel(varvec));
+    colormap("jet");
+    cmap = jet(numel(varvec));
     for ri = 1:numel(varvec)
         plot(v3vec, choice(ri,:), '.-', 'Color', cmap(ri,:));
     end
     xlabel('Scaled V3');
-    ylabel('% Correct (V1 & V2)');
-    ylim([45, 75]);
+    ylabel('% Correct | V1, V2');
+    ylim([45, 76]);
     title(sprintf('Time limit %1.1fs', t));
 
     subplot(2,2,2+(ti-1)*2);
@@ -99,7 +101,7 @@ for t = [10, 1.5] % low, high
     ylabel('V3 Variance');
     set(gca, 'YDir', 'normal');
 end
-mysavefig(h, sprintf('ChoiceData_V3scld_%s', Treatment), plot_dir, 12, [10, 8]);
+mysavefig(h, sprintf('ChoiceData_V3scld_%s_L%.1fH%.1f', Treatment, LowestV3, HighestV3), plot_dir, 12, [10, 8]);
 
 %% Choice accuracy in a heatmap of Targets difference and variances
 dat = mtconvert(mtconvert.chosenItem ~= 3 & ~isnan(mtconvert.chosenItem),:);
