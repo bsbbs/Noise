@@ -207,6 +207,7 @@ else
 end
 %% plotting 
 h = figure;
+figsz = [6.4, 4.8];
 subplot(2,2,1); hold on;
 imagesc(V3, eps3, Ovlpsb);
 plot([V1mean, V2mean], [1, 1]*min(eps3), 'v', 'MarkerFaceColor', [.7,.7,.7]);
@@ -217,7 +218,7 @@ xlim([min(V3), max(V3)]);
 cb = colorbar;
 colormap('jet');
 ylabel(cb, '% Overlap | V1, V2');
-mysavefig(h, filename, plot_dir, 12, [8, 6]);
+mysavefig(h, filename, plot_dir, 12, figsz);
 
 exmpls = 1:10:numel(eps3);
 ncols = round(numel(exmpls)*1.2);
@@ -230,7 +231,7 @@ plot([V1mean, V2mean], [1, 1]*min(Ovlpsb(:)), 'v', 'MarkerFaceColor', [.7,.7,.7]
 ylabel('% Overlap | V1, V2');
 xlabel('V3');
 xlim([min(V3), max(V3)]);
-mysavefig(h, filename, plot_dir, 12, [8, 6]);
+mysavefig(h, filename, plot_dir, 12, figsz);
 
 subplot(2,2,3); hold on;
 ratio = probsb(:,:,1)./(probsb(:,:,1) + probsb(:,:,2))*100;
@@ -242,17 +243,20 @@ ylim([min(eps3), max(eps3)]);
 xlim([min(V3), max(V3)]);
 cb = colorbar;
 ylabel(cb, '% Correct | V1, V2');
-mysavefig(h, filename, plot_dir, 12, [8, 6]);
+mysavefig(h, filename, plot_dir, 12, figsz);
 
 subplot(2,2,4); hold on;
 for ri = 1:numel(exmpls)
     plot(V3, ratio(exmpls(ri),:), '-', "Color", reds(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
 end
+numericVector = eps3(exmpls);
+cellArray = arrayfun(@(x) sprintf('%.1f', x), numericVector, 'UniformOutput', false);
+legend(cellArray, 'Location', 'best');
 plot([V1mean, V2mean], [1, 1]*min(ratio(:)), 'v', 'MarkerFaceColor', [.7,.7,.7]);
 ylabel('% Correct | V1, V2');
 xlabel('V3');
 xlim([min(V3), max(V3)]);
-mysavefig(h, filename, plot_dir, 12, [8, 6]);
+mysavefig(h, filename, plot_dir, 12, figsz);
 
 %% Test a cardinal view of V3 magnitude - V3 lalte noise  
 filename = sprintf('V3mag100_latenoise101_Choice_Ovlp');
@@ -306,7 +310,7 @@ xlim([min(V3), max(V3)]);
 cb = colorbar;
 colormap('jet');
 ylabel(cb, '% Overlap | V1, V2');
-mysavefig(h, filename, plot_dir, 12, [8, 6]);
+mysavefig(h, filename, plot_dir, 12, figsz);
 
 exmpls = 1:10:numel(eta3s);
 ncols = round(numel(exmpls)*1.2);
@@ -319,7 +323,7 @@ plot([V1mean, V2mean], [1, 1]*min(Ovlpsb(:)), 'v', 'MarkerFaceColor', [.7,.7,.7]
 ylabel('% Overlap | V1, V2');
 xlabel('V3');
 xlim([min(V3), max(V3)]);
-mysavefig(h, filename, plot_dir, 12, [8, 6]);
+mysavefig(h, filename, plot_dir, 12, figsz);
 
 subplot(2,2,3); hold on;
 ratio = probsb(:,:,1)./(probsb(:,:,1) + probsb(:,:,2))*100;
@@ -331,7 +335,7 @@ ylim([min(eta3s), max(eta3s)]);
 xlim([min(V3), max(V3)]);
 cb = colorbar;
 ylabel(cb, '% Correct | V1, V2');
-mysavefig(h, filename, plot_dir, 12, [8, 6]);
+mysavefig(h, filename, plot_dir, 12, figsz);
 
 subplot(2,2,4); hold on;
 for ri = 1:numel(exmpls)
@@ -341,5 +345,5 @@ plot([V1mean, V2mean], [1, 1]*min(ratio(:)), 'v', 'MarkerFaceColor', [.7,.7,.7])
 ylabel('% Correct | V1, V2');
 xlabel('V3');
 xlim([min(V3), max(V3)]);
-mysavefig(h, filename, plot_dir, 12, [8, 6]);
+mysavefig(h, filename, plot_dir, 12, figsz);
 

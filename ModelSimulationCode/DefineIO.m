@@ -1,6 +1,6 @@
 %% define directories
 [os, ~, ~] = computer;
-if strcmp(os,'MACI64')
+if strcmp(os,'MACA64')
     rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject';
     Gitdir = '~/Noise';
 elseif strcmp(os,'GLNXA64')

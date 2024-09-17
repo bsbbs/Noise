@@ -1,7 +1,7 @@
 ---
-title: "Noise"
-author: "Bo Shen"
-date: "7/15/2022"
+title: "Noise Project, Behavioral data analysis"
+author: "Bo Shen, NYU"
+date: "9/6/2024"
 output: html_document
 ---
 
@@ -34,22 +34,6 @@ for (s in 1:length(filelistbid))
 ```{r, echo=FALSE, include=FALSE}
 subjlist <- unique(grpbid$subID)
 Nsubj <- length(subjlist)
-
-# normalize within subjects
-bidmax <- aggregate(bid ~ subID, data = grpbid, FUN = max)
-grpbid$normbid <- 0
-for (subi in 1:Nsubj)
-{
-  indvmask <- grpbid$subID == subjlist[subi]
-  grpbid$normbid[indvmask] <- grpbid$bid[indvmask]/bidmax$bid[bidmax$subID == subjlist[subi]] # scale down the bid value to the maximum bid of each individual
-}
-par(mfrow = c(2,1))
-barx <- boxplot(normbid ~ subID, data = grpbid, las = 2)
-normbidvar <- aggregate(normbid ~ subID, data = grpbid, FUN = sd)
-barplot(normbid ~ subID, las = 2, data = normbidvar, col = 8)
-dev.copy(pdf,file.path(out_dir,sprintf("BidQuality.pdf")), height=8, width=12)
-dev.off()
-
 blacklist <- c() # pick out the subjects whose bidding on the precise targets (the highest 6 items) are all zero
 for (subi in 1:Nsubj)
 {
@@ -75,124 +59,138 @@ blacklist <- c(blacklist, '22102708', '22071913', '22110306')
 # 22071913 bid all V3 as zero, 22102708 bid all v3 and five targets as zero, 22110306 bid one of the targets as zero
 # from the above screening, 22102405 and 22102705 bid all targets as zero.
 grpbid <- grpbid[!grpbid$subID %in% blacklist,]
-str(grpbid)
-Ngroup <- aggregate(Group ~ subID, data = grpbid, FUN = unique)
-subID <- unique(grpbid$subID)
 grpdcsn <- grpdcsn[!grpdcsn$subID %in% blacklist,]
+str(grpbid)
 str(grpdcsn)
-grpdcsn <- grpdcsn[!is.na(grpdcsn$choice),]
 ```
 
 # data transformation
 ```{r}
+# define variable types in bid data
 grpbid$touched <- factor(as.numeric(grpbid$Group == grpbid$patch), level = c(1,0))
 grpbid$Group <- as.factor(grpbid$Group)
 grpbid$subID <- as.factor(grpbid$subID)
 grpbid$trial <- as.factor(grpbid$trial)
 grpbid$item <- as.factor(grpbid$item)
 
+# Calculate the variability of participants' rating, as a function of the bid mean value
+meanbid <- aggregate(bid ~ item + touched +  subID, FUN = mean, data = grpbid)
+sdbid <- aggregate(bid ~ item + touched + subID, FUN = sd, data = grpbid)
+varbid <- aggregate(bid ~ item + touched + subID, FUN = var, data = grpbid)
+
+# define varibale types in choice data
 grpdcsn$Group <- as.factor(grpdcsn$Group)
 grpdcsn$subID <- as.factor(grpdcsn$subID)
 grpdcsn$Vagueness <- as.factor(grpdcsn$Vagueness)
 grpdcsn$TimePressure <- as.factor(grpdcsn$TimePressure)
 grpdcsn$VD <- grpdcsn$V2 - grpdcsn$V1 # difference between two targets, in the design, V2 is always larger than V1
 grpdcsn$choice <- grpdcsn$chosenItem - 1 # choose #1 coded as 0 (incorrect); choose #2 coded as 1 (correct); choose #3 coded as 2, discard; NaN choice not made
-# combine the variance of items into it
-tmp <- varbid
-names(tmp) <- c('ID1','touched','subID','varbid1')
+
+# combine the bidding variance into choice data
+tmp <- sdbid
+names(tmp) <- c('ID1','touched','subID','sdbid1')
 grpdcsn <- merge(grpdcsn, tmp[,-2], by = c('subID','ID1'))
-tmp <- varbid
-names(tmp) <- c('ID2','touched','subID','varbid2')
+tmp <- sdbid
+names(tmp) <- c('ID2','touched','subID','sdbid2')
 grpdcsn <- merge(grpdcsn, tmp[,-2], by = c('subID','ID2'))
-tmp <- varbid
-names(tmp) <- c('ID3','touched','subID','varbid3')
+tmp <- sdbid
+names(tmp) <- c('ID3','touched','subID','sdbid3')
 grpdcsn <- merge(grpdcsn, tmp[,-2], by = c('subID','ID3'))
 
-grpdcsn$normv3 <- grpdcsn$V3/(grpdcsn$V1 + grpdcsn$V2)*2 # normalize V3 within trial
-grpdcsn$V1scld <- grpdcsn$V1 # scale V3 to the minimum targets
-grpdcsn$V2scld <- grpdcsn$V2
-grpdcsn$V3scld <- grpdcsn$V3
-grpdcsn$varbid1scld <- grpdcsn$varbid1 # scale V3 to the minimum targets
-grpdcsn$varbid2scld <- grpdcsn$varbid2
-grpdcsn$varbid3scld <- grpdcsn$varbid3
+# alignment of choice data across subjects according to the minimum target value
+grpdcsn$V1scld <- grpdcsn$V1
+grpdcsn$V2scld <- grpdcsn$V1
+grpdcsn$V3scld <- grpdcsn$V1
+grpdcsn$sdbid1scld <- grpdcsn$V1
+grpdcsn$sdbid2scld <- grpdcsn$V1
+grpdcsn$sdbid3scld <- grpdcsn$V1
 subjlist <- unique(grpdcsn$subID)
 for (s in subjlist)
 {
   mask <- grpdcsn$subID == s
-  maxval <- max(c(grpdcsn$V1[mask],grpdcsn$V2[mask],grpdcsn$V3[mask]))
-  minval <- min(c(grpdcsn$V1[mask],grpdcsn$V2[mask]))
+  minval <- min(c(grpdcsn$V1[mask], grpdcsn$V2[mask]))
   grpdcsn$V1scld[mask] <- grpdcsn$V1[mask]/minval
   grpdcsn$V2scld[mask] <- grpdcsn$V2[mask]/minval
   grpdcsn$V3scld[mask] <- grpdcsn$V3[mask]/minval
-  grpdcsn$varbid1scld[mask] <- grpdcsn$varbid1[mask]/(minval^2)
-  grpdcsn$varbid2scld[mask] <- grpdcsn$varbid2[mask]/(minval^2)
-  grpdcsn$varbid3scld[mask] <- grpdcsn$varbid3[mask]/(minval^2)
+  grpdcsn$sdbid1scld[mask] <- grpdcsn$sdbid1[mask]/minval
+  grpdcsn$sdbid2scld[mask] <- grpdcsn$sdbid2[mask]/minval
+  grpdcsn$sdbid3scld[mask] <- grpdcsn$sdbid3[mask]/minval
 }
 grpdcsn$VDscld <- grpdcsn$V2scld - grpdcsn$V1scld
+# discard the trials where choice is not made
+grpdcsn <- grpdcsn[!is.na(grpdcsn$choice),]
 # discard the trials where V1 == V2
 grpdcsn <- grpdcsn[grpdcsn$V1 != grpdcsn$V2,]
 str(grpdcsn)
 ```
 
-## Bidding task
-# see patterns of multiple bidding on the same items
-```{r}
-bid1 <- grpbid[grpbid$bid_times == 1,]
-bid2 <- grpbid[grpbid$bid_times == 2,]
-bid3 <- grpbid[grpbid$bid_times == 3,]
-long <- merge(bid1, bid2, by = c('subID','item'))
-long <- merge(long, bid3, by = c('subID','item'))
-par(mfrow = c(2,2))
-plot(long$bid.x, long$bid.y, pch = 20, cex = .3, xlab = 'bid 1', ylab = 'bid 2')
-plot(long$bid, long$bid.y, pch = 20, cex = .3, xlab = 'bid 3', ylab = 'bid 2')
-plot(long$bid.x, long$bid, pch = 20, cex = .3, xlab = 'bid 1', ylab = 'bid 3')
-dev.copy(pdf,file.path(out_dir,'Bid123.pdf'),height=8, width=8)
-dev.off()
-```
 
-## Calculate the variability of participants' rating, as a function of the bid mean value
-```{r}
-meanbid <- aggregate(bid ~ item + touched +  subID, FUN = mean, data = grpbid)
-sdbid <- aggregate(bid ~ item + touched + subID, FUN = sd, data = grpbid)
-varbid <- aggregate(bid ~ item + touched + subID, FUN = var, data = grpbid)
-```
-
-# visualize individual bidding behavior
-```{r}
-Indvdir <- file.path(out_dir, 'IndvBid')
-if (!file.exists(Indvdir))
-{dir.create(Indvdir)}
-# individual
-for (s in 1:length(subID))
-{
-  plot(meanbid$bid[meanbid$subID == subID[s] & meanbid$touched == 1],varbid$bid[varbid$subID == subID[s] & meanbid$touched == 1], pch = 20, col = 'red', xlab = 'Bid mean', ylab = 'Bid variance', main = subID[s])
-  points(meanbid$bid[meanbid$subID == subID[s] & meanbid$touched == 0],varbid$bid[varbid$subID == subID[s] & meanbid$touched == 0], pch = 20, col = 'blue')
-  legend('topleft',c('Touched (Precise)','Untouched (Vauge)'), text.col = c('red','blue'), pch = 20, cex = .8, col = c('red','blue'), bty = 'n')
-  # save the figure
-  dev.copy(pdf,file.path(out_dir,'IndvBid',sprintf("BidVariance%s.pdf",subID[s])),height=4, width=4)
-  dev.off()
-}
-```
 # Statistics on bidding behavior, reveal a mean-scaled noise
 ```{r, echo=FALSE}
 require(lmerTest)
-mrgdat <- merge(meanbid, varbid, by = c('subID','item','touched'))
+mrgdat <- merge(meanbid,varbid, by = c('subID','item','touched'))
 mrgdat$bidmean <- mrgdat$bid.x
 mrgdat$bidvar <- mrgdat$bid.y
-Rgtest <- lmer(bidvar ~ bidmean * touched + (1|subID), data = mrgdat)
-summary(Rgtest)
 # test on the mean bidding values between precise and vague items
-summary(test <- aov(bidmean ~ touched + Error(subID), data = mrgdat))
+summary(Rgtest <- lmer(bidvar ~ bidmean * touched + (1|subID), data = mrgdat))
+
+mrgdat <- merge(meanbid,sdbid, by = c('subID','item','touched'))
+mrgdat$bidmean <- mrgdat$bid.x
+mrgdat$bidsd <- mrgdat$bid.y
+# test on the mean bidding values between precise and vague items
+summary(Rgtest <- lmer(bidsd ~ bidmean * touched + (1|subID), data = mrgdat))
 
 # test only on V3
 V3vars <- aggregate(varbid3 ~ V3 + ID3 + subID + Vagueness, data = grpdcsn, FUN = mean)
 summary(test <- aov(V3 ~ Vagueness + Error(subID), data = V3vars))
+# test whether vague V3
 tmpdat <- grpdcsn
 tmpdat$chosenV3 <- as.numeric(tmpdat$chosenItem == 3)
 ChrV3 <- aggregate(chosenV3 ~ Vagueness + subID, data = tmpdat, FUN = mean)
 summary(test <- aov(chosenV3 ~ Vagueness + Error(subID), data = ChrV3))
 summary(test <- lmer(varbid3 ~ V3*Vagueness + (1|subID), data = V3vars))
 ```
+# data transformation
+```{r}
+# calculate the choice ratio given each V3
+subID <- unique(grpdcsn$subID)
+Vagueness <- unique(grpdcsn$Vagueness)
+TimePressure <- unique(grpdcsn$TimePressure)
+CR.ID3 <- c() # Chosen Ratio given every ID3
+for (s in 1:length(subID))
+{
+  indvdat <- grpdcsn[grpdcsn$subID == subID[s],]
+  vi <- 0
+  for (v in Vagueness) # decision noise
+  {
+    vi <- vi + 1
+    tpi <- 0
+    for (tp in TimePressure) # representation noise
+    {
+      tpi <- tpi + 1
+      sectdat <- indvdat[indvdat$TimePressure == tp & indvdat$Vagueness == v & indvdat$chosenItem != 3 & !is.na(indvdat$chosenItem),]
+      v3ID <- unique(sectdat$ID3)
+      CR <- aggregate(choice ~ ID3, data = sectdat, FUN = mean)
+      colnames(CR) <- c('ID3','CR')
+      Ntrial <- aggregate(trial ~ ID3, data = sectdat, FUN = length)
+      colnames(Ntrial) <- c('ID3','Ntrial')
+      bid <- aggregate(V3 ~ ID3, data = sectdat, FUN = mean)
+      bidscld <- aggregate(V3scld ~ ID3, data = sectdat, FUN = mean)
+      sdbid <- aggregate(sdbid3 ~ ID3, data = sectdat, FUN = mean)
+      sdbidscld <- aggregate(sdbid3scld ~ ID3, data = sectdat, FUN = mean)
+      sectavrg <- merge(CR, bid, by = 'ID3')
+      sectavrg <- merge(sectavrg, sdbid, by = 'ID3')
+      sectavrg <- merge(sectavrg, bidscld, by = 'ID3')
+      sectavrg <- merge(sectavrg, sdbidscld, by = 'ID3')
+      sectavrg <- merge(sectavrg, Ntrial, by = 'ID3')
+      CR.ID3 <- rbind(CR.ID3, data.frame(subID = subID[s], Vagueness = v, TimePressure = tp, sectavrg))
+    }
+  }
+}
+CR.ID3$Vagueness <- as.factor(CR.ID3$Vagueness)
+CR.ID3$TimePressure <- as.factor(CR.ID3$TimePressure)
+```
+
 # visualize bidding behavior as a group
 ```{r}
 redtrnsp <- rgb(255,0,0,50, maxColorValue = 255)
@@ -296,26 +294,33 @@ LowestV3 <- .2
 HighestV3 <- .8
 contrasts(grpdcsn$TimePressure) <- contr.sum(levels(grpdcsn$TimePressure))
 contrasts(grpdcsn$Vagueness) <- contr.sum(levels(grpdcsn$Vagueness))
-summary(test <- glmer(choice ~ V3:Vagueness:TimePressure + (VDscld|subID), family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,])) # not sig.
+
 summary(test <- glmer(choice ~ Vagueness + TimePressure + V3:Vagueness:TimePressure + (1|subID), family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
-summary(test <- glmer(choice ~ Vagueness + TimePressure + V3:Vagueness:TimePressure + (1|subID), family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
-summary(lmtest3 <- glmer(choice ~  V3scld + V3scld:Vagueness + V3scld:TimePressure + (1|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= .2 & grpdcsn$V3scld <= .8,])) # & !grpdcsn$subID %in% blacklist
 
-summary(test <- glmer(choice ~ TimePressure + Vagueness + V3:Vagueness + V3:TimePressure + (1|subID), family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
+summary(test <- glm(choice ~ Vagueness + TimePressure + V3:Vagueness:TimePressure, family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
 
-summary(test <- glm(choice ~ TimePressure + Vagueness + V3:Vagueness + V3:TimePressure, family = "binomial", data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,])) # & !grpdcsn$subID %in% blacklist
+summary(test <- glm(choice ~ Vagueness + TimePressure + V3scld + V3scld:Vagueness + V3scld:TimePressure, family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
 
-summary(aov(choice ~ TimePressure + Vagueness + V3:Vagueness + V3:TimePressure + Error(subID),  data = grpdcsn[(grpdcsn$choice == 1 | grpdcsn$choice == 0) & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
-AccID3$TimePressure <- as.factor(AccID3$TimePressure)
-summary(aov_model <- aov(acc ~ TimePressure + V3scld + varbid3scld + V3scld:varbid3scld + Error(subID), data = AccID3[AccID3$V3scld >= .2 & AccID3$V3scld <= .8,]))
-install.packages("emmeans")
-library(emmeans)
-# Main effect post-hoc test for TimePressure
-emm_timepressure <- emmeans(aov_model, ~ TimePressure)
-pairs(emm_timepressure)
-# Post-hoc test for interaction effect
-emm_interaction <- emmeans(aov_model, ~ TimePressure + varbid3scld)
-pairs(emm_interaction)
+
+summary(test <- glmer(choice ~ TimePressure + V3 + sdbid3 + V3:sdbid3 + (1|subID), family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
+
+summary(test <- glmer(choice ~ TimePressure + V3scld + sdbid3scld + V3scld:sdbid3scld + V3scld:TimePressure + (1|subID), family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
+
+summary(test <- glm(choice ~ TimePressure + V3scld + sdbid3scld + V3scld:sdbid3scld + V3scld:TimePressure, family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & grpdcsn$V3scld >= LowestV3 & grpdcsn$V3scld <= HighestV3,]))
+
+
+######
+summary(aov_model <- aov(CR ~ TimePressure*V3scld*sdbid3scld + Error(subID), data = CR.ID3[CR.ID3$V3scld >= .2 & CR.ID3$V3scld <= .8,]))
+summary(lmer_model <- lmer(CR ~ TimePressure*V3scld*sdbid3scld + (1|subID), data = CR.ID3[CR.ID3$V3scld >= .2 & CR.ID3$V3scld <= .8,]))
+
+summary(aov_model <- aov(CR ~ V3scld*TimePressure*Vagueness, data = CR.ID3[CR.ID3$V3scld >= .2 & CR.ID3$V3scld <= .8,]))
+
+summary(lm_model <- lm(CR ~ V3scld*TimePressure*Vagueness, data = CR.ID3[CR.ID3$V3scld >= .2 & CR.ID3$V3scld <= .8,]))
+
+summary(lmer_model <- lmer(CR ~ V3scld*TimePressure*Vagueness + (1|subID), data = CR.ID3[CR.ID3$V3scld >= .2 & CR.ID3$V3scld <= .8,]))
+
+summary(lmer_model <- lmer(CR ~ V3*TimePressure*Vagueness + (1|subID), data = CR.ID3[CR.ID3$V3scld >= .2 & CR.ID3$V3scld <= .8,]))
+
 
 # Test the basic idea of early noise, both VD and variance significant, for both raw or scaled
 grpdcsn$varVD <- sqrt(grpdcsn$varbid1^2 + grpdcsn$varbid2^2)
@@ -837,8 +842,10 @@ for (s in 1:length(subID))
       Ntrial <- aggregate(trial ~ ID3, data = sectdat, FUN = length)
       colnames(Ntrial) <- c('ID3','Ntrial')
       bid <- aggregate(V3scld ~ ID3, data = sectdat, FUN = mean)
+      sdbid <- aggregate(sdbid3scld ~ ID3, data = sectdat, FUN = mean)
       onesect <- merge(acc, bid, by = 'ID3')
       onesect <- merge(onesect, Ntrial, by = 'ID3')
+      onesect <- merge(onesect, sdbid, by = 'ID3')
       plot(acc ~ V3scld, data = onesect, xlab = 'Mean bid V3', ylab = '% Correct | (1, 2)', pch = 20, cex = (onesect$Ntrial)/10, main = sprintf('%s %s', v, tp))
       test <- lm(acc ~ V3scld, data = onesect, weights = Ntrial)
       if (!is.na(test$coefficients[2])){abline(test)}

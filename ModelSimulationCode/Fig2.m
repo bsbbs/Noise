@@ -99,6 +99,7 @@ mysavefig(h, filename, plot_dir, 12, [2, 2]);
 
 %% Full range panel
 filename = sprintf('Choice_MixedNoiseFullrng');
+products = {'Probability'};
 V1mean = 88;
 V2mean = 83;
 V3 = linspace(0, V1mean, 50)';
@@ -122,14 +123,14 @@ if ~exist(matfile, 'file')
             sdV2 = eps*ones(size(V3));
             sdV3 = eps*ones(size(V3));
             dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
-            pars = [eta, 1, 1, 1];
+            pars = [eta,eta,eta, 1, 1, 1];
             reps = 40;
             tmp = nan([reps, 3, numel(V3)]);
             parfor ri = 1:reps
-                tmp(ri,:,:) = dDNbFig2(pars, dat, nsmpls);
+                [tmp(ri,:,:), ~, ~] = dnDNM(dat, pars, 'biological', products); % biological model
             end
             probs = squeeze(mean(tmp, 1));
-            ratio = probs(1,:)./(probs(1,:) + probs(2,:))*100;
+            ratio = probs(:,1)./(probs(:,1) + probs(:,2))*100;
             coefficients = polyfit(x(mask), ratio(mask), 1);
             slope(i,j) = coefficients(1);
         end
@@ -195,6 +196,76 @@ xlabel('\sigma_{Late noise}');
 xlim([min(etavec), max(etavec)]);
 ylim([min(epsvec), max(epsvec)]);
 mysavefig(h, filename, plot_dir, 12, [9.9, 3.6]);
+
+
+%% V3 mean value - variance matrix
+V1mean = 88;
+V2mean = 83;
+eps1 = 4; % early noise for V1
+eps2 = 4; % early noise for V2
+V3 = linspace(0, V1mean, 100)';
+eps3 = linspace(0, 60, 101);
+V1 = V1mean*ones(size(V3));
+V2 = V2mean*ones(size(V3));
+sdV1 = eps1*ones(size(V3));
+sdV2 = eps2*ones(size(V3));
+etavec = [1.0, 1.4286]; % 1, 1.4286; %linspace(.8, 1.9, 8); % different levels of late noise
+products = {'Probability'};
+for ti = 1:numel(etavec)
+    eta = etavec(ti);
+    filename = sprintf('Ratio_Model_%iv3max%1.0f_%ivar3max%1.0f_eta%1.2f', numel(V3), max(V3), numel(eps3), max(eps3), eta);
+    % simulation
+    SimDatafile = fullfile(sim_dir, [filename, '.mat']);
+    if ~exist(SimDatafile,'file')
+        Ratios = nan(numel(eps3), numel(V3));
+        for i = 1:numel(eps3)
+            fprintf('Mixed noise - late noise %i/%i, early noise %i/%i\n', ti, numel(etavec), i, numel(eps3));
+            sdV3 = eps3(i)*ones(size(V3));
+            dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
+            pars = [eta, eta, eta, 1, 1, 1];
+            tmpb = nan([reps, numel(V3), 3]);
+            parfor ri = 1:reps
+                [tmpb(ri,:,:), ~, ~] = dnDNM(dat, pars, 'biological', products); % biological model
+            end
+            probs = squeeze(mean(tmpb, 1));
+            Ratios(i,:) = probs(:,1)./(probs(:,1) + probs(:,2))*100;
+        end
+        save(SimDatafile, "Ratios", "V3", "eta", "V2mean", '-mat');
+    end
+end
+%% visualization
+filename = 'CardinalView_Model';
+etavec = [1.0, 1.4286];
+h = figure;
+for ti = 1:2
+    eta = etavec(ti);
+    simrslts = sprintf('Ratio_Model_%iv3max%1.0f_%ivar3max%1.0f_eta%1.2f', numel(V3), max(V3), numel(eps3), max(eps3), eta);
+    SimDatafile = fullfile(sim_dir, [simrslts, '.mat']);
+    load(SimDatafile);
+
+    subplot(1,2,ti); hold on;
+    colormap("bone");
+    cmap = bone(numel(eps3));
+    for ri = 1:5:numel(eps3)
+        plot(V3/V2mean, Ratios(ri,:), '-', 'Color', cmap(ri,:), 'LineWidth',2);
+    end
+    plot([V1mean, V2mean]/V2mean, [1, 1]*min(Ratios(:)), 'v', 'MarkerFaceColor', [.7,.7,.7]);
+    xlabel('Scaled V3');
+    ylabel('% Correct | V1, V2');
+    ylim([57, 77]);
+    title(sprintf('Late noise eta = %1.2f', eta));
+    mysavefig(h, filename, plot_dir, 12, [6, 2.5]);
+
+    % subplot(2,2,2+(ti-1)*2);
+    % colormap("jet");
+    % imagesc(V3/V2mean, eps3/V2mean, Ratios, [65, 80]);
+    % title('');
+    % colorbar;
+    % xlabel('Scaled V3');
+    % ylabel('\sigma_3 (Early noise)');
+    % set(gca, 'YDir', 'normal');
+    % mysavefig(h, filename, plot_dir, 12, [10, 8]);
+end
 
 %% averaging function
 function Dp = RUNAverg(D, p, q)
