@@ -78,6 +78,8 @@ products = {'Probability'};
 for modeli = 1:4
     filename = sprintf('Ratio_Model%i_%iv3max%1.0f_%s', modeli, numel(V3), max(V3), '6lines');
     % filename = sprintf('Ratio_Model%i_%iv3max%1.0f_%s', modeli, numel(V3), max(V3), 'sdV3fromData');
+    Rslts = table('Size', [0 4], 'VariableTypes', {'double', 'double', 'double', 'double'},...
+    'VariableNames', {'Early', 'Late', 'V3', 'choice'});
     SimDatafile = fullfile(sim_dir, [filename, '.mat']);
     % simulation
     if exist(SimDatafile,'file')
@@ -120,11 +122,19 @@ for modeli = 1:4
                 fprintf('\n');
                 probs = squeeze(mean(tmpb, 1));
                 Ratios(i,ti,:) = probs(:,1)./(probs(:,1) + probs(:,2))*100;
+                
             end
         end
         xval = V3'/V2mean;
         save(SimDatafile, "Ratios","xval",'-mat');
     end
+    for i = 1:numel(eps3vec)
+        for ti = 1:numel(etavec)
+            new_row = table(repmat(eps3vec(i),numel(V3),1), repmat(etavec(ti),numel(V3),1), V3, squeeze(Ratios(i,ti,:)),'VariableNames', Rslts.Properties.VariableNames);
+            Rslts = [Rslts; new_row];
+        end
+    end
+    writetable(Rslts, fullfile(sim_dir, [filename, '.txt']), 'Delimiter', '\t');
 
     %% visualization
     xval = V3'/V2mean;

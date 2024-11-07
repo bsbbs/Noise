@@ -1,6 +1,6 @@
 %% define directoriress
 [os, ~, ~] = computer;
-if strcmp(os,'MACI64')
+if strcmp(os,'MACA64')
     rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject';
     Gitdir = '~/Noise';
 elseif strcmp(os,'GLNXA64')
@@ -9,7 +9,7 @@ elseif strcmp(os,'GLNXA64')
     Gitdir = '~/Noise';
 end
 addpath(genpath(Gitdir));
-datadir = fullfile(rootdir,'myData');
+datadir = fullfile(Gitdir,'myData');
 
 Fitdir = fullfile(rootdir, 'Modelfit');
 if ~exist(Fitdir, 'dir')
@@ -50,9 +50,8 @@ end
 Myclust = parcluster();
 Npar = Myclust.NumWorkers;
 mypool = parpool(Npar);
-sublist = unique(mt.subID);
-sublist = sublist(~ismember(sublist, blacklist));
-for subj = 1:numel(sublist)
+fitlist = find(~ismember(sublist, blacklist));
+for subj = fitlist'
     %%
     fprintf('Subject %d:\n', subj);
     dat = mt(mt.subID == sublist(subj), :);
