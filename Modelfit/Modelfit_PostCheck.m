@@ -1,7 +1,7 @@
 %% 
 %% define directories
 [os, ~, ~] = computer;
-if os == 'MACI64'
+if os == 'MACA64'
     rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject';
     Gitdir = '~/Noise';
 end
@@ -81,6 +81,7 @@ for modeli = 1:4
         end
         mtmodel.ratio = mtmodel.modelprob2./(mtmodel.modelprob1 + mtmodel.modelprob2);
         save(simdat, "mtmodel", '-mat');
+        writetable(mtmodel, fullfile(fitdir, sprintf('Model%i_Predict.txt', modeli)), 'Delimiter', '\t');
     else
         load(simdat);
     end
