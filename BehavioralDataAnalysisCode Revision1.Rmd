@@ -1347,6 +1347,15 @@ summary(test <- glm(choice ~ TimePressure + V3scld + sdbid3scld + V3scld:sdbid3s
 # V3scld:sdbid3scld           1.69534    0.27657   6.130  8.8e-10 ***
 # TimePressureLow:V3scld      0.06532    0.12357   0.529  0.59707    
 # TimePressureLow:sdbid3scld -0.19723    0.17188  -1.148  0.25116   
+
+summary(test <- glm(choice ~ TimePressure + V3scld + sdbid3scld + V3scld:sdbid3scld + V3scld:TimePressure + sdbid3scld:TimePressure, family = "binomial", data = grpdcsn[grpdcsn$choice != 2 & grpdcsn$V3scld >= 0 & grpdcsn$V3scld <= .8,]))
+# (Intercept)                 0.74423    0.03832  19.422  < 2e-16 ***
+# TimePressureLow             0.16800    0.05137   3.271  0.00107 ** 
+# V3scld                     -0.28765    0.12145  -2.368  0.01786 *  
+# sdbid3scld                 -1.70403    0.32481  -5.246 1.55e-07 ***
+# V3scld:sdbid3scld           3.50465    0.57443   6.101 1.05e-09 ***
+# TimePressureLow:V3scld      0.20903    0.16402   1.274  0.20252    
+# TimePressureLow:sdbid3scld -0.45737    0.23429  -1.952  0.05092 .  
 ```
 
 ## Model fitting results, Louie et al., 2011

@@ -167,6 +167,10 @@ xlim([0, V1mean]);
 % set(gca, 'YTickLabel', yticklabels);
 mysavefig(h, filename, plot_dir, 12, [6, 8]);
 
+%%%%%%%%
+% The Following code is not included in the current version of the paper,
+% Please ignore
+%%%%%%%%
 %% Test a cardinal view of V3 magnitude - V3 variance 
 filename = sprintf('V3mag100_var101_Choice_Ovlp');
 matfile = fullfile(sim_dir, [filename, '.mat']);

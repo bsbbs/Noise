@@ -142,6 +142,8 @@ else
 end
 %%
 addpath(genpath('/Users/bs3667/Library/CloudStorage/GoogleDrive-bs3667@nyu.edu/My Drive/Mylib'));
+% please find the redwhiteblue colormap and load it from
+% https://www.mathworks.com/matlabcentral/fileexchange/86932-red-white-blue-colormap
 h = figure;
 subplot(1,2,1); hold on;
 imagesc(etavec, epsvec, slope);
@@ -197,7 +199,10 @@ xlim([min(etavec), max(etavec)]);
 ylim([min(epsvec), max(epsvec)]);
 mysavefig(h, filename, plot_dir, 12, [9.9, 3.6]);
 
-
+%%%%%%%%
+% The Following code is not included in the current version of the paper,
+% Please ignore
+%%%%%%%%
 %% V3 mean value - variance matrix
 V1mean = 88;
 V2mean = 83;
