@@ -48,6 +48,6 @@ The package development version is tested on *Mac OSX*, *Linux* and *Windows* op
 
 # Citation
 
-For usage of the package and associated manuscript, please cite our [bioRXiv preprint](https://www.biorxiv.org/content/10.1101/2024.03.26.586597v2).
+For usage of the package and associated manuscript, please cite our [bioRXiv preprint](https://www.biorxiv.org/content/10.1101/2024.03.26.586597v3).
 
 
