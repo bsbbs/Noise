@@ -25,7 +25,7 @@ This is a repository for a manuscript under review, titled "Origins of noise in 
 
 - [Empirical data](./myData): Human choice data created by the current project. Please check the [README file](./myData/README.txt) for further information about the data structure and variables.
 - [Simulation code](./ModelSimulationCode): Matlab code for the modeling part of the paper. To replicate the simulation, please follow the main files [Fig1](./ModelSimulationCode/Fig1.m), [Fig2](./ModelSimulationCode/Fig2.m), and [Fig4](./ModelSimulationCode/Fig4.m).
-- [Data analysis code](./BehavioralDataAnalysisCode Revision1.Rmd): `R` code for analyzing the empirical data. To replicate the data analysis, please change the directory of the data according to your local directory environment and follow the sections in the code.
+- [Data analysis code](./BehavioralDataAnalysisCodeRevision1.Rmd): `R` code for analyzing the empirical data. To replicate the data analysis, please change the directory of the data according to your local directory environment and follow the sections in the code.
 - [Data collection code](./DataCollectionCode): The Matlab code used for presenting choice information and collecting the participants' responses with Psychtoolbox 3.0.19.
 
 # System Requirements
