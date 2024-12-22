@@ -123,6 +123,8 @@ for subj = fitlist'
                 elseif modeli == 3
                     dlmwrite(testfile, [sublist(subj), modeli, i, x0, NaN, NaN, xOpt, NaN, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
                 elseif modeli == 4
+                    dlmwrite(testfile, [sublist(subj), modeli, i, x0, NaN, xOpt, NaN, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
+                elseif modeli == 5
                     dlmwrite(testfile, [sublist(subj), modeli, i, x0, xOpt, fval, output.fsd, exitflag, output.iterations],'delimiter','\t','precision','%.6f','-append');
                 end
                 params{i} = xOpt;
@@ -146,6 +148,8 @@ for subj = fitlist'
         elseif modeli == 3
             new_row = table(sublist(subj), modeli, {name}, xOpt(1), xOpt(2), xOpt(3), NaN, NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         elseif modeli == 4
+            new_row = table(sublist(subj), modeli, {name}, xOpt(1), xOpt(2), xOpt(3), xOpt(4), NaN, fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
+        elseif modeli == 5
             new_row = table(sublist(subj), modeli, {name}, xOpt(1), xOpt(2), xOpt(3), xOpt(4), xOpt(5), fval, output.fsd, exitflag, output.iterations, 'VariableNames', Rslts.Properties.VariableNames);
         end
         Rslts = [Rslts; new_row];
