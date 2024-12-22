@@ -67,10 +67,10 @@ for subj = fitlist'
                 nLLfunc = @(x) DNM(x, dat);
                 name = 'DNM'; %, cut input, independent';
             case 4
-                nLLfunc = @(x) dnDNM(x, dat, mode);
+                nLLfunc = @(x) dnDNM(x, dat, 'absorb');
                 name = 'dnDNM'; %, cut input, independent';
             case 5
-                nLLfunc = @(x) dnDNMe(x, dat, mode);
+                nLLfunc = @(x) dnDNMe(x, dat, 'absorb');
                 name = 'dnDNMExtened'; %, cut input, independent';
         end
         fprintf('\tModel %i\n', modeli);
