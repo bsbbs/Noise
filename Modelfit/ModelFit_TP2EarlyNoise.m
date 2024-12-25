@@ -11,7 +11,7 @@ end
 addpath(genpath(Gitdir));
 datadir = fullfile(Gitdir,'myData');
 
-Fitdir = fullfile(rootdir, 'ModelfitExtended');
+Fitdir = fullfile(rootdir, 'ModelfitExtended2');
 if ~exist(Fitdir, 'dir')
     mkdir(Fitdir);
 end
@@ -39,12 +39,12 @@ options.Display = 'final';
 options.UncertaintyHandling = true;    %s Function is stochastic
 options.NoiseFinalSamples = 30;
 Rslts = table('Size', [0 12], 'VariableTypes', {'double', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'logical', 'uint16'},...
-    'VariableNames', {'subID', 'modeli', 'name', 'Mp', 'delta', 'wp', 'scl', 'delta2', 'nll', 'nllsd', 'success', 'iterations'});
+    'VariableNames', {'subID', 'modeli', 'name', 'Mp', 'log(1+delta)', 'wp', 'scl', 'log(1+delta2)', 'nll', 'nllsd', 'success', 'iterations'});
 testfile = fullfile(Fitdir, 'AllRslts.txt');
 if ~exist(testfile, 'file')
     fp = fopen(testfile, 'w+');
-    fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', ...
-        'subID', 'Model', 'randi', 'Mp0', 'delta0', 'wp0', 'scl0', 'Mp', 'delta', 'wp', 'scl', 'detla2', 'nll', 'nllsd', 'success', 'iterations');
+    fprintf(fp, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', ...
+        'subID', 'Model', 'randi', 'Mp0', 'log(1+delta0)', 'wp0', 'scl0', 'log(1+detla20)', 'Mp', 'log(1+delta)', 'wp', 'scl', 'log(1+detla2)', 'nll', 'nllsd', 'success', 'iterations');
     fclose(fp);
 end
 Myclust = parcluster();
@@ -77,35 +77,34 @@ for subj = fitlist'
         filename = fullfile(mtrxdir, sprintf('Subj%02i_Mdl%i.mat', subj, modeli));
         if ~exist(filename, 'file')
             % shared parameters for all models
-            LB = [0, -1]; % [Mp, delta]
-            UB = [1000, 4];
-            PLB = [1, -.2];
-            PUB = [100, .4];
+            LB = [0, -30]; % [Mp, log(delta+1)]
+            UB = [1000, 30];
+            PLB = [1, -5];
+            PUB = [100, 5];
             % nest other parameters
             if modeli == 2 % nest scaling on early noise for model 2
-                LB = [LB, 0]; % [Mp, delta, scl]
+                LB = [LB, 0]; % [Mp, log(1+delta), scl]
                 UB = [UB, 4];
                 PLB = [PLB, 0];
                 PUB = [PUB, 2];
             end
             if modeli == 3 % nest divisive normalization for model 3
-                LB = [LB, 0]; % [Mp, delta, wp]
+                LB = [LB, 0]; % [Mp, log(1+delta), wp]
                 UB = [UB, 4];
                 PLB = [PLB, 0];
                 PUB = [PUB, 1.4];
             end
             if modeli == 4 % nest for model 4
-                LB = [LB, 0, 0]; % [Mp, delta, wp, scl]
+                LB = [LB, 0, 0]; % [Mp, log(1+delta), wp, scl]
                 UB = [UB, 4, 4];
                 PLB = [PLB, 0, 0];
                 PUB = [PUB, 1.4, 2];
             end
-
             if modeli == 5 % nest for model 5
-                LB = [LB, 0, 0, -1]; % [Mp, delta, wp, scl, delta2]
-                UB = [UB, 4, 4, 4];
-                PLB = [PLB, 0, 0, -.2];
-                PUB = [PUB, 1.4, 2, .4];
+                LB = [LB, 0, 0, -30]; % [Mp, log(1+delta), wp, scl, log(1+delta2)]
+                UB = [UB, 4, 4, 30];
+                PLB = [PLB, 0, 0, -5];
+                PUB = [PUB, 1.4, 2, 5];
             end
 
             nLL = [];
@@ -167,7 +166,7 @@ else
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
 eta = 1; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
+delta = exp(x(2))-1; % late noise difference between time-pressure conditions
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
 num_samples = 20000;
 samples = [];
@@ -203,7 +202,7 @@ else
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
 eta = 1; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
+delta = exp(x(2))-1; % late noise difference between time-pressure conditions
 scl = x(3); % scaling parameter on early noise
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
 num_samples = 20000;
@@ -244,7 +243,7 @@ else
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
 eta = 1; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
+delta = exp(x(2))-1; % late noise difference between time-pressure conditions
 wp = x(3); % do the same transformation on w
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
 num_samples = 20000;
@@ -287,7 +286,7 @@ else
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
 eta = 1; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
+delta = exp(x(2))-1; % late noise difference between time-pressure conditions
 wp = x(3); % do the same transformation on w
 scl = x(4); % scaling parameter on the early noise
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
@@ -360,10 +359,10 @@ else
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
 eta = 1; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
+delta = exp(x(2))-1; % late noise difference between time-pressure conditions
 wp = x(3); % do the same transformation on w
 scl = x(4); % scaling parameter on the early noise
-delta2 = x(5); % possible time pressure impact on the scaling parameter of early noise
+delta2 = exp(x(5))-1; % possible time pressure impact on the scaling parameter of early noise
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
 num_samples = 20000;
 Ntrl = size(dat,1);
@@ -386,13 +385,13 @@ if strcmp(mode, 'absorb')
     for ci = 1:3
         if gpuparallel
             values = gpuArray(data.(['V',num2str(ci)])');
-            stds = gpuArray(data.(['sdV', num2str(ci)])')*scl;
+            stds = gpuArray(data.(['sdV', num2str(ci)])').*(1 + delta2*(data.TimeConstraint'==1.5))*scl;
             D1(:,:,ci) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
             D2(:,:,ci) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
             D3(:,:,ci) = max(gpuArray.randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
         else
             values = data.(['V',num2str(ci)])';
-            stds = data.(['sdV', num2str(ci)])'*scl;
+            stds = data.(['sdV', num2str(ci)])'.*(1 + delta2*(data.TimeConstraint'==1.5))*scl;
             D1(:,:,ci) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
             D2(:,:,ci) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
             D3(:,:,ci) = max(randn([num_samples, Ntrl]).*stds + repmat(values, num_samples, 1), 0);
