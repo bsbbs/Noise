@@ -172,13 +172,16 @@ mysavefig(h, filename, plot_dir, 12, [6, 8]);
 % Please ignore
 %%%%%%%%
 %% Test a cardinal view of V3 magnitude - V3 variance 
-filename = sprintf('V3mag100_var101_Choice_Ovlp');
+% filename = sprintf('V3mag100_var101_Choice_Ovlp');
+filename = sprintf('V3mag50_var6_Choice_Ovlp');
 matfile = fullfile(sim_dir, [filename, '.mat']);
 products = {'Probability','Overlap'}; % 'Coeff_of_Var',
 V1mean = 88;
 V2mean = 83;
-V3 = linspace(0, V1mean, 100)';
-eps3 = linspace(0,18, 101);
+% V3 = linspace(0, V1mean, 100)';
+V3 = linspace(0 , V1mean, 50)';
+% eps3 = linspace(0, 18, 101);
+eps3 = linspace(0, 14, 6);
 V1 = V1mean*ones(size(V3));
 eps1 = 9;
 V2 = V2mean*ones(size(V3));
@@ -211,23 +214,11 @@ else
 end
 %% plotting 
 h = figure;
-figsz = [6.4, 4.8];
-subplot(2,2,1); hold on;
-imagesc(V3, eps3, Ovlpsb);
-plot([V1mean, V2mean], [1, 1]*min(eps3), 'v', 'MarkerFaceColor', [.7,.7,.7]);
-ylabel('\sigma_{Early noise}');
-xlabel('V3');
-ylim([min(eps3), max(eps3)]);
-xlim([min(V3), max(V3)]);
-cb = colorbar;
-colormap('jet');
-ylabel(cb, '% Overlap | V1, V2');
-mysavefig(h, filename, plot_dir, 12, figsz);
-
-exmpls = 1:10:numel(eps3);
+figsz = [3.2, 4.8];
+exmpls = 1:6;
 ncols = round(numel(exmpls)*1.2);
 reds = flip([ones(ncols,1), linspace(0,1,ncols)', linspace(0,1,ncols)']); % Gradient from red to white
-subplot(2,2,2); hold on;
+subplot(2,1,1); hold on;
 for ri = 1:numel(exmpls)
     plot(V3, Ovlpsb(exmpls(ri),:), '-', "Color", reds(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
 end
@@ -237,39 +228,43 @@ xlabel('V3');
 xlim([min(V3), max(V3)]);
 mysavefig(h, filename, plot_dir, 12, figsz);
 
-subplot(2,2,3); hold on;
-ratio = probsb(:,:,1)./(probsb(:,:,1) + probsb(:,:,2))*100;
-imagesc(V3, eps3, ratio);
-plot([V1mean, V2mean], [1, 1]*min(eps3), 'v', 'MarkerFaceColor', [.7,.7,.7]);
-ylabel('\sigma_{Early noise}');
-xlabel('V3');
-ylim([min(eps3), max(eps3)]);
-xlim([min(V3), max(V3)]);
-cb = colorbar;
-ylabel(cb, '% Correct | V1, V2');
-mysavefig(h, filename, plot_dir, 12, figsz);
-
-subplot(2,2,4); hold on;
+x = V3/V2mean;
+lt = 0.2;
+rt = 0.8;
+mask = x >= lt & x <= rt;
+slope = [];
+lgd = [];
+subplot(2,1,2); hold on;
 for ri = 1:numel(exmpls)
-    plot(V3, ratio(exmpls(ri),:), '-', "Color", reds(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
+    lgd(ri) = plot(V3, ratio(exmpls(ri),:), '-', "Color", reds(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
+    coefficients = polyfit(x(mask), ratio(exmpls(ri),mask), 1);
+    slope(ri) = coefficients(1);
 end
+plot([V1mean, V2mean], [1, 1]*61, 'v', 'MarkerFaceColor', [.7,.7,.7]);
 numericVector = eps3(exmpls);
 cellArray = arrayfun(@(x) sprintf('%.1f', x), numericVector, 'UniformOutput', false);
-legend(cellArray, 'Location', 'best');
-plot([V1mean, V2mean], [1, 1]*min(ratio(:)), 'v', 'MarkerFaceColor', [.7,.7,.7]);
+legend(lgd, cellArray, 'Location', 'best');
 ylabel('% Correct | V1, V2');
 xlabel('V3');
 xlim([min(V3), max(V3)]);
 mysavefig(h, filename, plot_dir, 12, figsz);
-
+%%
+h = figure; hold on;
+filename = [filename, 'Slope'];
+for ri = 1:numel(exmpls)
+    bar(ri, slope(ri), 'FaceColor', reds(ri + (ncols-numel(exmpls)),:));
+end
+ylabel('Slope');
+xlabel('Cases');
+mysavefig(h, filename, plot_dir, 12, [2, 2]);
 %% Test a cardinal view of V3 magnitude - V3 lalte noise  
-filename = sprintf('V3mag100_latenoise101_Choice_Ovlp');
+filename = sprintf('V3mag50_latenoise6_Choice_Ovlp');
 matfile = fullfile(sim_dir, [filename, '.mat']);
 products = {'Probability','Overlap'}; % 'Coeff_of_Var',
 V1mean = 88;
 V2mean = 83;
-V3 = linspace(0, V1mean, 100)';
-eta3s = linspace(0, 8, 101)';
+V3 = linspace(0, V1mean, 50)';
+eta3s = linspace(0, 6, 6)';
 V1 = V1mean*ones(size(V3));
 eta1 = 4;
 V2 = V2mean*ones(size(V3));
@@ -304,22 +299,10 @@ else
 end
 %% plotting 
 h = figure;
-subplot(2,2,1); hold on;
-imagesc(V3, eta3s, Ovlpsb);
-plot([V1mean, V2mean], [1, 1]*min(eta3s), 'v', 'MarkerFaceColor', [.7,.7,.7]);
-ylabel('\sigma_{Early noise}');
-xlabel('V3');
-ylim([min(eta3s), max(eta3s)]);
-xlim([min(V3), max(V3)]);
-cb = colorbar;
-colormap('jet');
-ylabel(cb, '% Overlap | V1, V2');
-mysavefig(h, filename, plot_dir, 12, figsz);
-
-exmpls = 1:10:numel(eta3s);
+exmpls = 1:6;
 ncols = round(numel(exmpls)*1.2);
 blues = flip([linspace(0,1,ncols)', linspace(0,1,ncols)', ones(ncols,1)]); % Gradient from red to white
-subplot(2,2,2); hold on;
+subplot(2,1,1); hold on;
 for ri = 1:numel(exmpls)
     plot(V3, Ovlpsb(exmpls(ri),:), '-', "Color", blues(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
 end
@@ -329,25 +312,32 @@ xlabel('V3');
 xlim([min(V3), max(V3)]);
 mysavefig(h, filename, plot_dir, 12, figsz);
 
-subplot(2,2,3); hold on;
-ratio = probsb(:,:,1)./(probsb(:,:,1) + probsb(:,:,2))*100;
-imagesc(V3, eta3s, ratio);
-plot([V1mean, V2mean], [1, 1]*min(eta3s), 'v', 'MarkerFaceColor', [.7,.7,.7]);
-ylabel('\sigma_{Early noise}');
-xlabel('V3');
-ylim([min(eta3s), max(eta3s)]);
-xlim([min(V3), max(V3)]);
-cb = colorbar;
-ylabel(cb, '% Correct | V1, V2');
-mysavefig(h, filename, plot_dir, 12, figsz);
-
-subplot(2,2,4); hold on;
+x = V3/V2mean;
+lt = 0.2;
+rt = 0.8;
+mask = x >= lt & x <= rt;
+slope = [];
+lgd = [];
+subplot(2,1,2); hold on;
 for ri = 1:numel(exmpls)
-    plot(V3, ratio(exmpls(ri),:), '-', "Color", blues(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
+    lgd(ri) = plot(V3, ratio(exmpls(ri),:), '-', "Color", blues(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
+    coefficients = polyfit(x(mask), ratio(exmpls(ri),mask), 1);
+    slope(ri) = coefficients(1);
 end
 plot([V1mean, V2mean], [1, 1]*min(ratio(:)), 'v', 'MarkerFaceColor', [.7,.7,.7]);
+numericVector = eta3s(exmpls);
+cellArray = arrayfun(@(x) sprintf('%.1f', x), numericVector, 'UniformOutput', false);
+legend(lgd, cellArray, 'Location', 'best');
 ylabel('% Correct | V1, V2');
 xlabel('V3');
 xlim([min(V3), max(V3)]);
 mysavefig(h, filename, plot_dir, 12, figsz);
-
+%%
+h = figure; hold on;
+filename = [filename, 'Slope'];
+for ri = 1:numel(exmpls)
+    bar(ri, slope(ri), 'FaceColor', blues(ri + (ncols-numel(exmpls)),:));
+end
+ylabel('Slope');
+xlabel('Cases');
+mysavefig(h, filename, plot_dir, 12, [2, 2]);
