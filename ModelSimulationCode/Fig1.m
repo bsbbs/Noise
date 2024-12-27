@@ -228,6 +228,7 @@ xlabel('V3');
 xlim([min(V3), max(V3)]);
 mysavefig(h, filename, plot_dir, 12, figsz);
 
+ratio = probsb(:,:,1)./(probsb(:,:,1) + probsb(:,:,2))*100;
 x = V3/V2mean;
 lt = 0.2;
 rt = 0.8;
@@ -311,7 +312,7 @@ ylabel('% Overlap | V1, V2');
 xlabel('V3');
 xlim([min(V3), max(V3)]);
 mysavefig(h, filename, plot_dir, 12, figsz);
-
+ratio = probsb(:,:,1)./(probsb(:,:,1) + probsb(:,:,2))*100;
 x = V3/V2mean;
 lt = 0.2;
 rt = 0.8;
