@@ -67,7 +67,7 @@ Npar = Myclust.NumWorkers;
 % mypool = parpool(8);
 repetition = 48;
 dat = mtconvert;
-for modeli = 1:3
+for modeli = 1:4
     switch modeli
         case 1
             nLLfunc = @(x) McFadden(x, dat);
@@ -167,7 +167,7 @@ for modeli = 1:4
     mmask = T.Model == modeli;
     mT = T(mmask,:);
     bestfit = mT(mT.nll == min(mT.nll),:);
-    simdat = fullfile(Fitdir, sprintf('Model%i_Predict[FlatTrgts].mat', modeli));
+    simdat = fullfile(Fitdir, sprintf('Model%i_Predict.mat', modeli));
     if ~exist(simdat, 'file')
         mtmodel = [];
         fprintf('Model %d:\t', modeli);
@@ -207,8 +207,10 @@ for modeli = 1:4
         fprintf('\n');
         mtmodel.ratio = mtmodel.modelprob2./(mtmodel.modelprob1 + mtmodel.modelprob2);
         save(simdat, "mtmodel", '-mat');
+        
     else
         load(simdat);
+        writetable(mtmodel, fullfile(Fitdir, sprintf('Model%i_Predict.txt', modeli)), 'Delimiter', '\t');
     end
     %% Visualize in sliding windows
     dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
