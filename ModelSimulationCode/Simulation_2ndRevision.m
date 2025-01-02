@@ -1,11 +1,6 @@
 %% 
 %% define directories
-[os, ~, ~] = computer;
-if os == 'MACA64'
-    rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject';
-    Gitdir = '~/Noise';
-end
-addpath(genpath(Gitdir));
+DefineIO;
 %% Loading the data transformed in the code: /Users/bs3667/Noise/modelfit/ModelFit-DataTrnsfrm.m
 load(fullfile(Gitdir, 'myData', 'TrnsfrmData.mat'), 'mt');
 Simdir = fullfile(rootdir, 'Prediction/Revision2');
@@ -51,7 +46,7 @@ mtconvert.sdV3 = sdV3;
 
 %% Simulation
 for modeli = 4
-    simdat = fullfile(Simdir, sprintf('Model%i_Predict.mat', modeli));
+    simdat = fullfile(Simdir, sprintf('Model%i_Predict_V1%i_V2%i.mat', modeli, V1mean, V2mean));
     if ~exist(simdat, 'file')
         fprintf('Model %d:\t', modeli);
         dat = mtconvert;
