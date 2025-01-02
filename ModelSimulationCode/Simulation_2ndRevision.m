@@ -78,9 +78,9 @@ for modeli = 4
                 probs = dDNb(x, dat, 'absorb');
                 name = 'dDNb'; %, cut input, independent';
         end
-        dat.modelprob1 = probs(:,1);
-        dat.modelprob2 = probs(:,2);
-        dat.modelprob3 = probs(:,3);
+        dat.modelprob1 = gather(probs(:,1));
+        dat.modelprob2 = gather(probs(:,2));
+        dat.modelprob3 = gather(probs(:,3));
         mtmodel =  dat;
         fprintf('\n');
         mtmodel.ratio = mtmodel.modelprob1./(mtmodel.modelprob1 + mtmodel.modelprob2);
