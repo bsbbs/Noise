@@ -161,7 +161,7 @@ def dDNwOpt(V1, V2, V3, eta, version):  # dependent within options
     max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1
     probs = torch.sum(max_from_each_distribution, dim=1) / Outputs.shape[1]
     return Outputs.cpu().numpy(), probs.cpu().numpy()
-def dDN(V1, V2, V3, eta, version): # fully independent
+def dDN(V1, V2, V3, eta1, eta2, eta3, version): # fully independent
     w = 1
     M = 1
     Rmax = 75
@@ -169,6 +169,7 @@ def dDN(V1, V2, V3, eta, version): # fully independent
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # determine the device to use
     options = torch.tensor([V1, V2, V3])
     num_samples = int(1e6)
+    etas = torch.tensor([eta1, eta2, eta3])
     # Operation #1, sampling with early noise
     if version == 'additive':
         O1 = torch.stack([torch.normal(mean=mean, std=sd, size=(num_samples,), device=device)
@@ -199,7 +200,7 @@ def dDN(V1, V2, V3, eta, version): # fully independent
     # O3 = [Rmax * DirectValue / (M + D * w) for DirectValue in O1]
     # Operation #4, apply late noise
     Outputs = torch.stack([ComputedValue + torch.normal(mean=0, std=eta, size=(num_samples,), device=device)
-                           for ComputedValue in O3])
+                           for ComputedValue, eta in zip(O3, etas)])
     max_indices = torch.argmax(Outputs, dim=0)
     max_from_each_distribution = torch.zeros_like(Outputs)
     max_from_each_distribution[max_indices, torch.arange(Outputs.shape[1])] = 1

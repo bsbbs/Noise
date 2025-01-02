@@ -45,6 +45,8 @@ for frame in range(len(V3demo)):
     pdfs, x = getpdfs(SVs)
     adddistrilines(axs[frame], pdfs, x)
 plt.savefig(join(svdir, 'ModelSimulation', f'Demo_dDN_{Test}.pdf'), format='pdf')
+
+# Late noise
 # Absolute model
 V1mean = 82*.43
 V2mean = 88*.43
