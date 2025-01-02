@@ -29,12 +29,12 @@ for s = 1:N
     end  
 end
 mtconvert.choice = mtconvert.chosenItem - 1;
-% pairs = [mtconvert.V1scld, mtconvert.sdV1scld, mtconvert.V2scld, mtconvert.sdV2scld];
-% unique_pairs = unique(pairs, 'rows'); % get the unique pairs of target values across all subjects for simulation below
+pairs = [mtconvert.V1scld, mtconvert.sdV1scld, mtconvert.V2scld, mtconvert.sdV2scld];
+unique_pairs = unique(pairs, 'rows'); % get the unique pairs of target values across all subjects for simulation below
 V3scldp = unique([mtconvert.V3scld(mtconvert.Vaguenesscode == 0), mtconvert.sdV3scld(mtconvert.Vaguenesscode == 0)], 'rows'); % precise V3
 V3scldv = unique([mtconvert.V3scld(mtconvert.Vaguenesscode == 1), mtconvert.sdV3scld(mtconvert.Vaguenesscode == 1)], 'rows'); % vague V3
 %% Simulation
-for modeli = 1:4
+for modeli = 4
     simdat = fullfile(fitdir, sprintf('Model%i_PredictTheoriticalSubjects.mat', modeli));
     if ~exist(simdat, 'file')
         mtmodel = [];
@@ -131,7 +131,7 @@ for modeli = 1:4
         173, 216, 230; % Light Blue
         255, 0, 0     % Red
         ]/255;
-    Window = 0.03/2;
+    Window = 0.15;
     LowestV3 = 0; %0.2;
     HighestV3 = 1; %.8;
     h = figure;
@@ -149,7 +149,7 @@ for modeli = 1:4
             ratio = [];
             ratiose = [];
             sdV3scld = [];
-            v3vec = LowestV3:.03:HighestV3;
+            v3vec = LowestV3:.015:HighestV3;
             dat = GrpMean(GrpMean.TimeConstraint == t & GrpMean.Vaguenesscode == v & GrpMean.mean_V3scld >= LowestV3 &  GrpMean.mean_V3scld <= HighestV3,:);
             for v3 = v3vec
                 section = dat(dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window,:);
@@ -173,9 +173,9 @@ for modeli = 1:4
     end
     %% Visualization in heatmap
     GrpMean = grpstats(mtmodel, ["TimeConstraint", "Vaguenesscode", "V3scld", "sdV3scld"], "mean", "DataVars", ["V3scld", "sdV3scld", "ratio"]);
-    Window = 0.08/2;
-    Varrng = [min(GrpMean.mean_sdV3scld), .8];% max(GrpMean.mean_sdV3scld)];
-    Bindow = 0.08/2;
+    Window = 0.15;
+    Varrng = [min(GrpMean.mean_sdV3scld), .4];% max(GrpMean.mean_sdV3scld)];
+    Bindow = 0.15/2;
     h = figure;
     filename = sprintf('ModelFit_%i_HeatmapTheoriticalSubjects', modeli);
     ti = 0;
@@ -183,8 +183,8 @@ for modeli = 1:4
     for t = [10, 1.5] % low, high
         ti = ti + 1;
         dat = GrpMean(GrpMean.TimeConstraint == t,:);
-        v3vec = LowestV3:.08:HighestV3;
-        varvec = Varrng(1):.08:Varrng(2);
+        v3vec = LowestV3:.03:HighestV3;
+        varvec = Varrng(1):.015:Varrng(2);
         Ntrial = NaN(numel(varvec), numel(v3vec));
         ratio = NaN(numel(varvec), numel(v3vec));
         ratiose = NaN(numel(varvec), numel(v3vec));
@@ -237,7 +237,7 @@ Mp = x(1); % change M to be M', absorbing the magnitude of late noise
 eta = 1; % after the transformation, the late noise term is standardized as 1
 delta = x(2); % late noise difference between time-pressure conditions
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
-num_samples = 9000; %20000;
+num_samples = 5; %20000;
 samples = [];
 for ci = 1:3
     if gpuparallel
@@ -273,7 +273,7 @@ eta = 1; % after the transformation, the late noise term is standardized as 1
 delta = x(2); % late noise difference between time-pressure conditions
 scl = x(3); % scaling parameter on early noise
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
-num_samples = 9000; %20000;
+num_samples = 5; %20000;
 Ntrl = size(dat,1);
 samples = [];
 for ci = 1:3
@@ -313,7 +313,7 @@ eta = 1; % after the transformation, the late noise term is standardized as 1
 delta = x(2); % late noise difference between time-pressure conditions
 wp = x(3); % do the same transformation on w
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
-num_samples = 9000; %20000;
+num_samples = 40; %20000;
 samples = [];
 for ci = 1:3
     if gpuparallel
@@ -356,7 +356,7 @@ delta = x(2); % late noise difference between time-pressure conditions
 wp = x(3); % do the same transformation on w
 scl = x(4); % scaling parameter on the early noise
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
-num_samples = 9000; %20000;
+num_samples = 5; %20000;
 Ntrl = size(dat,1);
 if strcmp(mode, 'absorb')
     samples = [];
