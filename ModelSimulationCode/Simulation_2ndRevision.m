@@ -5,6 +5,10 @@ DefineIO;
 load(fullfile(Gitdir, 'myData', 'TrnsfrmData.mat'), 'mt');
 Simdir = fullfile(rootdir, 'Prediction/Revision2');
 plot_dir = fullfile(Simdir, 'plot');
+if ~exist(plot_dir,'dir')
+    mkdir(Simdir);
+    mkdir(plot_dir);
+end
 %% Transform data
 blacklist = [22102405; 22102705; 22102708; 22071913; 22110306];
 sublist = unique(mt.subID);
@@ -46,7 +50,8 @@ mtconvert.sdV3 = sdV3;
 
 %% Simulation
 for modeli = 4
-    simdat = fullfile(Simdir, sprintf('Model%i_Predict_V1%i_V2%i.mat', modeli, V1mean, V2mean));
+    modelname = sprintf('Model%i_Predict_V1%i_V2%i', modeli, V1mean, V2mean);
+    simdat = fullfile(Simdir, [modelname, '.mat']);
     if ~exist(simdat, 'file')
         fprintf('Model %d:\t', modeli);
         dat = mtconvert;
@@ -85,7 +90,7 @@ for modeli = 4
         fprintf('\n');
         mtmodel.ratio = mtmodel.modelprob1./(mtmodel.modelprob1 + mtmodel.modelprob2);
         save(simdat, "mtmodel", '-mat');
-        writetable(mtmodel, fullfile(Simdir, sprintf('Model%i_Predict.txt', modeli)), 'Delimiter', '\t');
+        writetable(mtmodel, fullfile(Simdir, [modelname, '.txt']), 'Delimiter', '\t');
     else
         load(simdat);
     end
