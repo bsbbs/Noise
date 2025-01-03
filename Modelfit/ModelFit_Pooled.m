@@ -41,12 +41,18 @@ for s = 1:N
     Vtrgt = unique([indvtask.V1; indvtask.V2]);
     mintrgt = min(Vtrgt);
     if mintrgt > 0 % skip this subject if the min target value is zero, because the values cannot be scaled and the value space does not help in testing of the hypothesis
-        indvtask.V1 = indvtask.V1/mintrgt;
-        indvtask.V2 = indvtask.V2/mintrgt;
-        indvtask.V3 = indvtask.V3/mintrgt;
-        indvtask.sdV1 = indvtask.sdV1/mintrgt;
-        indvtask.sdV2 = indvtask.sdV2/mintrgt;
-        indvtask.sdV3 = indvtask.sdV3/mintrgt;
+        indvtask.V1scld = indvtask.V1/mintrgt;
+        indvtask.V2scld = indvtask.V2/mintrgt;
+        indvtask.V3scld = indvtask.V3/mintrgt;
+        indvtask.sdV1scld = indvtask.sdV1/mintrgt;
+        indvtask.sdV2scld = indvtask.sdV2/mintrgt;
+        indvtask.sdV3scld = indvtask.sdV3/mintrgt;
+        indvtask.V1 = indvtask.V1/mintrgt*83;
+        indvtask.V2 = indvtask.V2/mintrgt*83;
+        indvtask.V3 = indvtask.V3/mintrgt*83;
+        indvtask.sdV1 = indvtask.sdV1/mintrgt*83;
+        indvtask.sdV2 = indvtask.sdV2/mintrgt*83;
+        indvtask.sdV3 = indvtask.sdV3/mintrgt*83;
         mtconvert = [mtconvert; indvtask];
     end  
 end
@@ -68,7 +74,7 @@ end
 Myclust = parcluster();
 Npar = Myclust.NumWorkers;
 % mypool = parpool(8);
-repetition = 48;
+repetition = 40;
 dat = mtconvert;
 for modeli = 1:4
     switch modeli
@@ -89,7 +95,7 @@ for modeli = 1:4
     filename = fullfile(mtrxdir, sprintf('Mdl%i.mat', modeli));
     if ~exist(filename, 'file')
         % shared parameters for all models
-        LB = [0, -2]; % [Mp, delta]
+        LB = [0, -1]; % [Mp, delta]
         UB = [1000, 4];
         PLB = [1, -.2];
         PUB = [100, .4];
@@ -162,10 +168,10 @@ end
 testfile = fullfile(Fitdir, 'AllRslts.txt');
 fit = tdfread(testfile);
 T = struct2table(fit);
-V1 = mean(mtconvert.V1);
-V2 = mean(mtconvert.V2);
-sdV1 = mean(mtconvert.sdV1);
-sdV2 = mean(mtconvert.sdV2);
+% V1 = mean(mtconvert.V1);
+% V2 = mean(mtconvert.V2);
+% sdV1 = mean(mtconvert.sdV1);
+% sdV2 = mean(mtconvert.sdV2);
 for modeli = 1:4
     mmask = T.Model == modeli;
     mT = T(mmask,:);
@@ -175,10 +181,10 @@ for modeli = 1:4
         mtmodel = [];
         fprintf('Model %d:\t', modeli);
         dat = mtconvert;
-        dat.V1 = ones(size(mtconvert.V1))*V1;
-        dat.V2 = ones(size(mtconvert.V2))*V2;
-        dat.sdV1 = ones(size(mtconvert.sdV1))*sdV1;
-        dat.sdV2 = ones(size(mtconvert.sdV2))*sdV2;
+%         dat.V1 = ones(size(mtconvert.V1))*V1;
+%         dat.V2 = ones(size(mtconvert.V2))*V2;
+%         dat.sdV1 = ones(size(mtconvert.sdV1))*sdV1;
+%         dat.sdV2 = ones(size(mtconvert.sdV2))*sdV2;
         Mp = bestfit.Mp;
         delta = bestfit.delta;
         switch modeli
@@ -203,25 +209,21 @@ for modeli = 1:4
                 [~, probs] = dnDNM(x, dat);
                 name = 'dnDNM'; %, cut input, independent';
         end
-        dat.modelprob1 = probs(:,1);
-        dat.modelprob2 = probs(:,2);
-        dat.modelprob3 = probs(:,3);
+        dat.modelprob1 = gather(probs(:,1));
+        dat.modelprob2 = gather(probs(:,2));
+        dat.modelprob3 = gather(probs(:,3));
         mtmodel = [mtmodel; dat];
         fprintf('\n');
         mtmodel.ratio = mtmodel.modelprob2./(mtmodel.modelprob1 + mtmodel.modelprob2);
         save(simdat, "mtmodel", '-mat');
-        
+        writetable(mtmodel, fullfile(Fitdir, sprintf('Model%i_Predict.txt', modeli)), 'Delimiter', '\t');
     else
         load(simdat);
-        mtmodel.modelprob1 = gather(mtmodel.modelprob1);
-        mtmodel.modelprob2 = gather(mtmodel.modelprob2);
-        mtmodel.modelprob3 = gather(mtmodel.modelprob3);
-        mtmodel.ratio = gather(mtmodel.ratio);
-        writetable(mtmodel, fullfile(Fitdir, sprintf('Model%i_Predict.txt', modeli)), 'Delimiter', '\t');
     end
     %% Visualize in sliding windows
     dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
-    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "V3"], "mean", "DataVars", ["V3", "sdV3", "choice","ratio"]);
+    % GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3scld", "sdV3", "choice","ratio"]);
+    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);  
     colorpalette ={'r','#FFBF00','#00FF80','b'};
     rgbMatrix = [
         0, 0, 255;   % Blue
@@ -248,9 +250,9 @@ for modeli = 1:4
             ratiose = [];
             sdV3scld = [];
             v3vec = LowestV3:.015:HighestV3;
-            dat = GrpMean(GrpMean.TimeConstraint == t & GrpMean.Vaguenesscode == v & GrpMean.mean_V3 >= LowestV3 &  GrpMean.mean_V3 <= HighestV3,:);
+            dat = GrpMean(GrpMean.TimeConstraint == t & GrpMean.Vaguenesscode == v & GrpMean.mean_V3scld >= LowestV3 &  GrpMean.mean_V3scld <= HighestV3,:);
             for v3 = v3vec
-                section = dat(dat.mean_V3 >= v3 - Window & dat.mean_V3 <= v3 + Window,:);
+                section = dat(dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window,:);
                 Ntrial = [Ntrial, sum(section.GroupCount)];
                 choice = [choice, mean(section.mean_choice)];
                 choicese = [choicese, std(section.mean_choice)/sqrt(length(section.mean_choice))];
@@ -271,9 +273,9 @@ for modeli = 1:4
     end
     %% Visualization in heatmap
     dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
-    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "V3"], "mean", "DataVars", ["V3", "sdV3", "choice", "ratio"]);
+    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
     Window = 0.15;
-    Varrng = [min(GrpMean.mean_sdV3), .4];% max(GrpMean.mean_sdV3scld)];
+    Varrng = [min(GrpMean.mean_sdV3scld), .4];% max(GrpMean.mean_sdV3scld)];
     Bindow = 0.15/2;
     h = figure;
     filename = sprintf('ModelFit_%i_Heatmap', modeli);
@@ -292,13 +294,13 @@ for modeli = 1:4
             for ri = 1:numel(varvec)
                 v3 = v3vec(vi);
                 r = varvec(ri);
-                maskv3 = dat.mean_V3 >= v3 - Window & dat.mean_V3 <= v3 + Window;
-                maskr3 = dat.mean_sdV3 >= r - Bindow & dat.mean_sdV3 <= r + Bindow;
+                maskv3 = dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window;
+                maskr3 = dat.mean_sdV3scld >= r - Bindow & dat.mean_sdV3scld <= r + Bindow;
                 section = dat(maskv3 & maskr3,:);
                 Ntrial(ri,vi) = sum(section.GroupCount);
                 ratio(ri,vi) = mean(section.mean_ratio);
                 ratiose(ri,vi) = std(section.mean_ratio)/sqrt(length(section.mean_ratio));
-                sdV3scld(ri,vi) = mean(section.mean_sdV3);
+                sdV3scld(ri,vi) = mean(section.mean_sdV3scld);
             end
         end
         ratio(Ntrial<50) = NaN;
