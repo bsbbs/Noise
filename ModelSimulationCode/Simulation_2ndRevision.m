@@ -31,12 +31,13 @@ for s = 1:N
     end  
 end
 mtconvert.choice = mtconvert.chosenItem - 1;
+mtconvert = mtconvert(~isnan(mtconvert.chosenItem) & mtconvert.V1 ~= mtconvert.V2,:);
 V1mean = 93; %88;
 V2mean = 83;
 V3 = mtconvert.V3scld*V2mean;
 sdV3 = mtconvert.sdV3scld*V2mean;
-eps1 = 9; %4.5; % early noise for V1
-eps2 = 9; %4.5; % early noise for V2
+eps1 = 12; %4.5; % early noise for V1
+eps2 = 12; %4.5; % early noise for V2
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 sdV1 = eps1*ones(size(V3));
@@ -95,8 +96,8 @@ for modeli = 4
         load(simdat);
     end
     %% Visualize in sliding windows
-    dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
-    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "V3scld"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
+    dat = mtmodel(mtmodel.chosenItem ~= 3,:);
+    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
     colorpalette ={'r','#FFBF00','#00FF80','b'};
     rgbMatrix = [
         0, 0, 255;   % Blue
@@ -130,13 +131,13 @@ for modeli = 4
             for v3 = v3vec
                 section = dat(dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window,:);
                 Ntrial = [Ntrial, sum(section.GroupCount)];
-                choice = [choice, mean(section.mean_choice)];
-                choicese = [choicese, std(section.mean_choice)/sqrt(length(section.mean_choice))];
-                ratio = [ratio, mean(section.mean_ratio)];
-                ratiose = [ratiose, std(section.mean_ratio)/sqrt(length(section.mean_ratio))];
-                sdV3scld = [sdV3scld, mean(section.mean_sdV3scld)];
+                choice = [choice, sum(section.mean_choice.*section.GroupCount)/sum(section.GroupCount)];
+                % choicese = [choicese, std(section.mean_choice)/sqrt(length(section.mean_choice))];
+                ratio = [ratio, sum(section.mean_ratio.*section.GroupCount)/sum(section.GroupCount)];
+                % ratiose = [ratiose, std(section.mean_ratio)/sqrt(length(section.mean_ratio))];
+                sdV3scld = [sdV3scld, sum(section.mean_sdV3scld.*section.GroupCount)/sum(section.GroupCount)];
             end
-            cut = Ntrial > 400;
+            cut = Ntrial > 100;
             % scatter(v3vec(cut), ratio(cut), Ntrial(cut)/80*5, 'color', colorpalette{i});
             lgd(ti) = plot(v3vec(cut), choice(cut), '-', 'Color', colorpalette{i}, 'LineWidth', 2);
             plot(v3vec(cut), ratio(cut), '--', 'Color', colorpalette{i}, 'LineWidth', 2);
@@ -151,8 +152,8 @@ for modeli = 4
         mysavefig(h, filename, plot_dir, 12, [8, 4]);
     end
     %% Visualization in heatmap
-    dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
-    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "V3scld"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice", "ratio"]);
+    dat = mtmodel(mtmodel.chosenItem ~= 3,:);
+    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice", "ratio"]);
     Window = 0.15;
     Varrng = [min(GrpMean.mean_sdV3scld), .4];% max(GrpMean.mean_sdV3scld)];
     Bindow = 0.15/2;
