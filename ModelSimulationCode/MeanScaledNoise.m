@@ -14,7 +14,7 @@ end
 %% loading parrellel CPU cores
 Myclust = parcluster();
 Npar = Myclust.NumWorkers;
-mypool = parpool(20);
+mypool = parpool(Npar);
 reps = 40; % repetition of simulations to make the results smooth
 %% Early and late noise only
 filename = sprintf('SNR_Ovlp_Choice_v3');
@@ -54,7 +54,7 @@ if ~exist(matfile, 'file')
     probsb = squeeze(mean(tmp1b, 1));
     Ovlpsb = squeeze(mean(tmp2b, 1));
     CVsb = squeeze(mean(tmp3b, 1));
-    save(matfile, "probsa",  "Ovlpsa",  "CVsa",   "probsaL", "OvlpsaL", "CVsaL");
+    save(matfile, "probsa",  "Ovlpsa",  "CVsa");
 else
     load(matfile);
 end
@@ -75,19 +75,6 @@ legend({'Theoritical','Biological'}, 'Location', 'northeast', 'FontSize',10);
 mysavefig(h, filename, plot_dir, 12, [3, 8]);
 
 subplot(3,1,2); hold on;
-plot(V3, 1./CVsaL(:,1), 'c:', 'LineWidth', 2);
-plot(V3, 1./CVsbL(:,1), 'c-', 'LineWidth', 2);
-plot(V3, 1./CVsaL(:,2), 'c:', 'LineWidth', 2);
-plot(V3, 1./CVsbL(:,2), 'c-', 'LineWidth', 2);
-xlabel('V3');
-ylabel('Single-item SNR');
-xlim([0, V1mean]);
-% yticks = get(gca, 'YTick');
-% yticklabels = arrayfun(@(v) sprintf('%0.3f', v), yticks, 'UniformOutput', false);
-% set(gca, 'YTickLabel', yticklabels);
-mysavefig(h, filename, plot_dir, 12, [3, 8]);
-
-subplot(3,1,3); hold on;
 plot(V3, Ovlpsa, 'r:', 'LineWidth', 2);
 plot(V3, Ovlpsb, 'r-', 'LineWidth', 2);
 xlabel('V3');
@@ -96,6 +83,17 @@ xlim([0, V1mean]);
 % yticks = get(gca, 'YTick');
 % yticklabels = arrayfun(@(v) sprintf('%2.1f', v), yticks, 'UniformOutput', false);
 % set(gca, 'YTickLabel', yticklabels);
+mysavefig(h, filename, plot_dir, 12, [3, 8]);
+
+subplot(3,1,3); hold on;
+ratio = probsa(:,1)./(probsa(:,1) + probsa(:,2))*100;
+plot(V3, ratio, 'r:', 'LineWidth', 2);
+plot([V1mean, V2mean], [1, 1]*min(ratio), 'kv', 'MarkerFaceColor', [.7, .7, .7]);
+ratio = probsb(:,1)./(probsb(:,1) + probsb(:,2))*100;
+plot(V3, ratio, 'r-', 'LineWidth', 2);
+xlabel('V3');
+ylabel('% Correct | V1, V2');
+xlim([0, V1mean]);
 mysavefig(h, filename, plot_dir, 12, [3, 8]);
 
 
