@@ -73,7 +73,6 @@ if ~exist(testfile, 'file')
 end
 Myclust = parcluster();
 Npar = Myclust.NumWorkers;
-% mypool = parpool(Npar);
 repetition = 40;
 dat = mtconvert;
 for modeli = 1:4
@@ -94,6 +93,9 @@ for modeli = 1:4
     fprintf('\tModel %i\n', modeli);
     filename = fullfile(mtrxdir, sprintf('Mdl%i.mat', modeli));
     if ~exist(filename, 'file')
+        if isempty(gcp('nocreate'))
+            mypool = parpool(Npar);
+        end
         % shared parameters for all models
         LB = [0, -1]; % [Mp, delta]
         UB = [1000, 4];
@@ -163,7 +165,7 @@ for modeli = 1:4
     writetable(Rslts, fullfile(Fitdir, 'BestRslts.txt'), 'Delimiter', '\t');
     fprintf('Model %i, nll = %f\n', modeli, fval);
 end
-
+delete(gcp('nocreate'));
 %% Post predictive check
 testfile = fullfile(Fitdir, 'BestRslts.txt');
 fit = tdfread(testfile);
