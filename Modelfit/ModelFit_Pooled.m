@@ -73,7 +73,7 @@ if ~exist(testfile, 'file')
 end
 Myclust = parcluster();
 Npar = Myclust.NumWorkers;
-mypool = parpool(Npar);
+% mypool = parpool(Npar);
 repetition = 40;
 dat = mtconvert;
 for modeli = 1:4
@@ -165,7 +165,7 @@ for modeli = 1:4
 end
 
 %% Post predictive check
-testfile = fullfile(Fitdir, 'AllRslts.txt');
+testfile = fullfile(Fitdir, 'BestRslts.txt');
 fit = tdfread(testfile);
 T = struct2table(fit);
 % V1 = mean(mtconvert.V1);
@@ -173,7 +173,7 @@ T = struct2table(fit);
 % sdV1 = mean(mtconvert.sdV1);
 % sdV2 = mean(mtconvert.sdV2);
 for modeli = 1:4
-    mmask = T.Model == modeli;
+    mmask = T.modeli == modeli;
     mT = T(mmask,:);
     bestfit = mT(mT.nll == min(mT.nll),:);
     simdat = fullfile(Fitdir, sprintf('Model%i_Predict.mat', modeli));
