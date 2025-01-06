@@ -54,47 +54,47 @@ if ~exist(matfile, 'file')
     probsb = squeeze(mean(tmp1b, 1));
     Ovlpsb = squeeze(mean(tmp2b, 1));
     CVsb = squeeze(mean(tmp3b, 1));
-    save(matfile, "probsa",  "Ovlpsa",  "CVsa");
+    save(matfile, "probsa",  "Ovlpsa",  "CVsa", "probsb",  "Ovlpsb",  "CVsb");
 else
     load(matfile);
 end
-%% plotting
-h = figure;
-subplot(3,1,1); hold on;
-plot(V3, 1./CVsa(:,1), 'r:', 'LineWidth', 2);
-plot(V3, 1./CVsb(:,1), 'r-', 'LineWidth', 2);
-plot(V3, 1./CVsa(:,2), 'r:', 'LineWidth', 2);
-plot(V3, 1./CVsb(:,2), 'r-', 'LineWidth', 2);
-xlabel('V3');
-ylabel('Single-item SNR');
-xlim([0, V1mean]);
-% yticks = get(gca, 'YTick');
-% yticklabels = arrayfun(@(v) sprintf('%0.3f', v), yticks, 'UniformOutput', false);
-% set(gca, 'YTickLabel', yticklabels);
-legend({'Theoritical','Biological'}, 'Location', 'northeast', 'FontSize',10);
-mysavefig(h, filename, plot_dir, 12, [3, 8]);
-
-subplot(3,1,2); hold on;
-plot(V3, Ovlpsa, 'r:', 'LineWidth', 2);
-plot(V3, Ovlpsb, 'r-', 'LineWidth', 2);
-xlabel('V3');
-ylabel('% Overlap | V1, V2');
-xlim([0, V1mean]);
-% yticks = get(gca, 'YTick');
-% yticklabels = arrayfun(@(v) sprintf('%2.1f', v), yticks, 'UniformOutput', false);
-% set(gca, 'YTickLabel', yticklabels);
-mysavefig(h, filename, plot_dir, 12, [3, 8]);
-
-subplot(3,1,3); hold on;
-ratio = probsa(:,1)./(probsa(:,1) + probsa(:,2))*100;
-plot(V3, ratio, 'r:', 'LineWidth', 2);
-plot([V1mean, V2mean], [1, 1]*min(ratio), 'kv', 'MarkerFaceColor', [.7, .7, .7]);
-ratio = probsb(:,1)./(probsb(:,1) + probsb(:,2))*100;
-plot(V3, ratio, 'r-', 'LineWidth', 2);
-xlabel('V3');
-ylabel('% Correct | V1, V2');
-xlim([0, V1mean]);
-mysavefig(h, filename, plot_dir, 12, [3, 8]);
+% %% plotting
+% h = figure;
+% subplot(3,1,1); hold on;
+% plot(V3, 1./CVsa(:,1), 'r:', 'LineWidth', 2);
+% plot(V3, 1./CVsb(:,1), 'r-', 'LineWidth', 2);
+% plot(V3, 1./CVsa(:,2), 'r:', 'LineWidth', 2);
+% plot(V3, 1./CVsb(:,2), 'r-', 'LineWidth', 2);
+% xlabel('V3');
+% ylabel('Single-item SNR');
+% xlim([0, V1mean]);
+% % yticks = get(gca, 'YTick');
+% % yticklabels = arrayfun(@(v) sprintf('%0.3f', v), yticks, 'UniformOutput', false);
+% % set(gca, 'YTickLabel', yticklabels);
+% legend({'Theoritical','Biological'}, 'Location', 'northeast', 'FontSize',10);
+% mysavefig(h, filename, plot_dir, 12, [3, 8]);
+% 
+% subplot(3,1,2); hold on;
+% plot(V3, Ovlpsa, 'r:', 'LineWidth', 2);
+% plot(V3, Ovlpsb, 'r-', 'LineWidth', 2);
+% xlabel('V3');
+% ylabel('% Overlap | V1, V2');
+% xlim([0, V1mean]);
+% % yticks = get(gca, 'YTick');
+% % yticklabels = arrayfun(@(v) sprintf('%2.1f', v), yticks, 'UniformOutput', false);
+% % set(gca, 'YTickLabel', yticklabels);
+% mysavefig(h, filename, plot_dir, 12, [3, 8]);
+% 
+% subplot(3,1,3); hold on;
+% ratio = probsa(:,1)./(probsa(:,1) + probsa(:,2))*100;
+% plot(V3, ratio, 'r:', 'LineWidth', 2);
+% plot([V1mean, V2mean], [1, 1]*min(ratio), 'kv', 'MarkerFaceColor', [.7, .7, .7]);
+% ratio = probsb(:,1)./(probsb(:,1) + probsb(:,2))*100;
+% plot(V3, ratio, 'r-', 'LineWidth', 2);
+% xlabel('V3');
+% ylabel('% Correct | V1, V2');
+% xlim([0, V1mean]);
+% mysavefig(h, filename, plot_dir, 12, [3, 8]);
 
 %% graded color, two panels
 V1mean = 88;
