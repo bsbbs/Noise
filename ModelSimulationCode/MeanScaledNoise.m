@@ -111,7 +111,7 @@ sdV2 = eps2*ones(size(V3));
 etavec = [1, 1.4286]/4; % multiple levels of late noise
 K = 75;
 products = {'Probability'};
-for modeli = 1:4
+for modeli = 4
     filename = sprintf('Ratio_Model%i_%iv3max%1.0f_%s', modeli, numel(V3), max(V3), '6lines');
     Rslts = table('Size', [0 4], 'VariableTypes', {'double', 'double', 'double', 'double'},...
     'VariableNames', {'Early', 'Late', 'V3', 'choice'});
