@@ -139,8 +139,8 @@ for modeli = 4
             end
             cut = Ntrial > 100;
             % scatter(v3vec(cut), ratio(cut), Ntrial(cut)/80*5, 'color', colorpalette{i});
-            % plot(v3vec(cut), choice(cut), '-', 'Color', colorpalette{i}, 'LineWidth', 2);
-            lgd(ti) = plot(v3vec(cut), ratio(cut), '-', 'Color', colorpalette{i}, 'LineWidth', 2);
+            % plot(v3vec(cut), choice(cut)*100, '-', 'Color', colorpalette{i}, 'LineWidth', 2);
+            lgd(ti) = plot(v3vec(cut), ratio(cut)*100, '-', 'Color', colorpalette{i}, 'LineWidth', 2);
             % fill([v3vec fliplr(v3vec)], [ratio-ratiose fliplr(ratio+ratiose)], rgbMatrix(vi,:), 'FaceAlpha', 0.3, 'EdgeColor', 'none');
         end
         xlim([LowestV3, HighestV3]);
@@ -332,7 +332,7 @@ else
     gpuparallel = 0;
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
-eta = 16; % after the transformation, the late noise term is standardized as 1
+eta = 10; % after the transformation, the late noise term is standardized as 1
 delta = x(2); % late noise difference between time-pressure conditions
 wp = x(3); % do the same transformation on w
 scl = x(4); % scaling parameter on the early noise
