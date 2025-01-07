@@ -225,7 +225,7 @@ for modeli = 1:4
     %% Visualize in sliding windows
     dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
     % GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3scld", "sdV3", "choice","ratio"]);
-    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);  
+    GrpMean = grpstats(dat, ["subID", "TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);  
     colorpalette ={'r','#FFBF00','#00FF80','b'};
     rgbMatrix = [
         0, 0, 255;   % Blue
@@ -275,7 +275,7 @@ for modeli = 1:4
     end
     %% Visualization in heatmap
     dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
-    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
+    GrpMean = grpstats(dat, ["subID","TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
     Window = 0.15;
     Varrng = [min(GrpMean.mean_sdV3scld), .4];% max(GrpMean.mean_sdV3scld)];
     Bindow = 0.15/2;
