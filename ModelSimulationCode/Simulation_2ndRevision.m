@@ -48,56 +48,60 @@ mtconvert.V3 = V3;
 mtconvert.sdV1 = sdV1;
 mtconvert.sdV2 = sdV2;
 mtconvert.sdV3 = sdV3;
-
+etavec = linspace(0,15,6);
+etatxt = cellstr(string(etavec));
 %% Simulation
-for modeli = 4
-    modelname = sprintf('Model%i_Predict_V1%i_V2%i_sd1%1.1f', modeli, V1mean, V2mean, eps1);
+for modeli = 1:4
+    fprintf('Model %d:\t', modeli);
+    modelname = sprintf('Model%i_Predict_V1%i_V2%i_sd1%1.1f_etavec', modeli, V1mean, V2mean, eps1);
     simdat = fullfile(Simdir, [modelname, '.mat']);
     if ~exist(simdat, 'file')
-        fprintf('Model %d:\t', modeli);
-        dat = mtconvert;
-        %subjmask = fit.subID == find(fulllist == sublist(s));
-        %Mp = fit.Mp(subjmask & fit.modeli == modeli);
-        %delta = fit.delta(subjmask & fit.modeli == modeli);
-        Mp = 1;
-        delta = 0.428;
-        switch modeli
-            case 1
-                %%
-                x = [Mp, delta];
-                probs = McFadden(x, dat);
-                name = 'McFadden';
-            case 2
-                scl = 1; %fit.scl(subjmask & fit.modeli == modeli);
-                x = [Mp, delta, scl];
-                probs = Mdl2(x, dat);
-                name = 'LinearDistrb';
-            case 3
-                wp = 1; %fit.wp(subjmask & fit.modeli == modeli);
-                x = [Mp, delta, wp];
-                probs = DN(x, dat);
-                name = 'DN'; %, cut input, independent';
-            case 4
-                scl = 1; %fit.scl(subjmask & fit.modeli == modeli);
-                wp = 1; %fit.wp(subjmask & fit.modeli == modeli);
-                x = [Mp, delta, wp, scl];
-                probs = dDNb(x, dat, 'absorb');
-                name = 'dDNb'; %, cut input, independent';
+        mtmodel = [];
+        for etai = 1:numel(etavec)
+            eta = etavec(etai);
+            fprintf('\nEta %d:\t', eta);
+            dat = mtconvert;
+            Mp = 1;
+            switch modeli
+                case 1
+                    %%
+                    x = [Mp, eta];
+                    probs = McFadden(x, dat);
+                    name = 'McFadden';
+                case 2
+                    scl = 1; %fit.scl(subjmask & fit.modeli == modeli);
+                    x = [Mp, eta, scl];
+                    probs = Mdl2(x, dat);
+                    name = 'LinearDistrb';
+                case 3
+                    wp = 1; %fit.wp(subjmask & fit.modeli == modeli);
+                    x = [Mp, eta, wp];
+                    probs = DN(x, dat);
+                    name = 'DN'; %, cut input, independent';
+                case 4
+                    scl = 1; %fit.scl(subjmask & fit.modeli == modeli);
+                    wp = 1; %fit.wp(subjmask & fit.modeli == modeli);
+                    x = [Mp, eta, wp, scl];
+                    probs = dDNb(x, dat, 'absorb');
+                    name = 'dDNb'; %, cut input, independent';
+            end
+            dat.modelprob1 = gather(probs(:,1));
+            dat.modelprob2 = gather(probs(:,2));
+            dat.modelprob3 = gather(probs(:,3));
+            dat.ratio = dat.modelprob1./(dat.modelprob1 + dat.modelprob2);
+            dat.eta = eta*ones(size(dat.V1));
+            mtmodel =  [mtmodel; dat];
+            fprintf('\n');
         end
-        dat.modelprob1 = gather(probs(:,1));
-        dat.modelprob2 = gather(probs(:,2));
-        dat.modelprob3 = gather(probs(:,3));
-        mtmodel =  dat;
-        fprintf('\n');
-        mtmodel.ratio = mtmodel.modelprob1./(mtmodel.modelprob1 + mtmodel.modelprob2);
         save(simdat, "mtmodel", '-mat');
         writetable(mtmodel, fullfile(Simdir, [modelname, '.txt']), 'Delimiter', '\t');
     else
         load(simdat);
     end
+
     %% Visualize in sliding windows
     dat = mtmodel(mtmodel.chosenItem ~= 3,:);
-    GrpMean = grpstats(dat, ["subID", "TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
+    GrpMean = grpstats(dat, ["subID", "eta", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
     colorpalette ={'r','#FFBF00','#00FF80','b'};
     rgbMatrix = [
         0, 0, 255;   % Blue
@@ -110,102 +114,201 @@ for modeli = 4
     HighestV3 = 1; %.8;
     h = figure;
     filename = sprintf('%s_Predict[Full]', modelname);
-    vi = 0;
-    vtext = {'Vague','Precise'};
-    i = 0;
-    for v = [1, 0] % vague, precise
-        vi = vi + 1;
-        subplot(1,2,vi); hold on;
-        ti = 0;
-        for t = [10, 1.5] % low, high
-            i = i + 1;
-            ti = ti + 1;
-            Ntrial = [];
-            choice = [];
-            choicese = [];
-            ratio = [];
-            ratiose = [];
-            sdV3scld = [];
-            v3vec = LowestV3:.015:HighestV3;
-            dat = GrpMean(GrpMean.TimeConstraint == t & GrpMean.Vaguenesscode == v & GrpMean.mean_V3scld >= LowestV3 &  GrpMean.mean_V3scld <= HighestV3,:);
-            for v3 = v3vec
-                section = dat(dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window,:);
-                Ntrial = [Ntrial, sum(section.GroupCount)];
-                choice = [choice, sum(section.mean_choice.*section.GroupCount)/sum(section.GroupCount)];
-                % choicese = [choicese, std(section.mean_choice)/sqrt(length(section.mean_choice))];
-                ratio = [ratio, sum(section.mean_ratio.*section.GroupCount)/sum(section.GroupCount)];
-                % ratiose = [ratiose, std(section.mean_ratio)/sqrt(length(section.mean_ratio))];
-                sdV3scld = [sdV3scld, sum(section.mean_sdV3scld.*section.GroupCount)/sum(section.GroupCount)];
-            end
-            cut = Ntrial > 100;
-            % scatter(v3vec(cut), ratio(cut), Ntrial(cut)/80*5, 'color', colorpalette{i});
-            % plot(v3vec(cut), choice(cut)*100, '-', 'Color', colorpalette{i}, 'LineWidth', 2);
-            lgd(ti) = plot(v3vec(cut), ratio(cut)*100, '-', 'Color', colorpalette{i}, 'LineWidth', 2);
-            % fill([v3vec fliplr(v3vec)], [ratio-ratiose fliplr(ratio+ratiose)], rgbMatrix(vi,:), 'FaceAlpha', 0.3, 'EdgeColor', 'none');
-        end
-        xlim([LowestV3, HighestV3]);
-        xlabel('Scaled V3');
-        ylabel('% Correct | V1, V2');
-        title(vtext{vi});
-        l = legend(lgd, {'Low','High'}, 'Location','northeast');
-        title(l, 'Time pressure');
-        mysavefig(h, filename, plot_dir, 12, [8, 4]);
-    end
-    %% Visualization in heatmap
-    dat = mtmodel(mtmodel.chosenItem ~= 3,:);
-    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice", "ratio"]);
-    Window = 0.15;
-    Varrng = [min(GrpMean.mean_sdV3scld), .4];% max(GrpMean.mean_sdV3scld)];
-    Bindow = 0.15/2;
-    h = figure;
-    filename = sprintf('%s_Heatmap', modelname);
+    hold on;
     ti = 0;
-    TimePressure = {'Low','High'};
-    for t = [10, 1.5] % low, high
+    for etai = 1:numel(etavec)
+        eta = etavec(etai);
         ti = ti + 1;
-        dat = GrpMean(GrpMean.TimeConstraint == t,:);
-        v3vec = LowestV3:.03:HighestV3;
-        varvec = Varrng(1):.015:Varrng(2);
-        Ntrial = NaN(numel(varvec), numel(v3vec));
-        ratio = NaN(numel(varvec), numel(v3vec));
-        ratiose = NaN(numel(varvec), numel(v3vec));
-        sdV3scld = NaN(numel(varvec), numel(v3vec));
-        for vi = 1:numel(v3vec)
-            for ri = 1:numel(varvec)
-                v3 = v3vec(vi);
-                r = varvec(ri);
-                maskv3 = dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window;
-                maskr3 = dat.mean_sdV3scld >= r - Bindow & dat.mean_sdV3scld <= r + Bindow;
-                section = dat(maskv3 & maskr3,:);
-                Ntrial(ri,vi) = sum(section.GroupCount);
-                ratio(ri,vi) = mean(section.mean_ratio);
-                ratiose(ri,vi) = std(section.mean_ratio)/sqrt(length(section.mean_ratio));
-                sdV3scld(ri,vi) = mean(section.mean_sdV3scld);
-            end
+        Ntrial = [];
+        choice = [];
+        choicese = [];
+        ratio = [];
+        ratiose = [];
+        sdV3scld = [];
+        v3vec = LowestV3:.015:HighestV3;
+        dat = GrpMean(GrpMean.eta == eta & GrpMean.mean_V3scld >= LowestV3 &  GrpMean.mean_V3scld <= HighestV3,:);
+        for v3 = v3vec
+            section = dat(dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window,:);
+            Ntrial = [Ntrial, sum(section.GroupCount)];
+            % choice = [choice, sum(section.mean_choice.*section.GroupCount)/sum(section.GroupCount)];
+            % choicese = [choicese, std(section.mean_choice)/sqrt(length(section.mean_choice))];
+            ratio = [ratio, sum(section.mean_ratio.*section.GroupCount)/sum(section.GroupCount)];
+            % ratiose = [ratiose, std(section.mean_ratio)/sqrt(length(section.mean_ratio))];
+            sdV3scld = [sdV3scld, sum(section.mean_sdV3scld.*section.GroupCount)/sum(section.GroupCount)];
         end
-        ratio(Ntrial<50) = NaN;
-        subplot(2, 2, 1+(ti-1)*2); hold on;
-        colormap("bone");
-        cmap = bone(numel(varvec));
-        for ri = 1:numel(varvec)
-            plot(v3vec, ratio(ri,:), '.-', 'Color', cmap(ri,:));
-        end
-        title(TimePressure{ti});
-        xlabel('Scaled V3');
-        ylabel('% Correct | V1 & V2');
-        mysavefig(h, filename, plot_dir, 12, [9, 8]);
-
-        subplot(2, 2, 2+(ti-1)*2); hold on;
-        colormap("jet");
-        imagesc(v3vec, varvec, ratio);
-        c = colorbar('Location', 'northoutside');
-        % ylim([0,1]);
-        ylabel(c, '% Correct | V1 & V2');
-        xlabel('Scaled V3');
-        ylabel('V3 Variance');
-        mysavefig(h, filename, plot_dir, 12, [9, 8]);
+        cut = Ntrial > 100;
+        % scatter(v3vec(cut), ratio(cut), Ntrial(cut)/80*5, 'color', colorpalette{i});
+        % plot(v3vec(cut), choice(cut)*100, '-', 'Color', colorpalette{i}, 'LineWidth', 2);
+        lgd(etai) = plot(v3vec(cut), ratio(cut)*100, '-', 'Color', colorpalette{i}, 'LineWidth', 2);
+        % fill([v3vec fliplr(v3vec)], [ratio-ratiose fliplr(ratio+ratiose)], rgbMatrix(vi,:), 'FaceAlpha', 0.3, 'EdgeColor', 'none');
     end
+    xlim([LowestV3, HighestV3]);
+    xlabel('Scaled V3');
+    ylabel('% Correct | V1, V2');
+    title(vtext{vi});
+    l = legend(lgd, {'0','3', '6','9','12','15'}, 'Location','northeast');
+    title(l, 'Late noise');
+    mysavefig(h, filename, plot_dir, 12, [4, 4]);
 end
+
+
+% %% Simulation
+% for modeli = 4
+%     modelname = sprintf('Model%i_Predict_V1%i_V2%i_sd1%1.1f', modeli, V1mean, V2mean, eps1);
+%     simdat = fullfile(Simdir, [modelname, '.mat']);
+%     if ~exist(simdat, 'file')
+%         fprintf('Model %d:\t', modeli);
+%         dat = mtconvert;
+%         %subjmask = fit.subID == find(fulllist == sublist(s));
+%         %Mp = fit.Mp(subjmask & fit.modeli == modeli);
+%         %delta = fit.delta(subjmask & fit.modeli == modeli);
+%         Mp = 1;
+%         delta = 0.428;
+%         switch modeli
+%             case 1
+%                 %%
+%                 x = [Mp, delta];
+%                 probs = McFadden(x, dat);
+%                 name = 'McFadden';
+%             case 2
+%                 scl = 1; %fit.scl(subjmask & fit.modeli == modeli);
+%                 x = [Mp, delta, scl];
+%                 probs = Mdl2(x, dat);
+%                 name = 'LinearDistrb';
+%             case 3
+%                 wp = 1; %fit.wp(subjmask & fit.modeli == modeli);
+%                 x = [Mp, delta, wp];
+%                 probs = DN(x, dat);
+%                 name = 'DN'; %, cut input, independent';
+%             case 4
+%                 scl = 1; %fit.scl(subjmask & fit.modeli == modeli);
+%                 wp = 1; %fit.wp(subjmask & fit.modeli == modeli);
+%                 x = [Mp, delta, wp, scl];
+%                 probs = dDNb(x, dat, 'absorb');
+%                 name = 'dDNb'; %, cut input, independent';
+%         end
+%         dat.modelprob1 = gather(probs(:,1));
+%         dat.modelprob2 = gather(probs(:,2));
+%         dat.modelprob3 = gather(probs(:,3));
+%         mtmodel =  dat;
+%         fprintf('\n');
+%         mtmodel.ratio = mtmodel.modelprob1./(mtmodel.modelprob1 + mtmodel.modelprob2);
+%         save(simdat, "mtmodel", '-mat');
+%         writetable(mtmodel, fullfile(Simdir, [modelname, '.txt']), 'Delimiter', '\t');
+%     else
+%         load(simdat);
+%     end
+%     %% Visualize in sliding windows
+%     dat = mtmodel(mtmodel.chosenItem ~= 3,:);
+%     GrpMean = grpstats(dat, ["subID", "TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
+%     colorpalette ={'r','#FFBF00','#00FF80','b'};
+%     rgbMatrix = [
+%         0, 0, 255;   % Blue
+%         255, 192, 203; % Pink
+%         173, 216, 230; % Light Blue
+%         255, 0, 0     % Red
+%         ]/255;
+%     Window = 0.15;
+%     LowestV3 = 0; %0.2;
+%     HighestV3 = 1; %.8;
+%     h = figure;
+%     filename = sprintf('%s_Predict[Full]', modelname);
+%     vi = 0;
+%     vtext = {'Vague','Precise'};
+%     i = 0;
+%     for v = [1, 0] % vague, precise
+%         vi = vi + 1;
+%         subplot(1,2,vi); hold on;
+%         ti = 0;
+%         for t = [10, 1.5] % low, high
+%             i = i + 1;
+%             ti = ti + 1;
+%             Ntrial = [];
+%             choice = [];
+%             choicese = [];
+%             ratio = [];
+%             ratiose = [];
+%             sdV3scld = [];
+%             v3vec = LowestV3:.015:HighestV3;
+%             dat = GrpMean(GrpMean.TimeConstraint == t & GrpMean.Vaguenesscode == v & GrpMean.mean_V3scld >= LowestV3 &  GrpMean.mean_V3scld <= HighestV3,:);
+%             for v3 = v3vec
+%                 section = dat(dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window,:);
+%                 Ntrial = [Ntrial, sum(section.GroupCount)];
+%                 choice = [choice, sum(section.mean_choice.*section.GroupCount)/sum(section.GroupCount)];
+%                 % choicese = [choicese, std(section.mean_choice)/sqrt(length(section.mean_choice))];
+%                 ratio = [ratio, sum(section.mean_ratio.*section.GroupCount)/sum(section.GroupCount)];
+%                 % ratiose = [ratiose, std(section.mean_ratio)/sqrt(length(section.mean_ratio))];
+%                 sdV3scld = [sdV3scld, sum(section.mean_sdV3scld.*section.GroupCount)/sum(section.GroupCount)];
+%             end
+%             cut = Ntrial > 100;
+%             % scatter(v3vec(cut), ratio(cut), Ntrial(cut)/80*5, 'color', colorpalette{i});
+%             % plot(v3vec(cut), choice(cut)*100, '-', 'Color', colorpalette{i}, 'LineWidth', 2);
+%             lgd(ti) = plot(v3vec(cut), ratio(cut)*100, '-', 'Color', colorpalette{i}, 'LineWidth', 2);
+%             % fill([v3vec fliplr(v3vec)], [ratio-ratiose fliplr(ratio+ratiose)], rgbMatrix(vi,:), 'FaceAlpha', 0.3, 'EdgeColor', 'none');
+%         end
+%         xlim([LowestV3, HighestV3]);
+%         xlabel('Scaled V3');
+%         ylabel('% Correct | V1, V2');
+%         title(vtext{vi});
+%         l = legend(lgd, {'Low','High'}, 'Location','northeast');
+%         title(l, 'Time pressure');
+%         mysavefig(h, filename, plot_dir, 12, [8, 4]);
+%     end
+%     %% Visualization in heatmap
+%     dat = mtmodel(mtmodel.chosenItem ~= 3,:);
+%     GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice", "ratio"]);
+%     Window = 0.15;
+%     Varrng = [min(GrpMean.mean_sdV3scld), .4];% max(GrpMean.mean_sdV3scld)];
+%     Bindow = 0.15/2;
+%     h = figure;
+%     filename = sprintf('%s_Heatmap', modelname);
+%     ti = 0;
+%     TimePressure = {'Low','High'};
+%     for t = [10, 1.5] % low, high
+%         ti = ti + 1;
+%         dat = GrpMean(GrpMean.TimeConstraint == t,:);
+%         v3vec = LowestV3:.03:HighestV3;
+%         varvec = Varrng(1):.015:Varrng(2);
+%         Ntrial = NaN(numel(varvec), numel(v3vec));
+%         ratio = NaN(numel(varvec), numel(v3vec));
+%         ratiose = NaN(numel(varvec), numel(v3vec));
+%         sdV3scld = NaN(numel(varvec), numel(v3vec));
+%         for vi = 1:numel(v3vec)
+%             for ri = 1:numel(varvec)
+%                 v3 = v3vec(vi);
+%                 r = varvec(ri);
+%                 maskv3 = dat.mean_V3scld >= v3 - Window & dat.mean_V3scld <= v3 + Window;
+%                 maskr3 = dat.mean_sdV3scld >= r - Bindow & dat.mean_sdV3scld <= r + Bindow;
+%                 section = dat(maskv3 & maskr3,:);
+%                 Ntrial(ri,vi) = sum(section.GroupCount);
+%                 ratio(ri,vi) = mean(section.mean_ratio);
+%                 ratiose(ri,vi) = std(section.mean_ratio)/sqrt(length(section.mean_ratio));
+%                 sdV3scld(ri,vi) = mean(section.mean_sdV3scld);
+%             end
+%         end
+%         ratio(Ntrial<50) = NaN;
+%         subplot(2, 2, 1+(ti-1)*2); hold on;
+%         colormap("bone");
+%         cmap = bone(numel(varvec));
+%         for ri = 1:numel(varvec)
+%             plot(v3vec, ratio(ri,:), '.-', 'Color', cmap(ri,:));
+%         end
+%         title(TimePressure{ti});
+%         xlabel('Scaled V3');
+%         ylabel('% Correct | V1 & V2');
+%         mysavefig(h, filename, plot_dir, 12, [9, 8]);
+% 
+%         subplot(2, 2, 2+(ti-1)*2); hold on;
+%         colormap("jet");
+%         imagesc(v3vec, varvec, ratio);
+%         c = colorbar('Location', 'northoutside');
+%         % ylim([0,1]);
+%         ylabel(c, '% Correct | V1 & V2');
+%         xlabel('Scaled V3');
+%         ylabel('V3 Variance');
+%         mysavefig(h, filename, plot_dir, 12, [9, 8]);
+%     end
+% end
 
 %% 
 function probs = McFadden(x, dat)
@@ -215,8 +318,9 @@ else
     gpuparallel = 0;
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
-eta = 1; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
+%eta = 1; % after the transformation, the late noise term is standardized as 1
+eta = x(2); % late noise difference between time-pressure conditions
+delta = 0;
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
 num_samples = 20000;
 samples = [];
@@ -250,8 +354,9 @@ else
     gpuparallel = 0;
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
-eta = 1; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
+% eta = 1; % after the transformation, the late noise term is standardized as 1
+eta = x(2); % late noise difference between time-pressure conditions
+delta = 0;
 scl = x(3); % scaling parameter on early noise
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
 num_samples = 20000;
@@ -290,8 +395,9 @@ else
     gpuparallel = 0;
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
-eta = 1; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
+% eta = 1; % after the transformation, the late noise term is standardized as 1
+eta = x(2); % late noise difference between time-pressure conditions
+delta = 0;
 wp = x(3); % do the same transformation on w
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
 num_samples = 20000;
@@ -332,8 +438,9 @@ else
     gpuparallel = 0;
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
-eta = 4; % after the transformation, the late noise term is standardized as 1
-delta = x(2); % late noise difference between time-pressure conditions
+% eta = 4; % after the transformation, the late noise term is standardized as 1
+eta = x(2); % late noise difference between time-pressure conditions
+delta = 0;
 wp = x(3); % do the same transformation on w
 scl = x(4); % scaling parameter on the early noise
 data = dat(:, {'V1', 'V2', 'V3', 'sdV1','sdV2','sdV3','chosenItem','TimeConstraint'});
