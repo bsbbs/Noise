@@ -102,23 +102,16 @@ for modeli = 1:4
     %% Visualize in sliding windows
     dat = mtmodel(mtmodel.chosenItem ~= 3,:);
     GrpMean = grpstats(dat, ["subID", "eta", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
-    colorpalette ={'r','#FFBF00','#00FF80','b'};
-    rgbMatrix = [
-        0, 0, 255;   % Blue
-        255, 192, 203; % Pink
-        173, 216, 230; % Light Blue
-        255, 0, 0     % Red
-        ]/255;
+    colorpalette = flip(jet(6));
     Window = 0.15;
     LowestV3 = 0; %0.2;
     HighestV3 = 1; %.8;
     h = figure;
-    filename = sprintf('%s_Predict[Full]', modelname);
+    filename = sprintf('%s_Predict', modelname);
     hold on;
-    ti = 0;
+    lgd = [];
     for etai = 1:numel(etavec)
         eta = etavec(etai);
-        ti = ti + 1;
         Ntrial = [];
         choice = [];
         choicese = [];
@@ -139,13 +132,12 @@ for modeli = 1:4
         cut = Ntrial > 100;
         % scatter(v3vec(cut), ratio(cut), Ntrial(cut)/80*5, 'color', colorpalette{i});
         % plot(v3vec(cut), choice(cut)*100, '-', 'Color', colorpalette{i}, 'LineWidth', 2);
-        lgd(etai) = plot(v3vec(cut), ratio(cut)*100, '-', 'Color', colorpalette{i}, 'LineWidth', 2);
+        lgd(etai) = plot(v3vec(cut), ratio(cut)*100, '-', 'Color', colorpalette(etai,:), 'LineWidth', 2);
         % fill([v3vec fliplr(v3vec)], [ratio-ratiose fliplr(ratio+ratiose)], rgbMatrix(vi,:), 'FaceAlpha', 0.3, 'EdgeColor', 'none');
     end
     xlim([LowestV3, HighestV3]);
     xlabel('Scaled V3');
     ylabel('% Correct | V1, V2');
-    title(vtext{vi});
     l = legend(lgd, {'0','3', '6','9','12','15'}, 'Location','northeast');
     title(l, 'Late noise');
     mysavefig(h, filename, plot_dir, 12, [4, 4]);
