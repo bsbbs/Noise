@@ -68,7 +68,7 @@ for modeli = 4
                 probs = McFadden(x, dat);
                 name = 'McFadden';
             case 2
-                scl = .5; %fit.scl(subjmask & fit.modeli == modeli);
+                scl = 1; %fit.scl(subjmask & fit.modeli == modeli);
                 x = [Mp, delta, scl];
                 probs = Mdl2(x, dat);
                 name = 'LinearDistrb';
@@ -78,7 +78,7 @@ for modeli = 4
                 probs = DN(x, dat);
                 name = 'DN'; %, cut input, independent';
             case 4
-                scl = .5; %fit.scl(subjmask & fit.modeli == modeli);
+                scl = 1; %fit.scl(subjmask & fit.modeli == modeli);
                 wp = 1; %fit.wp(subjmask & fit.modeli == modeli);
                 x = [Mp, delta, wp, scl];
                 probs = dDNb(x, dat, 'absorb');
@@ -139,8 +139,8 @@ for modeli = 4
             end
             cut = Ntrial > 100;
             % scatter(v3vec(cut), ratio(cut), Ntrial(cut)/80*5, 'color', colorpalette{i});
-            lgd(ti) = plot(v3vec(cut), choice(cut), '-', 'Color', colorpalette{i}, 'LineWidth', 2);
-            plot(v3vec(cut), ratio(cut), '--', 'Color', colorpalette{i}, 'LineWidth', 2);
+            % plot(v3vec(cut), choice(cut), '-', 'Color', colorpalette{i}, 'LineWidth', 2);
+            lgd(ti) = plot(v3vec(cut), ratio(cut), '-', 'Color', colorpalette{i}, 'LineWidth', 2);
             % fill([v3vec fliplr(v3vec)], [ratio-ratiose fliplr(ratio+ratiose)], rgbMatrix(vi,:), 'FaceAlpha', 0.3, 'EdgeColor', 'none');
         end
         xlim([LowestV3, HighestV3]);
@@ -332,7 +332,7 @@ else
     gpuparallel = 0;
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
-eta = .1; % after the transformation, the late noise term is standardized as 1
+eta = 0;%.1; % after the transformation, the late noise term is standardized as 1
 delta = x(2); % late noise difference between time-pressure conditions
 wp = x(3); % do the same transformation on w
 scl = x(4); % scaling parameter on the early noise
