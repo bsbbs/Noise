@@ -36,8 +36,8 @@ V1mean = 88; %88;
 V2mean = 83;
 V3 = mtconvert.V3scld*V2mean;
 sdV3 = mtconvert.sdV3scld*V2mean;
-eps1 = 9; %4.5; % early noise for V1
-eps2 = 9; %4.5; % early noise for V2
+eps1 = 4.5; % early noise for V1
+eps2 = 4.5; % early noise for V2
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 sdV1 = eps1*ones(size(V3));
@@ -332,7 +332,7 @@ else
     gpuparallel = 0;
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
-eta = 1; % after the transformation, the late noise term is standardized as 1
+eta = .1; % after the transformation, the late noise term is standardized as 1
 delta = x(2); % late noise difference between time-pressure conditions
 wp = x(3); % do the same transformation on w
 scl = x(4); % scaling parameter on the early noise
