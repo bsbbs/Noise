@@ -99,8 +99,8 @@ end
 %% graded color, two panels
 V1mean = 88;
 V2mean = 83;
-eps1 = 4.5*2; % early noise for V1
-eps2 = 4.5*2; % early noise for V2
+eps1 = 4.5; % early noise for V1
+eps2 = 4.5; % early noise for V2
 V3 = linspace(0, V2mean, 50)';
 V3mean = mean(V3);
 eps3vec = linspace(0, .1084, 6);%*V2mean;
@@ -112,7 +112,7 @@ etavec = [0, 1.4286]; % multiple levels of late noise
 K = 75;
 products = {'Probability'};
 for modeli = 4
-    filename = sprintf('Ratio_Model%i_MeanScaled_%iv3max%1.0f_%s', modeli, numel(V3), max(V3), '6lines');
+    filename = sprintf('Ratio_Model%i_MeanScaled_V1_%i_sd1_%1.1f_%iV3max%1.0f_%s', modeli, V1mean, eps1, numel(V3), max(V3), '6lines');
     Rslts = table('Size', [0 4], 'VariableTypes', {'double', 'double', 'double', 'double'},...
     'VariableNames', {'Early', 'Late', 'V3', 'choice'});
     SimDatafile = fullfile(sim_dir, [filename, '.mat']);
