@@ -32,14 +32,14 @@ for s = 1:N
 end
 mtconvert.choice = mtconvert.chosenItem - 1;
 mtconvert = mtconvert(~isnan(mtconvert.chosenItem) & mtconvert.V1 ~= mtconvert.V2,:);
-V1mean = 88; %88;
+V1mean = 242; %128; %88; %88;
 V2mean = 83;
 V3 = mtconvert.V3scld*V2mean;
 sdV3 = mtconvert.sdV3scld*V2mean;
-eps1 = 4.5; % early noise for V1
-eps2 = 4.5; % early noise for V2
+eps1 = mean(mtconvert.sdV1scld)*V2mean; %4.5; % early noise for V1
+eps2 = mean(mtconvert.sdV2scld)*V2mean; %4.5; % early noise for V2
 V1 = V1mean*ones(size(V3));
-V2 = V2mean*ones(size(V3));
+V2 = 128*ones(size(V3));
 sdV1 = eps1*ones(size(V3));
 sdV2 = eps2*ones(size(V3));
 mtconvert.V1 = V1;
