@@ -51,7 +51,7 @@ mtconvert.sdV3 = sdV3;
 
 %% Simulation
 for modeli = 4
-    modelname = sprintf('Model%i_Predict_V1%i_V2%i', modeli, V1mean, V2mean);
+    modelname = sprintf('Model%i_Predict_V1%i_V2%i_sd1%1.1f', modeli, V1mean, V2mean, eps1);
     simdat = fullfile(Simdir, [modelname, '.mat']);
     if ~exist(simdat, 'file')
         fprintf('Model %d:\t', modeli);
