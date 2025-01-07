@@ -332,7 +332,7 @@ else
     gpuparallel = 0;
 end
 Mp = x(1); % change M to be M', absorbing the magnitude of late noise
-eta = 1; % after the transformation, the late noise term is standardized as 1
+eta = 16; % after the transformation, the late noise term is standardized as 1
 delta = x(2); % late noise difference between time-pressure conditions
 wp = x(3); % do the same transformation on w
 scl = x(4); % scaling parameter on the early noise
