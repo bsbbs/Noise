@@ -104,6 +104,7 @@ eps2 = 4.5; % early noise for V2
 V3 = linspace(0, V2mean, 50)';
 V3mean = mean(V3);
 eps3vec = linspace(0, .1084, 6);%*V2mean;
+eps3vec = sort([eps3vec, 4.5/V2mean]);
 V1 = V1mean*ones(size(V3));
 V2 = V2mean*ones(size(V3));
 sdV1 = eps1*ones(size(V3));
@@ -112,7 +113,7 @@ etavec = [0, 1.4286]; % multiple levels of late noise
 K = 75;
 products = {'Probability'};
 for modeli = 1:4
-    filename = sprintf('Ratio_Model%i_MeanScaled_V1_%i_sd1_%1.1f_%iV3max%1.0f_%s', modeli, V1mean, eps1, numel(V3), max(V3), '6lines');
+    filename = sprintf('Ratio_Model%i_MeanScaled_V1_%i_sd1_%1.1f_%iV3max%1.0f_%s', modeli, V1mean, eps1, numel(V3), max(V3));
     Rslts = table('Size', [0 4], 'VariableTypes', {'double', 'double', 'double', 'double'},...
     'VariableNames', {'Early', 'Late', 'V3', 'choice'});
     SimDatafile = fullfile(sim_dir, [filename, '.mat']);
