@@ -1,14 +1,9 @@
 %% 
 %% define directories
-[os, ~, ~] = computer;
-if os == 'MACA64'
-    rootdir = '/Users/bs3667/Dropbox (NYU Langone Health)/Bo Shen Working files/NoiseProject';
-    Gitdir = '~/Noise';
-end
-addpath(genpath(Gitdir));
+DefineIO;
 %% Loading the data transformed in the code: /Users/bs3667/Noise/modelfit/ModelFit-DataTrnsfrm.m
 load(fullfile(Gitdir, 'myData', 'TrnsfrmData.mat'), 'mt');
-fitdir = fullfile(rootdir, 'Modelfit');
+fitdir = fullfile(rootdir, 'ModelfitExtended');
 fit = tdfread(fullfile(fitdir, 'BestRslts.txt'));
 plot_dir = fullfile(fitdir, 'plot');
 %% Transform data
@@ -41,7 +36,7 @@ for modeli = 1:4
         for s = 1:N
             fprintf('Subject %d:\t', s);
             dat = mtconvert(mtconvert.subID == sublist(s), :);
-            subjmask = fit.subID == find(fulllist == sublist(s));
+            subjmask = fit.subID == sublist(s);
             Mp = fit.Mp(subjmask & fit.modeli == modeli);
             delta = fit.delta(subjmask & fit.modeli == modeli);
             switch modeli
@@ -73,9 +68,9 @@ for modeli = 1:4
                     probs = dDNd(x, dat, 'absorb');
                     name = 'dDNd'; %, cut SIGMA, independent';
             end
-            dat.modelprob1 = probs(:,1);
-            dat.modelprob2 = probs(:,2);
-            dat.modelprob3 = probs(:,3);
+            dat.modelprob1 = gather(probs(:,1));
+            dat.modelprob2 = gather(probs(:,2));
+            dat.modelprob3 = gather(probs(:,3));
             mtmodel = [mtmodel; dat];
             fprintf('\n');
         end
@@ -87,7 +82,7 @@ for modeli = 1:4
     end
     %% Visualize in sliding windows
     dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
-    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "V3scld"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
+    GrpMean = grpstats(dat, ["subID","TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice","ratio"]);
     colorpalette ={'r','#FFBF00','#00FF80','b'};
     rgbMatrix = [
         0, 0, 255;   % Blue
@@ -137,7 +132,7 @@ for modeli = 1:4
     end
     %% Visualization in heatmap
     dat = mtmodel(mtmodel.chosenItem ~= 3 & ~isnan(mtmodel.chosenItem),:);
-    GrpMean = grpstats(dat, ["TimeConstraint", "Vaguenesscode", "V3scld"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice", "ratio"]);
+    GrpMean = grpstats(dat, ["subID", "TimeConstraint", "Vaguenesscode", "ID3"], "mean", "DataVars", ["V3", "sdV3", "V3scld", "sdV3scld", "choice", "ratio"]);
     Window = 0.15;
     Varrng = [min(GrpMean.mean_sdV3scld), .4];% max(GrpMean.mean_sdV3scld)];
     Bindow = 0.15/2;
