@@ -48,12 +48,12 @@ mtconvert.V3 = V3;
 mtconvert.sdV1 = sdV1;
 mtconvert.sdV2 = sdV2;
 mtconvert.sdV3 = sdV3;
-etavec = linspace(0,3,2);
+etavec = linspace(0,15,6);
 etatxt = cellstr(string(etavec));
 %% Simulation
 for modeli = 4
     fprintf('Model %d:\t', modeli);
-    modelname = sprintf('Model%i_Predict_V1%i_V2%i_sd1%1.1f_etavec2', modeli, V1mean, V2mean, eps1);
+    modelname = sprintf('Model%i_Predict_V1%i_V2%i_sd1%1.1f_etavec%i', modeli, V1mean, V2mean, eps1, numel(etavec));
     simdat = fullfile(Simdir, [modelname, '.mat']);
     if ~exist(simdat, 'file')
         mtmodel = [];
