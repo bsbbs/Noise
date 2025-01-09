@@ -32,14 +32,14 @@ for s = 1:N
 end
 mtconvert.choice = mtconvert.chosenItem - 1;
 mtconvert = mtconvert(~isnan(mtconvert.chosenItem) & mtconvert.V1 ~= mtconvert.V2,:);
-V1mean = 242; %128; %88; %88;
-V2mean = 83;
+V1mean = mean(mtconvert.V1scld)*83; %128.4661; %88; %88;
+V2mean = mean(mtconvert.V2scld)*83; % 244.5383
 V3 = mtconvert.V3scld*V2mean;
 sdV3 = mtconvert.sdV3scld*V2mean;
-eps1 = mean(mtconvert.sdV1scld)*V2mean; %4.5; % early noise for V1
-eps2 = mean(mtconvert.sdV2scld)*V2mean; %4.5; % early noise for V2
+eps1 = mean(mtconvert.sdV1scld)*83; %48.4466; % early noise for V1
+eps2 = mean(mtconvert.sdV2scld)*83; %76.7159; % early noise for V2
 V1 = V1mean*ones(size(V3));
-V2 = 128*ones(size(V3));
+V2 = V2mean*ones(size(V3));
 sdV1 = eps1*ones(size(V3));
 sdV2 = eps2*ones(size(V3));
 mtconvert.V1 = V1;
@@ -48,12 +48,12 @@ mtconvert.V3 = V3;
 mtconvert.sdV1 = sdV1;
 mtconvert.sdV2 = sdV2;
 mtconvert.sdV3 = sdV3;
-etavec = linspace(0,15,6);
+etavec = linspace(0,3,2);
 etatxt = cellstr(string(etavec));
 %% Simulation
-for modeli = 1:4
+for modeli = 4
     fprintf('Model %d:\t', modeli);
-    modelname = sprintf('Model%i_Predict_V1%i_V2%i_sd1%1.1f_etavec', modeli, V1mean, V2mean, eps1);
+    modelname = sprintf('Model%i_Predict_V1%i_V2%i_sd1%1.1f_etavec2', modeli, V1mean, V2mean, eps1);
     simdat = fullfile(Simdir, [modelname, '.mat']);
     if ~exist(simdat, 'file')
         mtmodel = [];
@@ -88,7 +88,7 @@ for modeli = 1:4
             dat.modelprob1 = gather(probs(:,1));
             dat.modelprob2 = gather(probs(:,2));
             dat.modelprob3 = gather(probs(:,3));
-            dat.ratio = dat.modelprob1./(dat.modelprob1 + dat.modelprob2);
+            dat.ratio = dat.modelprob2./(dat.modelprob1 + dat.modelprob2);
             dat.eta = eta*ones(size(dat.V1));
             mtmodel =  [mtmodel; dat];
             fprintf('\n');
