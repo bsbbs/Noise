@@ -29,7 +29,7 @@ for s = 1:N
 end
 mtconvert.choice = mtconvert.chosenItem - 1;
 %% Simulation
-for modeli = 1:4
+for modeli = 1:5
     simdat = fullfile(fitdir, sprintf('Model%i_Predict.mat', modeli));
     if ~exist(simdat, 'file')
         mtmodel = [];
