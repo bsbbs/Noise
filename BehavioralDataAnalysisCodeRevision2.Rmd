@@ -509,6 +509,11 @@ t_values <- c('Low', 'High')
 v3vec <- seq(LowestV3, HighestV3, by = .03)
 sdvec <- seq(0, .35, by = .07)
 # Define the color matrix
+cool_palette <- c("blue", "cyan", "green", "gold", "orange","red")
+colors_cool <- cool_palette
+colors_warm <- rev(cool_palette)
+cool_palette <- colorRampPalette(c("black", "gray80"))
+colors_gray <- cool_palette(6)
 mycols <- matrix(c(0, 0, 1.0000,
                    0, 0.3333, 0.8333,
                    0, 0.6667, 0.6667,
@@ -546,9 +551,9 @@ for (t in t_values) {
     }
   }
   # Plotting
-  if (ti == 1){cmap <- mycols[1:length(sdvec) + length(mycols)-length(sdvec)]
+  if (ti == 1){cmap <- colors_cool #mycols[1:length(sdvec) + length(mycols)-length(sdvec)]
   cmap1 <- cmap}
-  if (ti == 2){cmap <- mycols[1:length(sdvec)]
+  if (ti == 2){cmap <- colors_cool # mycols[1:length(sdvec)]
   cmap2 <- cmap}
   plot(v3vec, choice[1, ], type = "n", ylim = c(55, 75),  xlab=' ', ylab=' ', 
        axes = FALSE, frame.plot = FALSE, main = sprintf("Time limit %s", t))
@@ -561,8 +566,9 @@ for (t in t_values) {
     lines(v3vec[thresh], choice[ri, thresh], type = "l", col = cmap[ri], pch = 20, cex = .5, lwd = 2)
   }
 }
-legend('topleft', rep(c('0','.07','.14','.21','.28','.35'),2), lty = 1, ncol = 2,  col = c(cmap1, cmap2))
-dev.copy(pdf, file.path(out_dir,sprintf('CardinalView_Data_V3scld_L%.1fH%.1fv3.pdf', LowestV3, HighestV3)), height=4.4, width=7.7)
+# legend('topleft', rep(c('0','.07','.14','.21','.28','.35'),2), lty = 1, ncol = 2,  col = c(cmap1, cmap2))
+legend('topleft', c('0','.07','.14','.21','.28','.35'), lty = 1, ncol = 1,  col = cmap1)
+dev.copy(pdf, file.path(out_dir,sprintf('CardinalView_Data_V3scld_L%.1fH%.1fv4.pdf', LowestV3, HighestV3)), height=4.4, width=7.7)
 dev.off()
 ```
 
@@ -612,9 +618,9 @@ for (t in t_values) {
     }
   }
   # Plotting
-  if (ti == 1){cmap <- mycols[1:length(sdvec) + length(mycols)-length(sdvec)]
+  if (ti == 1){cmap <- colors_cool #mycols[1:length(sdvec) + length(mycols)-length(sdvec)]
   cmap1 <- cmap}
-  if (ti == 2){cmap <- mycols[1:length(sdvec)]
+  if (ti == 2){cmap <- colors_cool #mycols[1:length(sdvec)]
   cmap2 <- cmap}
   plot(v3vec, VDscld[1, ], type = "n", ylim = c(.68, 1.7),  xlab=' ', ylab=' ', 
        axes = FALSE, frame.plot = FALSE, main = sprintf("Time limit %s", t))
@@ -627,8 +633,8 @@ for (t in t_values) {
     lines(v3vec[thresh], VDscld[ri, thresh], type = "l", col = cmap[ri], pch = 20, cex = .5, lwd = 2)
   }
 }
-legend('topleft', rep(c('0','.07','.14','.21','.28','.35'),2), lty = 1, ncol = 2,  col = c(cmap1, cmap2))
-dev.copy(pdf, file.path(out_dir,sprintf('CardinalView_VDscld_V3scld_L%.1fH%.1fv3.pdf', LowestV3, HighestV3)), height=4.4, width=7.7)
+legend('topleft', c('0','.07','.14','.21','.28','.35'), lty = 1, ncol = 1,  col = cmap1)
+dev.copy(pdf, file.path(out_dir,sprintf('CardinalView_VDscld_V3scld_L%.1fH%.1fv4.pdf', LowestV3, HighestV3)), height=4.4, width=7.7)
 dev.off()
 
 ## Run Simulation to check if this is due to a systematic error of pooling data
@@ -699,7 +705,7 @@ for (vi in seq_along(v3vec)) {
   }
 }
 # plotting
-cmap <- mycols[1:length(sdvec) + length(mycols)-length(sdvec)]
+cmap <- colors_cool #mycols[1:length(sdvec) + length(mycols)-length(sdvec)]
 plot(v3vec, VDscld[1, ], type = "n", ylim = c(.3, .5),  xlab=' ', ylab=' ', 
      axes = FALSE, frame.plot = FALSE, main = sprintf("Time limit %s", t))
 axis(1, at = c(seq(LowestV3, HighestV3, .2)),  tck = -0.02, padj = -1, cex.axis = 1)
@@ -711,12 +717,13 @@ for (ri in seq_along(sdvec)) {
   lines(v3vec[thresh], VDscld[ri, thresh], type = "l", col = cmap[ri], pch = 20, cex = .5, lwd = 2)
 }
 legend('topleft', c('0','.05','.10','.15','.20','.25'), lty = 1, col = cmap)
-dev.copy(pdf, file.path(out_dir,sprintf('CardinalView_Sims_VDscld_Qntls_L%.1fH%.1fv3.pdf', LowestV3, HighestV3)), height=4.4, width=7.7/2)
+dev.copy(pdf, file.path(out_dir,sprintf('CardinalView_Sims_VDscld_Qntls_L%.1fH%.1fv4.pdf', LowestV3, HighestV3)), height=4.4, width=7.7/2)
 dev.off()
 ```
 
 ## Visualize model simulations
 ```{r}
+colors_cool <- c("blue", "cyan", "green", "gold", "orange","red")
 smdir <- '/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/NoiseProject/Prediction/Fig4'
 V1mean <- 88
 V2mean <- 83
@@ -738,9 +745,9 @@ for (modeli in 1:4)
   for (ti in seq_along(late))
   {
     # Plotting
-    if (ti == 1){cmap <- mycols[1:length(early) + length(mycols)-length(early)]
+    if (ti == 1){cmap <- colors_cool #mycols[1:length(early) + length(mycols)-length(early)]
     cmap1 <- cmap}
-    if (ti == 2){cmap <- mycols[1:length(early)]
+    if (ti == 2){cmap <- colors_cool #mycols[1:length(early)]
     cmap2 <- cmap}
     # if (ti == 1){cmap <- colorRampPalette(c(rgb(1, 191/255, 0), "red"))(length(early))
     # cmap1 <- cmap}
@@ -761,286 +768,119 @@ for (modeli in 1:4)
     points(c(V1mean, V2mean), c(yrng[1], yrng[1]), pch = 25, col = NA, bg = gray(.5), cex = .8)
   }
   if (modeli == 4)
-  {legend('topleft', rep(c('0','.07','.14','.21','.28','.35'),2), lty = 1, ncol = 2,  col = c(cmap1, cmap2))
-    dev.copy(pdf, file.path(out_dir,sprintf('CardinalView_Model%i_v2.pdf', modeli)), height=4.4, width=7.7)} # height=3.53, width=6.18 # 8.05
-  if (modeli < 4){dev.copy(pdf, file.path(out_dir,sprintf('CardinalView_Model%i_v2.pdf', modeli)), height=3.53, width=3.24)} #3.71，3.4
+  {legend('topleft', c('0','.07','.14','.21','.28','.35'), lty = 1, ncol = 1,  col = cmap1)
+    dev.copy(pdf, file.path(out_dir,sprintf('CardinalView_Model%i_v4.pdf', modeli)), height=4.4, width=7.7)} # height=3.53, width=6.18 # 8.05
+  if (modeli < 4){dev.copy(pdf, file.path(out_dir,sprintf('CardinalView_Model%i_v4.pdf', modeli)), height=3.53, width=3.24)} #3.71，3.4
   dev.off()
 }
 ```
-## Model Comparison results - The current dataset
+## Mean-scaled noise simulation
 ```{r}
-Analysis <- '/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/NoiseProject/Modelfit/Pooled'
-out_dir <- file.path(Analysis,'plot')
-if (!dir.exists(out_dir)){dir.create(out_dir)}
-fastbads <- read.table(file.path(Analysis,'BestRslts.txt'), header = TRUE, sep = '\t')
-demograph <- read.csv('/Users/bs3667/Noise/myData/Demographics.csv', header = TRUE)
-fastbads$subID <- as.factor(fastbads$subID)
-sublist <- unique(fastbads$subID)
-fastbads$name <- factor(fastbads$name, levels = c('McFadden','LinearDistrb','DN','dDNb','dDNd'))
-names <- levels(fastbads$name)
-fastbads$modeli <- as.factor(fastbads$modeli)
-fastbads <- merge(fastbads, demograph, by = 'subID')
-str(fastbads)
-# convert AIC and BIC
-ICpool <- c()
-for (si in 1:length(sublist))
-{
-  N <- sum(grpdcsn$subID == subID[si] & !is.na(grpdcsn$choice)) # number of data points
-  for (mdli in 1:5) # number of parameters
-  {
-    if (mdli == 1){k <- 2}
-    if (mdli == 2 | mdli == 3){k <- 3}
-    if (mdli >= 4){k <- 4}
-    nLL <- fastbads$nll[fastbads$subID == sublist[si] & fastbads$modeli == mdli]
-    AIC <- 2*k + 2*nLL
-    BIC <- k*log(N) + 2*nLL
-    ICpool <- rbind(ICpool, data.frame(subID = sublist[si], modeli = mdli, AIC = AIC, BIC = BIC))
-  }
+prdct <- read.table(file = '/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/NoiseProject/Prediction/MeanScaledNoise/Ratio_Model4_MeanScaled_V1_88_sd1_4.5_50V3max83_.txt', header = TRUE)
+out_dir <- '/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/NoiseProject/Prediction/MeanScaledNoise'
+V1mean <- 88
+V2mean <- 83
+v3vec <- unique(prdct$V3)
+early <- unique(prdct$Early)
+late <- unique(prdct$Late)
+ratiotrgt <- 4.5/V2mean
+sd3 <- prdct[prdct$Late == late[1] & prdct$Early == early[1],]$Early*v3vec/ratiotrgt
+colors_warm <- rev(c("blue", "cyan", "green", "gold", "orange","red"))
+if (ti == 1)
+{plot(v3vec, sd3, type = "n", xlim = c(0, V1mean), ylim = c(0,2),  xlab=' ', ylab=' ', 
+      axes = FALSE, frame.plot = FALSE, main = sprintf("Late noise %1.2f", late[ti]))
+  axis(1, at = c(seq(0, V1mean, 20)),  tck = -0.02, padj = -1, cex.axis = 1)
+  axis(2, tck = -0.02, at = seq(0,2,1), padj = 1, cex.axis = 1)
+  title(ylab = 'Variance relative to V2', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+  title(xlab = "V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)}
+for (ri in seq_along(early)) {
+  if (ri <= 3) {mycol <- cmap[ri]
+  lwidth <- 3}
+  if (ri == 4) {mycol <- 'black'
+  lwidth <- 1}
+  if (ri >= 5) {mycol <- cmap[ri-1]
+  lwidth <- 3}
+  # choice <- prdct[prdct$Late == late[ti] & prdct$Early == early[ri],]$choice
+  sd3 <- prdct[prdct$Late == late[ti] & prdct$Early == early[ri],]$Early*v3vec/V2mean/ratiotrgt
+  lines(v3vec, sd3, type = "l", col = mycol, pch = 20, cex = .5, lwd = lwidth)
 }
-fastbads <- merge(fastbads, ICpool, by = c('subID','modeli'))
-# list log likelihood
-nlls <- aggregate(nll ~ modeli, data = fastbads, FUN = sum)
-show(nlls)
-# Model comparison
-par(mfrow=c(2,2))
-for (mdli in 1)
-{
-  for (mdlj in 2:5)
-  {
-    bars <- fastbads$nll[fastbads$modeli == mdlj] - fastbads$nll[fastbads$modeli == mdli]
-    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
-    legend("topleft",
-       legend = as.expression(bquote(italic(Delta~nLL) == .(sprintf("%1.2f", sum(bars))))),
-       bty = "n")
-  }
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_McFadden.pdf")),height=5, width=5)
-dev.off()
-par(mfrow=c(2,2))
-for (mdli in 1)
-{
-  for (mdlj in 2:5)
-  {
-    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
-    hist(bars, xlab = 'AIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
-    legend("topleft",
-       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
-       bty = "n")
-  }
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_McFadden.AIC.pdf")),height=5, width=5)
-dev.off()
-par(mfrow=c(2,2))
-for (mdli in 1)
-{
-  for (mdlj in 2:5)
-  {
-    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
-    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
-    legend("topleft",
-       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
-       bty = "n")
-  }
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_McFadden.BIC.pdf")),height=5, width=5)
+points(c(V1mean, V2mean), c(4.5/V1mean/ratiotrgt, 4.5/V2mean/ratiotrgt), pch = 21, col = NA, bg = 'black', cex = .8)
+legend('topleft', c('0','.4','.8', '1.0', '1.2','1.6','2'), lty = 1, ncol = 1,  col = c(colors_warm[1:3], 'black', colors_warm[4:6]))
+dev.copy(pdf, file.path(out_dir,sprintf('Model4_Theoritical_Input.pdf')), height=4.4, width=7.7/2)
 dev.off()
 
-par(mfrow=c(2,2))
-for (mdli in 2)
+for (ti in 1)
 {
-  for (mdlj in 3:5)
-  {
-    bars <- fastbads$nll[fastbads$modeli == mdlj] - fastbads$nll[fastbads$modeli == mdli]
-    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
-    legend("topleft",
-       legend = as.expression(bquote(italic(Delta~nLL) == .(sprintf("%1.2f", sum(bars))))),
-       bty = "n")
+  # Plotting
+  if (ti == 1){cmap <- colors_warm #mycols[1:length(early) + length(mycols)-length(early)]
+  cmap1 <- cmap
+  yrng <- c(73,77)
+  yticks <- 73:77}
+  if (ti == 2){cmap <- colors_warm #mycols[1:length(early)]
+  cmap2 <- cmap
+  yrng <- c(68.7,71)
+  yticks <- 69:71}
+  # if (ti == 1){cmap <- colorRampPalette(c(rgb(1, 191/255, 0), "red"))(length(early))
+  # cmap1 <- cmap}
+  # if (ti == 2){cmap <- colorRampPalette(c("blue", rgb(0, 1, 128/255)))(length(early))
+  # cmap2 <- cmap}
+  choice <- prdct[prdct$Late == late[ti] & prdct$Early == early[1],]$choice
+  if (ti == 1)
+  {plot(v3vec, choice, type = "n", xlim = c(0, V1mean), ylim = yrng,  xlab=' ', ylab=' ', 
+        axes = FALSE, frame.plot = FALSE, main = sprintf("Late noise %1.2f", late[ti]))
+    axis(1, at = c(seq(0, V1mean, 20)),  tck = -0.02, padj = -1, cex.axis = 1)
+    axis(2, tck = -0.02, at = yticks, padj = 1, cex.axis = 1)
+    title(ylab = '% Correct | V1, V2', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+    title(xlab = "V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)}
+  for (ri in seq_along(early)) {
+    if (ri <= 3) {mycol <- cmap[ri]
+    lwidth <- 3}
+    if (ri == 4) {mycol <- 'black'
+    lwidth <- 1}
+    if (ri >= 5) {mycol <- cmap[ri-1]
+    lwidth <- 3}
+    choice <- prdct[prdct$Late == late[ti] & prdct$Early == early[ri],]$choice
+    lines(v3vec, choice, type = "l", col = mycol, pch = 20, cex = .5, lwd = lwidth)
   }
+  points(c(V1mean, V2mean), c(yrng[1], yrng[1]), pch = 25, col = NA, bg = gray(.5), cex = .8)
 }
-dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_Mdl2.pdf")),height=5, width=5)
+legend('topleft', c('0','.4','.8', '1.0', '1.2','1.6','2'), lty = 1, ncol = 1,  col = c(cmap[1:3], 'black', cmap[4:6]))
+dev.copy(pdf, file.path(out_dir,sprintf('Model4_Theoritical.pdf')), height=4.4, width=7.7/2)
 dev.off()
-par(mfrow=c(2,2))
-for (mdli in 2)
-{
-  for (mdlj in 3:5)
-  {
-    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
-    hist(bars, xlab = 'AIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
-    legend("topleft",
-       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
-       bty = "n")
-  }
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_Mdl2.AIC.pdf")),height=5, width=5)
-dev.off()
-par(mfrow=c(2,2))
-for (mdli in 2)
-{
-  for (mdlj in 3:5)
-  {
-    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
-    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
-    legend("topleft",
-       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
-       bty = "n")
-  }
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_Mdl2.BIC.pdf")),height=5, width=5)
+```
+## Modle prediction on empirical V3 mean-variance
+```{r}
+prdct <- read.table(file = '/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/NoiseProject/Prediction/Revision2/Model4_Predict_V11.284661e+02_V22.445383e+02_sd148.4_etavec6.txt', header = TRUE)
+plot_dir <- '/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/NoiseProject/Prediction/Revision2/plot'
+mtmodel <- prdct[prdct$eta == 0,]
+V1scldmean <- mean(mtmodel$V1scld)
+V2scldmean <- mean(mtmodel$V2scld)
+sdV1scld <- mean(mtmodel$sdV1scld)
+sdV2scld <- mean(mtmodel$sdV2scld)
+V3scld <- aggregate(V3scld ~ ID3 + subID, data = mtmodel, FUN = mean)
+sdV3scld <- aggregate(sdV3scld ~ ID3 + subID, data = mtmodel, FUN = mean)
+maskv3 <- V3scld$V3scld<=1
+graytrnsp <- rgb(90,90,90,50, maxColorValue = 255)
+plot(c(0,1), c(0,2), col = NA, xlim = c(0,3), ylim = c(0,2),
+     xlab=' ', ylab=' ', type = "n", axes = FALSE, frame.plot = FALSE)
+    axis(1, at = c(seq(0, 3, 1)),  tck = -0.02, padj = -1, cex.axis = 1)
+    axis(2, tck = -0.02, at = seq(0, 2, 1), padj = 1, cex.axis = 1)
+    title(ylab ='S.D. scaled to min target', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+    title(xlab = "Values scaled to min target", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+points(V3scld$V3scld[maskv3], sdV3scld$sdV3scld[maskv3], pch = 20, col = graytrnsp)
+fit <- lm(sdV3scld$sdV3scld[maskv3] ~V3scld$V3scld[maskv3])
+abline(fit)
+points(V1scldmean,sdV1scld, pch = 20, col = 1)
+points(V2scldmean,sdV2scld, pch = 20, col = 1)
+dev.copy(pdf, file.path(plot_dir, sprintf('Model4_Predict_Inputs.pdf')), height=4.4, width=7.7/2)
 dev.off()
 
-par(mfrow=c(1,2))
-for (mdli in 3)
+colors_warm <- rev(c("blue", "cyan", "green", "gold", "orange","red"))
+etavec <- seq(0,15,3)
+for (etai in 1:6)
 {
-  for (mdlj in 4:5)
-  {
-    bars <- fastbads$nll[fastbads$modeli == mdlj] - fastbads$nll[fastbads$modeli == mdli]
-    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
-    legend("topleft",
-       legend = as.expression(bquote(italic(Delta~nLL) == .(sprintf("%1.2f", sum(bars))))),
-       bty = "n")
-  }
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_DN.pdf")),height=2.5, width=5)
-dev.off()
-par(mfrow=c(1,2))
-for (mdli in 3)
-{
-  for (mdlj in 4:5)
-  {
-    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
-    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
-    legend("topleft",
-       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
-       bty = "n")
-  }
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_DN.AIC.pdf")),height=2.5, width=5)
-dev.off()
-par(mfrow=c(1,2))
-for (mdli in 3)
-{
-  for (mdlj in 4:5)
-  {
-    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
-    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
-    legend("topleft",
-       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
-       bty = "n")
-  }
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_DN.BIC.pdf")),height=2.5, width=5)
-dev.off()
-# Model comparison
-par(mfrow=c(2,2))
-mdlA <- c(1,1,2,3)
-mdlB <- c(2,3,5,5)
-for (i in 1:4)
-{
-  bars <- fastbads$nll[fastbads$modeli == mdlB[i]] - fastbads$nll[fastbads$modeli == mdlA[i]]
-  plot(fastbads$nll[fastbads$modeli == mdlA[i]], fastbads$nll[fastbads$modeli == mdlB[i]], pch = 20, xlab = names[mdlA[i]], ylab = names[mdlB[i]])
-  abline(a = 0, b = 1, lty = 2)
-  legend("topleft",
-         legend = as.expression(bquote(italic(Delta~nLL) == .(sprintf("%1.2f", sum(bars))))),
-         bty = "n")
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_Models.pdf")),height=5, width=5)
-dev.off()
-# distribution of wp
-par(mfrow=c(2,2))
-for (mdli in 3:5)
-{
-  bars <- fastbads$wp[fastbads$modeli == mdli]
-  hist(bars, 40, probability = TRUE, xlab = 'wp', main = names[mdli], bty = "n")
-  lines(density(bars))
-  legend('topleft',sprintf('mean wp = \n%.3f ± %.3f', mean(bars), sd(bars)/sqrt(length(bars))), bty = 'n')
-}
-dev.copy(pdf,file.path(out_dir,sprintf("wp.pdf")),height=5, width=5)
-dev.off()
-
-# Distribution of Mp
-par(mfrow=c(2,3))
-for (mdli in 1:5)
-{
-  bars <- fastbads$Mp[fastbads$modeli == mdli]
-  hist(bars, 40, probability = TRUE, xlab = 'Mp', main = names[mdli], bty = "n")
-  lines(density(bars))
-  legend('topleft',sprintf('mean Mp =\n %1.1f ± %1.1f', mean(bars), sd(bars)/sqrt(length(bars))), bty = 'n')
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Mp.pdf")),height=5, width=7.5)
-dev.off()
-# Distribution of delta
-par(mfrow=c(2,3))
-for (mdli in 1:5)
-{
-  bars <- fastbads$delta[fastbads$modeli == mdli]
-  hist(bars, 40, probability = TRUE, xlab = expression(delta), main = names[mdli], bty = "n")
-  lines(density(bars))
-  test <- t.test(bars)
-  legend('right',as.expression(bquote(mean~delta == .(sprintf('%1.3f ± %1.3f\np = %1.3f', mean(bars), sd(bars)/sqrt(length(bars)), test$p.value)))), bty = 'n')
-}
-dev.copy(pdf,file.path(out_dir,sprintf("delta.pdf")),height=5, width=7.5)
-dev.off()
-
-# Mp & wp colinearity
-par(mfrow=c(2,2))
-for (mdli in 3:5)
-{
-  plot(Mp ~ wp, data = fastbads[fastbads$modeli == mdli,], log ='y', xlab = 'wp',ylab = 'Mp', main = names[mdli], pch = 20)
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Mp~wp.pdf")),height=5, width=5)
-dev.off()
-# scaling parameter
-par(mfrow=c(2,2))
-for (mdli in c(2,4,5))
-{
-  bars <- fastbads$scl[fastbads$modeli == mdli]
-  hist(bars, 40, probability = TRUE, xlab = "Scale", main = names[mdli], bty = "n")
-  lines(density(bars))
-  legend('topleft', sprintf('scl = %1.2f ± %1.2f', mean(bars), sd(bars)/sqrt(length(bars))), bty = 'n')
-}
-dev.copy(pdf,file.path(out_dir,sprintf("scl.pdf")),height=5, width=5)
-dev.off()
-# BIC and scaling correlation
-dBIC <- fastbads$BIC[fastbads$modeli == 4] - fastbads$BIC[fastbads$modeli == 3]
-scale <- fastbads$scl[fastbads$modeli == 4]
-plot(scale, dBIC, pch = 20, cex = .5, xlab = "Scale in dDNb", ylab = as.expression(bquote(Delta~"BIC (dDNb - DN)")))
-dev.copy(pdf,file.path(out_dir,sprintf("scl~dBIC.pdf")),height=4, width=4)
-dev.off()
-# Correlation of age and decision noise
-# Early noise impact
-tmp <- merge(mrgdat, demograph, by = 'subID')
-summary(Rgtest <- lmer(varbid ~ meanbid * age * touched + (1|subID), data = tmp))
-summary(test <- lm(varbid ~ meanbid * age * touched, data = tmp))
-summary(test <- lm(varbid ~ meanbid * age, data = tmp[tmp$touched == 0,]))
-slope <- c()
-for (si in unique(mrgdat$subID))
-{
-  test <- lm(varbid ~ meanbid, data = mrgdat[mrgdat$subID == si & mrgdat$touched == 0,])
-  slope <- rbind(slope, data.frame(subID = si, slope = test$coefficients[2]))
-}
-tmp2 <- merge(slope, demograph, by = 'subID')
-
-plot(slope ~ age, data = tmp2, pch = 20, ylim = c(0,20), xlab = 'Age', ylab = 'Slope of Early-Noise Impact')
-summary(test <- lm(slope ~ age, data = tmp2[tmp2$slope<= 20,]))
-abline(test, col = 2)
-dev.copy(pdf,"/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/Application - Job/Figures/AgeEarlyNoise.pdf", height=4, width=4)
-dev.off()
-# Late noise impact
-summary(test <- lm(delta ~ age, data = fastbads[fastbads$modeli == 4,]))
-plot(delta ~ age, data = fastbads[fastbads$modeli == 4,], pch = 20, xlab = 'Age', ylab = 'Late-Noise Impact due to Time Pressure')
-abline(test, col = 2)
-dev.copy(pdf,"/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/Application - Job/Figures/AgeLateNoise.pdf", height=4, width=4)
-dev.off()
-
-
-## Post predictive check
-for (mdli in 1:4)
-{
-  mtmodel <- read.table(file.path(Analysis,sprintf('Model%i_Predict.txt', mdli)), header = TRUE, sep = '\t')
-  mtmodel$Group <- as.factor(mtmodel$Group)
-  mtmodel$subID <- as.factor(mtmodel$subID)
-  mtmodel$Vagueness <- as.factor(mtmodel$Vagueness)
-  mtmodel$TimePressure <- as.factor(mtmodel$TimePressure)
+  eta <- etavec[etai]
+  mtmodel <- prdct[prdct$eta == eta,]
   subID <- unique(mtmodel$subID)
   Vagueness <- unique(mtmodel$Vagueness)
   TimePressure <- unique(mtmodel$TimePressure)
@@ -1060,205 +900,82 @@ for (mdli in 1:4)
         acc <- aggregate(ratio ~ ID3, data = sectdat, FUN = mean)
         colnames(acc) <- c('ID3','acc')
         acc$acc <- acc$acc*100
-        #V3scld <- aggregate(V3scld ~ ID3, data = sectdat, FUN = mean)
-        #sdbid <- aggregate(sdV3scld ~ ID3, data = sectdat, FUN = mean)
-        V3scld <- aggregate(V3 ~ ID3, data = sectdat, FUN = mean)
-        colnames(V3scld) <- c('ID3','V3scld')
-        sdbid <- aggregate(sdV3 ~ ID3, data = sectdat, FUN = mean)
-        colnames(sdbid) <- c('ID3','sdV3scld')
-        Ntrial <- aggregate(trial ~ ID3, data = sectdat, FUN = length)
-        colnames(Ntrial) <- c('ID3','Ntrial')
-        onesect <- merge(acc, V3scld, by = 'ID3')
-        onesect <- merge(onesect, sdbid, by = 'ID3')
-        onesect <- merge(onesect, Ntrial, by = 'ID3')
-        AccID3sim <- rbind(AccID3sim, data.frame(subID = subID[s], Vagueness = v, TimePressure = tp, onesect))
-      }
-    }
-  }
-  
-  Window <- 0.25
-  Bindow <- .07
-  LowestV3 <- 0
-  HighestV3 <- 1
-  NtrialThresh <- 20
-  t_values <- c('Low', 'High')
-  v3vec <- seq(LowestV3, HighestV3, by = .03)
-  sdvec <- seq(0, .35, by = .07)
-  # Define the color matrix
-  mycols <- matrix(c(0, 0, 1.0000,
-                     0, 0.3333, 0.8333,
-                     0, 0.6667, 0.6667,
-                     0, 1.0000, 0.5000,
-                     1.0000, 0.7500, 0,
-                     1.0000, 0.5000, 0,
-                     1.0000, 0.2500, 0,
-                     1.0000, 0, 0), 
-                   ncol = 3, byrow = TRUE)
-  mycols <- apply(mycols, 1, function(x) rgb(x[1], x[2], x[3]))
-  # Create a new figure
-  par(mfrow = c(1, 2))
-  ti <- 0
-  for (t in t_values) {
-    ti <- ti + 1
-    # Filter data
-    dat <- AccID3sim[AccID3sim$V3scld <= HighestV3 & AccID3sim$V3scld >= LowestV3 & AccID3sim$TimePressure == t,]
-    # Initialize matrices
-    Ntrial <- matrix(NA, nrow = length(sdvec), ncol = length(v3vec))
-    choice <- matrix(NA, nrow = length(sdvec), ncol = length(v3vec))
-    choicese <- matrix(NA, nrow = length(sdvec), ncol = length(v3vec))
-    sdbid3scld <- matrix(NA, nrow = length(sdvec), ncol = length(v3vec))
-    for (vi in seq_along(v3vec)) {
-      for (ri in seq_along(sdvec)) {
-        v3 <- v3vec[vi]
-        r <- sdvec[ri]
-        maskv3 <- dat$V3scld >= (v3 - Window) & dat$V3scld <= (v3 + Window)
-        maskr3 <- dat$sdV3scld >= (r - Bindow) & dat$sdV3scld <= (r + Bindow)
-        section <- dat[maskv3 & maskr3, ]
-        Ntrial[ri, vi] <- sum(section$Ntrial)
-        if (Ntrial[ri, vi] > NtrialThresh)
-        {choice[ri, vi] <- mean(section$acc)
-        choicese[ri, vi] <- sd(section$acc) / sqrt(length(section$acc))
-        sdbid3scld[ri, vi] <- mean(section$sdV3scld)}
-      }
-    }
-    # Plotting
-    if (ti == 1){cmap <- mycols[1:length(sdvec) + length(mycols)-length(sdvec)]
-    cmap1 <- cmap}
-    if (ti == 2){cmap <- mycols[1:length(sdvec)]
-    cmap2 <- cmap}
-    plot(v3vec, choice[1, ], type = "n", ylim = c(60, 75),  xlab=' ', ylab=' ', 
-         axes = FALSE, frame.plot = FALSE, main = sprintf("Time limit %s", t))
-    axis(1, at = c(seq(LowestV3, HighestV3, .2)),  tck = -0.02, padj = -1, cex.axis = 1)
-    axis(2, tck = -0.02, at = seq(55, 75, 5), padj = 1, cex.axis = 1)
-    title(ylab = '% Correct | V1, V2', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
-    title(xlab = "Scaled V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
-    for (ri in seq_along(sdvec)) {
-      thresh <- Ntrial[ri,] > NtrialThresh
-      lines(v3vec[thresh], choice[ri, thresh], type = "l", col = cmap[ri], pch = 20, cex = .5, lwd = 2)
-    }
-  }
-  # legend('topleft', rep(c('0','.07','.14','.21','.28','.35'),2), lty = 1, ncol = 2,  col = c(cmap1, cmap2))
-  dev.copy(pdf, file.path(out_dir,sprintf('CardinalView_Model%i_V3scld_L%.1fH%.1fv3.pdf', mdli, LowestV3, HighestV3)), height=4.4, width=7.7)
-  dev.off()
-}
-```
-## Model post check - Pespective 1: Visualize the trends by Sliding windows along scaled V3 according to the 2x2 design
-```{r}
-Analysis <- '/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/NoiseProject/Modelfit/Pooled'
-out_dir <- file.path(Analysis,'plot')
-for (mdli in 1:4){
-  mtmodel <- read.table(file.path(Analysis,sprintf('Model%i_Predict.txt', mdli)), header = TRUE, sep = '\t')
-  mtmodel$Group <- as.factor(mtmodel$Group)
-  mtmodel$subID <- as.factor(mtmodel$subID)
-  mtmodel$Vagueness <- as.factor(mtmodel$Vagueness)
-  mtmodel$TimePressure <- as.factor(mtmodel$TimePressure)
-  names(mtmodel)[11:13] <- c('V1scld','V2scld','V3scld')
-  names(mtmodel)[32:34] <- c('sdbid1scld','sdbid2scld','sdbid3scld')
-  subID <- unique(mtmodel$subID)
-  Vagueness <- unique(mtmodel$Vagueness)
-  TimePressure <- unique(mtmodel$TimePressure)
-  AccID3sim <- c()
-  for (s in 1:length(subID))
-  {
-    indvdat <- mtmodel[mtmodel$subID == subID[s],]
-    vi <- 0
-    for (v in Vagueness)
-    {
-      vi <- vi + 1
-      tpi <- 0
-      for (tp in TimePressure)
-      {
-        tpi <- tpi + 1
-        sectdat <- indvdat[indvdat$TimePressure == tp & indvdat$Vagueness == v & indvdat$chosenItem != 3 & !is.nan(indvdat$chosenItem),]
-        acc <- aggregate(ratio ~ ID3, data = sectdat, FUN = mean)
-        colnames(acc) <- c('ID3','acc')
-        acc$acc <- acc$acc*100
         V3scld <- aggregate(V3scld ~ ID3, data = sectdat, FUN = mean)
-        sdbid <- aggregate(sdbid3scld ~ ID3, data = sectdat, FUN = mean)
+        sdbid <- aggregate(sdV3scld ~ ID3, data = sectdat, FUN = mean)
         Ntrial <- aggregate(trial ~ ID3, data = sectdat, FUN = length)
-        # VDscld <- aggregate(VDscld ~ ID3, data = sectdat, FUN = mean)
         colnames(Ntrial) <- c('ID3','Ntrial')
         onesect <- merge(acc, V3scld, by = 'ID3')
         onesect <- merge(onesect, sdbid, by = 'ID3')
         onesect <- merge(onesect, Ntrial, by = 'ID3')
-        # onesect <- merge(onesect, VDscld, by = 'ID3')
         AccID3sim <- rbind(AccID3sim, data.frame(subID = subID[s], Vagueness = v, TimePressure = tp, onesect))
       }
     }
   }
-  
+  ## Average sliding window
   Window <- 0.15
   LowestV3 <- 0
   HighestV3 <- 1
   v3vec <- seq(LowestV3, HighestV3, .015)
-  par(mfrow = c(1, 2))
-  for (v in c('Vague','Precise'))
+  
+  #if (etai == 1){mycol <- rgb(1, 0, 0)
+  #mycol1 <- mycol
+  #mycoltrnsp <- rgb(1, 0, 0, .2)}
+  #if (v == 'Precise' & tp == 'High'){mycol <- rgb(0, 0, 1)
+  #mycoltrnsp <- rgb(0,0,1,.2)}
+  #if (etai == 2){mycol <- rgb(1, 191/255, 0)
+  #mycol2 <- mycol
+  #mycoltrnsp <- rgb(1, 191/255, 0, .2)}
+  #if (v == 'Precise' & tp == 'Low'){mycol <- rgb(0, 1, 128/255)
+  #mycoltrnsp <- rgb(0, 1, 128/255, .2)}
+  mycol <- colors_warm[etai]
+  onesect <- AccID3sim[AccID3sim$V3scld >= LowestV3 & AccID3sim$V3scld <= HighestV3,]
+  acc <- c()
+  sdacc <- c()
+  Ntrial <- c()
+  for (v3 in v3vec)
   {
-    ti <- 0
-    for (tp in c('Low','High'))
-    {
-      ti <- ti + 1
-      if (v == 'Vague' & tp == 'Low'){mycol <- rgb(1, 0, 0)
-      mycoltrnsp <- rgb(1, 0, 0, .2)}
-      if (v == 'Precise' & tp == 'High'){mycol <- rgb(0, 0, 1)
-      mycoltrnsp <- rgb(0,0,1,.2)}
-      if (v == 'Vague' & tp == 'High'){mycol <- rgb(1, 191/255, 0)
-      mycoltrnsp <- rgb(1, 191/255, 0, .2)}
-      if (v == 'Precise' & tp == 'Low'){mycol <- rgb(0, 1, 128/255)
-      mycoltrnsp <- rgb(0, 1, 128/255, .2)}
-      onesect <- AccID3sim[AccID3sim$Vagueness == v & AccID3sim$TimePressure == tp & AccID3sim$V3scld >= LowestV3 & AccID3sim$V3scld <= HighestV3,]
-      acc <- c()
-      sdacc <- c()
-      Ntrial <- c()
-      for (v3 in v3vec)
-      {
-        mask <- onesect$V3scld > v3 - Window & onesect$V3scld < v3 + Window
-        n <- sum(onesect$Ntrial[mask])
-        p <- weighted.mean(onesect$acc[mask], onesect$Ntrial[mask])
-        Ntrial <- rbind(Ntrial, n)
-        acc <- rbind(acc, p)
-        sdacc <- rbind(sdacc, sqrt(p*(100-p)/n))
-      }
-      if (ti == 1)
-      {plot(v3vec, acc, col = mycol, 
-            xlim = c(min(v3vec), max(v3vec)), ylim = c(61.8, 75), xlab=' ', ylab=' ', 
-            type = "n", axes = FALSE, frame.plot = FALSE)
-        axis(1, at = c(seq(0, 1, .2)),  tck = -0.02, padj = -1, cex.axis = 1)
-        axis(2, tck = -0.02, at = seq(62, 74, 3), padj = 1, cex.axis = 1)
-        title(ylab = '% Correct | V1, V2', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
-        title(xlab = "Scaled V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
-      }
-      polygon(c(v3vec, rev(v3vec)),c(acc+sdacc, rev(acc-sdacc)), border = NA, col = mycoltrnsp)
-      lines(v3vec, acc, col = mycol, lwd = 2)
-      mask <- v3vec > .2 & v3vec < .8
-      test <- lm(acc[mask] ~ v3vec[mask], weights = Ntrial[mask])
-      abline(test, col = mycol)
-    }
+    mask <- onesect$V3scld > v3 - Window & onesect$V3scld < v3 + Window
+    n <- sum(onesect$Ntrial[mask])
+    p <- weighted.mean(onesect$acc[mask], onesect$Ntrial[mask])
+    Ntrial <- rbind(Ntrial, n)
+    acc <- rbind(acc, p)
+    sdacc <- rbind(sdacc, sqrt(p*(100-p)/n))
   }
-  dev.copy(pdf, file.path(out_dir, sprintf('Model%i_Predict_V3scldtomin_SldWndwWght_ID3.pdf', mdli)), height=4.4, width=7.7)
-  dev.off()
+  if (etai == 1)
+  {plot(v3vec, acc, col = mycol, ylim = c(75,93),
+        xlim = c(min(v3vec), max(v3vec)), xlab=' ', ylab=' ', 
+        type = "n", axes = FALSE, frame.plot = FALSE)
+    axis(1, at = c(seq(0, 1, .2)),  tck = -0.02, padj = -1, cex.axis = 1)
+    axis(2, tck = -0.02, at = seq(75, 90, 5), padj = 1, cex.axis = 1)
+    title(ylab = '% Correct | V1, V2', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+    title(xlab = "Scaled V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+  }
+  lines(v3vec, acc, col = mycol, lwd = 2)
 }
+legend('topleft', c('0', '3','6','9','12','15'), col = colors_warm, lty = 1, title = 'Late noise')
+dev.copy(pdf, file.path(plot_dir, sprintf('Model4_Predict_V11.284661e+02_V22.445383e+02_sd148.4_etavec6.pdf')), height=4.4, width=7.7/2)
+dev.off()
 ```
-## Model Comparison results - The current dataset - Adding time pressure impact on early noise
+
+## Model Comparison results - The current dataset
 ```{r}
-Analysis <- '/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/NoiseProject/Modelfit/ModelfitExtended'
+Analysis <- '/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/NoiseProject/ModelfitExtended'
 out_dir <- file.path(Analysis,'plot')
 if (!dir.exists(out_dir)){dir.create(out_dir)}
 fastbads <- read.table(file.path(Analysis,'BestRslts.txt'), header = TRUE, sep = '\t')
 demograph <- read.csv('/Users/bs3667/Noise/myData/Demographics.csv', header = TRUE)
-fastbads$subID <- as.character(fastbads$subID)
-# fastbads$subID <- as.factor(fastbads$subID)
+fastbads <- merge(fastbads, demograph, by = 'subID')
+fastbads$subID <- as.factor(fastbads$subID)
 sublist <- unique(fastbads$subID)
-fastbads$name <- factor(fastbads$name, levels = c('McFadden','LinearDistrb','DNM','dnDNM','dnDNMExtened'))
+fastbads$name <- factor(fastbads$name, levels = c('McFadden','dnLinear','DNM','dnDNM','dnDNMExtened'))
 names <- levels(fastbads$name)
 fastbads$modeli <- as.factor(fastbads$modeli)
-fastbads <- merge(fastbads, demograph, by = 'subID')
 str(fastbads)
 # convert AIC and BIC
 ICpool <- c()
 for (si in 1:length(sublist))
 {
-  N <- sum(grpdcsn$subID == sublist[si] & !is.na(grpdcsn$choice)) # number of data points
+  N <- sum(grpdcsn$subID == as.character(sublist[si]) & !is.na(grpdcsn$choice)) # number of data points
   for (mdli in 1:5) # number of parameters
   {
     if (mdli == 1){k <- 2}
@@ -1404,51 +1121,6 @@ for (mdli in 3)
 }
 dev.copy(pdf,file.path(out_dir,sprintf("Models_vs_DN.BIC.pdf")),height=2.5, width=5)
 dev.off()
-
-# Model 4 vs Model 5
-par(mfrow=c(1,1))
-for (mdli in 4)
-{
-  for (mdlj in 5)
-  {
-    bars <- fastbads$nll[fastbads$modeli == mdlj] - fastbads$nll[fastbads$modeli == mdli]
-    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
-    legend("topleft",
-       legend = as.expression(bquote(italic(Delta~nLL) == .(sprintf("%1.2f", sum(bars))))),
-       bty = "n")
-  }
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Model5_vs_Model4.pdf")),height=2.5, width=5)
-dev.off()
-par(mfrow=c(1,1))
-for (mdli in 4)
-{
-  for (mdlj in 5)
-  {
-    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
-    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
-    legend("topleft",
-       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
-       bty = "n")
-  }
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Model5_vs_Model4.AIC.pdf")),height=2.5, width=5)
-dev.off()
-par(mfrow=c(1,1))
-for (mdli in 4)
-{
-  for (mdlj in 5)
-  {
-    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
-    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
-    legend("topleft",
-       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
-       bty = "n")
-  }
-}
-dev.copy(pdf,file.path(out_dir,sprintf("Model5_vs_Model4.BIC.pdf")),height=2.5, width=5)
-dev.off()
-
 # distribution of wp
 par(mfrow=c(2,2))
 for (mdli in 3:5)
@@ -1476,8 +1148,7 @@ dev.off()
 par(mfrow=c(2,3))
 for (mdli in 1:5)
 {
-  bars <- fastbads$log.1.delta.[fastbads$modeli == mdli]
-  bars <- exp(bars)-1
+  bars <- fastbads$delta[fastbads$modeli == mdli]
   hist(bars, 40, probability = TRUE, xlab = expression(delta), main = names[mdli], bty = "n")
   lines(density(bars))
   test <- t.test(bars)
@@ -1511,21 +1182,562 @@ scale <- fastbads$scl[fastbads$modeli == 4]
 plot(scale, dBIC, pch = 20, cex = .5, xlab = "Scale in dDNb", ylab = as.expression(bquote(Delta~"BIC (dDNb - DN)")))
 dev.copy(pdf,file.path(out_dir,sprintf("scl~dBIC.pdf")),height=4, width=4)
 dev.off()
+# Correlation of age and decision noise
+# Early noise impact
+tmp <- merge(mrgdat, demograph, by = 'subID')
+summary(Rgtest <- lmer(varbid ~ meanbid * age * touched + (1|subID), data = tmp))
+summary(test <- lm(varbid ~ meanbid * age * touched, data = tmp))
+summary(test <- lm(varbid ~ meanbid * age, data = tmp[tmp$touched == 0,]))
+slope <- c()
+for (si in unique(mrgdat$subID))
+{
+  test <- lm(varbid ~ meanbid, data = mrgdat[mrgdat$subID == si & mrgdat$touched == 0,])
+  slope <- rbind(slope, data.frame(subID = si, slope = test$coefficients[2]))
+}
+tmp2 <- merge(slope, demograph, by = 'subID')
+
+plot(slope ~ age, data = tmp2, pch = 20, ylim = c(0,20), xlab = 'Age', ylab = 'Slope of Early-Noise Impact')
+summary(test <- lm(slope ~ age, data = tmp2[tmp2$slope<= 20,]))
+abline(test, col = 2)
+dev.copy(pdf,"/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/Application - Job/Figures/AgeEarlyNoise.pdf", height=4, width=4)
+dev.off()
+# Late noise impact
+summary(test <- lm(delta ~ age, data = fastbads[fastbads$modeli == 4,]))
+plot(delta ~ age, data = fastbads[fastbads$modeli == 4,], pch = 20, xlab = 'Age', ylab = 'Late-Noise Impact due to Time Pressure')
+abline(test, col = 2)
+dev.copy(pdf,"/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/Application - Job/Figures/AgeLateNoise.pdf", height=4, width=4)
+dev.off()
+```
+## Model post check - Pespective 1: Visualize the trends by Sliding windows along scaled V3 according to the 2x2 design
+```{r}
+Analysis <- '/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/NoiseProject/Modelfit/Pooled'
+out_dir <- file.path(Analysis,'plot')
+for (mdli in 1:4){
+  mtmodel <- read.table(file.path(Analysis,sprintf('Model%i_Predict.txt', mdli)), header = TRUE, sep = '\t')
+  mtmodel$Group <- as.factor(mtmodel$Group)
+  mtmodel$subID <- as.factor(mtmodel$subID)
+  mtmodel$Vagueness <- as.factor(mtmodel$Vagueness)
+  mtmodel$TimePressure <- as.factor(mtmodel$TimePressure)
+  names(mtmodel)[11:13] <- c('V1scld','V2scld','V3scld')
+  names(mtmodel)[32:34] <- c('sdbid1scld','sdbid2scld','sdbid3scld')
+  subID <- unique(mtmodel$subID)
+  Vagueness <- unique(mtmodel$Vagueness)
+  TimePressure <- unique(mtmodel$TimePressure)
+  AccID3sim <- c()
+  for (s in 1:length(subID))
+  {
+    indvdat <- mtmodel[mtmodel$subID == subID[s],]
+    vi <- 0
+    for (v in Vagueness)
+    {
+      vi <- vi + 1
+      tpi <- 0
+      for (tp in TimePressure)
+      {
+        tpi <- tpi + 1
+        sectdat <- indvdat[indvdat$TimePressure == tp & indvdat$Vagueness == v & indvdat$chosenItem != 3 & !is.nan(indvdat$chosenItem),]
+        acc <- aggregate(ratio ~ ID3, data = sectdat, FUN = mean)
+        colnames(acc) <- c('ID3','acc')
+        acc$acc <- acc$acc*100
+        V3scld <- aggregate(V3scld ~ ID3, data = sectdat, FUN = mean)
+        sdbid <- aggregate(sdbid3scld ~ ID3, data = sectdat, FUN = mean)
+        Ntrial <- aggregate(trial ~ ID3, data = sectdat, FUN = length)
+        # VDscld <- aggregate(VDscld ~ ID3, data = sectdat, FUN = mean)
+        colnames(Ntrial) <- c('ID3','Ntrial')
+        onesect <- merge(acc, V3scld, by = 'ID3')
+        onesect <- merge(onesect, sdbid, by = 'ID3')
+        onesect <- merge(onesect, Ntrial, by = 'ID3')
+        # onesect <- merge(onesect, VDscld, by = 'ID3')
+        AccID3sim <- rbind(AccID3sim, data.frame(subID = subID[s], Vagueness = v, TimePressure = tp, onesect))
+      }
+    }
+  }
+  
+  Window <- 0.15
+  LowestV3 <- 0
+  HighestV3 <- 1
+  v3vec <- seq(LowestV3, HighestV3, .015)
+  par(mfrow = c(1, 2))
+  for (v in c('Vague','Precise'))
+  {
+    ti <- 0
+    for (tp in c('Low','High'))
+    {
+      ti <- ti + 1
+      if (v == 'Vague' & tp == 'Low'){mycol <- rgb(1, 0, 0)
+      mycoltrnsp <- rgb(1, 0, 0, .2)}
+      if (v == 'Precise' & tp == 'High'){mycol <- rgb(0, 0, 1)
+      mycoltrnsp <- rgb(0,0,1,.2)}
+      if (v == 'Vague' & tp == 'High'){mycol <- rgb(1, 191/255, 0)
+      mycoltrnsp <- rgb(1, 191/255, 0, .2)}
+      if (v == 'Precise' & tp == 'Low'){mycol <- rgb(0, 1, 128/255)
+      mycoltrnsp <- rgb(0, 1, 128/255, .2)}
+      onesect <- AccID3sim[AccID3sim$Vagueness == v & AccID3sim$TimePressure == tp & AccID3sim$V3scld >= LowestV3 & AccID3sim$V3scld <= HighestV3,]
+      acc <- c()
+      sdacc <- c()
+      Ntrial <- c()
+      for (v3 in v3vec)
+      {
+        mask <- onesect$V3scld > v3 - Window & onesect$V3scld < v3 + Window
+        n <- sum(onesect$Ntrial[mask])
+        p <- weighted.mean(onesect$acc[mask], onesect$Ntrial[mask])
+        Ntrial <- rbind(Ntrial, n)
+        acc <- rbind(acc, p)
+        sdacc <- rbind(sdacc, sqrt(p*(100-p)/n))
+      }
+      if (ti == 1)
+      {plot(v3vec, acc, col = mycol, 
+            xlim = c(min(v3vec), max(v3vec)), ylim = c(61.8, 75), xlab=' ', ylab=' ', 
+            type = "n", axes = FALSE, frame.plot = FALSE)
+        axis(1, at = c(seq(0, 1, .2)),  tck = -0.02, padj = -1, cex.axis = 1)
+        axis(2, tck = -0.02, at = seq(62, 74, 3), padj = 1, cex.axis = 1)
+        title(ylab = '% Correct | V1, V2', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+        title(xlab = "Scaled V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+      }
+      polygon(c(v3vec, rev(v3vec)),c(acc+sdacc, rev(acc-sdacc)), border = NA, col = mycoltrnsp)
+      lines(v3vec, acc, col = mycol, lwd = 2)
+      mask <- v3vec > .2 & v3vec < .8
+      test <- lm(acc[mask] ~ v3vec[mask], weights = Ntrial[mask])
+      abline(test, col = mycol)
+    }
+  }
+  dev.copy(pdf, file.path(out_dir, sprintf('Model%i_Predict_V3scldtomin_SldWndwWght_ID3.pdf', mdli)), height=4.4, width=7.7)
+  dev.off()
+}
+```
+## Model Comparison results - The current dataset - Adding time pressure impact on early noise
+```{r}
+Analysis <- '/Users/bs3667/NYU Langone Health Dropbox/Shen Bo/Bo Shen Working files/NoiseProject/ModelfitExtended'
+fitout_dir <- file.path(Analysis,'plot')
+if (!dir.exists(fitout_dir)){dir.create(fitout_dir)}
+fastbads <- read.table(file.path(Analysis,'BestRslts.txt'), header = TRUE, sep = '\t')
+demograph <- read.csv('/Users/bs3667/Noise/myData/Demographics.csv', header = TRUE)
+fastbads$subID <- as.character(fastbads$subID)
+sublist <- unique(fastbads$subID)
+fastbads$name <- factor(fastbads$name, levels = c('McFadden','LinearDistrb','DNM','dnDNM','dnDNMExtened'))
+names <- levels(fastbads$name)
+fastbads$modeli <- as.factor(fastbads$modeli)
+fastbads <- merge(fastbads, demograph, by = 'subID')
+str(fastbads)
+# convert AIC and BIC
+ICpool <- c()
+for (si in 1:length(sublist))
+{
+  N <- sum(grpdcsn$subID == sublist[si] & !is.na(grpdcsn$choice)) # number of data points
+  for (mdli in 1:5) # number of parameters
+  {
+    if (mdli == 1){k <- 2}
+    if (mdli == 2 | mdli == 3){k <- 3}
+    if (mdli == 4){k <- 4}
+    if (mdli == 5){k <- 5}
+    nLL <- fastbads$nll[fastbads$subID == sublist[si] & fastbads$modeli == mdli]
+    AIC <- 2*k + 2*nLL
+    BIC <- k*log(N) + 2*nLL
+    ICpool <- rbind(ICpool, data.frame(subID = sublist[si], modeli = mdli, AIC = AIC, BIC = BIC))
+  }
+}
+fastbads <- merge(fastbads, ICpool, by = c('subID','modeli'))
+# list log likelihood
+nlls <- aggregate(nll ~ modeli, data = fastbads, FUN = sum)
+show(nlls)
+# Model comparison
+par(mfrow=c(2,2))
+for (mdli in 1)
+{
+  for (mdlj in 2:5)
+  {
+    bars <- fastbads$nll[fastbads$modeli == mdlj] - fastbads$nll[fastbads$modeli == mdli]
+    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~nLL) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Models_vs_McFadden.pdf")),height=5, width=5)
+dev.off()
+par(mfrow=c(2,2))
+for (mdli in 1)
+{
+  for (mdlj in 2:5)
+  {
+    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'AIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Models_vs_McFadden.AIC.pdf")),height=5, width=5)
+dev.off()
+par(mfrow=c(2,2))
+for (mdli in 1)
+{
+  for (mdlj in 2:5)
+  {
+    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Models_vs_McFadden.BIC.pdf")),height=5, width=5)
+dev.off()
+
+par(mfrow=c(2,2))
+for (mdli in 2)
+{
+  for (mdlj in 3:5)
+  {
+    bars <- fastbads$nll[fastbads$modeli == mdlj] - fastbads$nll[fastbads$modeli == mdli]
+    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~nLL) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Models_vs_Mdl2.pdf")),height=5, width=5)
+dev.off()
+par(mfrow=c(2,2))
+for (mdli in 2)
+{
+  for (mdlj in 3:5)
+  {
+    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'AIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Models_vs_Mdl2.AIC.pdf")),height=5, width=5)
+dev.off()
+par(mfrow=c(2,2))
+for (mdli in 2)
+{
+  for (mdlj in 3:5)
+  {
+    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Models_vs_Mdl2.BIC.pdf")),height=5, width=5)
+dev.off()
+
+par(mfrow=c(1,2))
+for (mdli in 3)
+{
+  for (mdlj in 4:5)
+  {
+    bars <- fastbads$nll[fastbads$modeli == mdlj] - fastbads$nll[fastbads$modeli == mdli]
+    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~nLL) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Models_vs_DN.pdf")),height=2.5, width=5)
+dev.off()
+par(mfrow=c(1,2))
+for (mdli in 3)
+{
+  for (mdlj in 4:5)
+  {
+    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Models_vs_DN.AIC.pdf")),height=2.5, width=5)
+dev.off()
+par(mfrow=c(1,2))
+for (mdli in 3)
+{
+  for (mdlj in 4:5)
+  {
+    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Models_vs_DN.BIC.pdf")),height=2.5, width=5)
+dev.off()
+
+# Model 4 vs Model 5
+par(mfrow=c(1,1))
+for (mdli in 4)
+{
+  for (mdlj in 5)
+  {
+    bars <- fastbads$nll[fastbads$modeli == mdlj] - fastbads$nll[fastbads$modeli == mdli]
+    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~nLL) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Model5_vs_Model4.pdf")),height=2.5, width=5)
+dev.off()
+par(mfrow=c(1,1))
+for (mdli in 4)
+{
+  for (mdlj in 5)
+  {
+    bars <- fastbads$AIC[fastbads$modeli == mdlj] - fastbads$AIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'nLL', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~AIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Model5_vs_Model4.AIC.pdf")),height=2.5, width=5)
+dev.off()
+par(mfrow=c(1,1))
+for (mdli in 4)
+{
+  for (mdlj in 5)
+  {
+    bars <- fastbads$BIC[fastbads$modeli == mdlj] - fastbads$BIC[fastbads$modeli == mdli]
+    hist(bars, xlab = 'BIC', main = sprintf('%s - %s', names[mdlj], names[mdli]), 40)
+    legend("topleft",
+       legend = as.expression(bquote(italic(Delta~BIC) == .(sprintf("%1.2f", sum(bars))))),
+       bty = "n")
+  }
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Model5_vs_Model4.BIC.pdf")),height=2.5, width=5)
+dev.off()
+
+# distribution of wp
+par(mfrow=c(2,2))
+for (mdli in 3:5)
+{
+  bars <- fastbads$wp[fastbads$modeli == mdli]
+  hist(bars, 40, probability = TRUE, xlab = 'wp', main = names[mdli], bty = "n")
+  lines(density(bars))
+  legend('topleft',sprintf('mean wp = \n%.3f ± %.3f', mean(bars), sd(bars)/sqrt(length(bars))), bty = 'n')
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("wp.pdf")),height=5, width=5)
+dev.off()
+
+# Distribution of Mp
+par(mfrow=c(2,3))
+for (mdli in 1:5)
+{
+  bars <- fastbads$Mp[fastbads$modeli == mdli]
+  hist(bars, 40, probability = TRUE, xlab = 'Mp', main = names[mdli], bty = "n")
+  lines(density(bars))
+  legend('topleft',sprintf('mean Mp =\n %1.1f ± %1.1f', mean(bars), sd(bars)/sqrt(length(bars))), bty = 'n')
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Mp.pdf")),height=5, width=7.5)
+dev.off()
+# Distribution of delta
+par(mfrow=c(2,3))
+for (mdli in 1:5)
+{
+  bars <- fastbads$delta[fastbads$modeli == mdli]
+  hist(bars, 40, probability = TRUE, xlab = expression(delta), main = names[mdli], bty = "n")
+  lines(density(bars))
+  test <- t.test(bars)
+  legend('right',as.expression(bquote(mean~delta == .(sprintf('%1.3f ± %1.3f\np = %1.3f', mean(bars), sd(bars)/sqrt(length(bars)), test$p.value)))), bty = 'n')
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("delta.pdf")),height=5, width=7.5)
+dev.off()
+
+# Mp & wp colinearity
+par(mfrow=c(2,2))
+for (mdli in 3:5)
+{
+  plot(Mp ~ wp, data = fastbads[fastbads$modeli == mdli,], log ='y', xlab = 'wp',ylab = 'Mp', main = names[mdli], pch = 20)
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("Mp~wp.pdf")),height=5, width=5)
+dev.off()
+# scaling parameter
+par(mfrow=c(2,2))
+for (mdli in c(2,4,5))
+{
+  bars <- fastbads$scl[fastbads$modeli == mdli]
+  hist(bars, 40, probability = TRUE, xlab = "Scale", main = names[mdli], bty = "n")
+  lines(density(bars))
+  legend('topleft', sprintf('scl = %1.2f ± %1.2f', mean(bars), sd(bars)/sqrt(length(bars))), bty = 'n')
+}
+dev.copy(pdf,file.path(fitout_dir,sprintf("scl.pdf")),height=5, width=5)
+dev.off()
+# BIC and scaling correlation
+dBIC <- fastbads$BIC[fastbads$modeli == 4] - fastbads$BIC[fastbads$modeli == 3]
+scale <- fastbads$scl[fastbads$modeli == 4]
+plot(scale, dBIC, pch = 20, cex = .5, xlab = "Scale in dDNb", ylab = as.expression(bquote(Delta~"BIC (dDNb - DN)")))
+dev.copy(pdf,file.path(fitout_dir,sprintf("scl~dBIC.pdf")),height=4, width=4)
+dev.off()
 # 
 # Distribution of delta2
 par(mfrow=c(1,1))
 for (mdli in 5)
 {
-  bars <- fastbads$log.1.delta2.[fastbads$modeli == mdli]
-  bars <- exp(bars)-1
+  bars <- fastbads$delta2[fastbads$modeli == mdli]
   hist(bars, 40, probability = TRUE, xlab = expression(delta), main = names[mdli], bty = "n")
   lines(density(bars))
   test <- t.test(bars)
   legend('left',as.expression(bquote(mean~delta == .(sprintf('%1.3f ± %1.3f\np = %1.3f', mean(bars), sd(bars)/sqrt(length(bars)), test$p.value)))), bty = 'n')
 }
-dev.copy(pdf,file.path(out_dir,sprintf("delta2.pdf")),height=2.5, width=4.5)
+dev.copy(pdf,file.path(fitout_dir,sprintf("delta2.pdf")),height=2.5, width=4.5)
 dev.off()
 ```
+## Post predictive check on Model fitting
+```{r}
+## Post predictive check
+for (mdli in 1:5)
+{
+  mtmodel <- read.table(file.path(Analysis,sprintf('Model%i_Predict.txt', mdli)), header = TRUE, sep = '\t')
+  mtmodel$Group <- as.factor(mtmodel$Group)
+  mtmodel$subID <- as.factor(mtmodel$subID)
+  mtmodel$Vagueness <- as.factor(mtmodel$Vagueness)
+  mtmodel$TimePressure <- as.factor(mtmodel$TimePressure)
+  subID <- unique(mtmodel$subID)
+  Vagueness <- unique(mtmodel$Vagueness)
+  TimePressure <- unique(mtmodel$TimePressure)
+  AccID3sim <- c()
+  for (s in 1:length(subID))
+  {
+    indvdat <- mtmodel[mtmodel$subID == subID[s],]
+    vi <- 0
+    for (v in Vagueness)
+    {
+      vi <- vi + 1
+      tpi <- 0
+      for (tp in TimePressure)
+      {
+        tpi <- tpi + 1
+        sectdat <- indvdat[indvdat$TimePressure == tp & indvdat$Vagueness == v,]
+        acc <- aggregate(ratio ~ ID3, data = sectdat, FUN = mean)
+        colnames(acc) <- c('ID3','acc')
+        acc$acc <- acc$acc*100
+        V3scld <- aggregate(V3scld ~ ID3, data = sectdat, FUN = mean)
+        sdbid <- aggregate(sdV3scld ~ ID3, data = sectdat, FUN = mean)
+        Ntrial <- aggregate(trial ~ ID3, data = sectdat, FUN = length)
+        colnames(Ntrial) <- c('ID3','Ntrial')
+        onesect <- merge(acc, V3scld, by = 'ID3')
+        onesect <- merge(onesect, sdbid, by = 'ID3')
+        onesect <- merge(onesect, Ntrial, by = 'ID3')
+        AccID3sim <- rbind(AccID3sim, data.frame(subID = subID[s], Vagueness = v, TimePressure = tp, onesect))
+      }
+    }
+  }
+  ## Average sliding window
+  Window <- 0.15
+  LowestV3 <- 0
+  HighestV3 <- 1
+  v3vec <- seq(LowestV3, HighestV3, .015)
+  par(mfrow = c(1, 2))
+  for (v in c('Vague','Precise'))
+  {
+    ti <- 0
+    for (tp in c('Low','High'))
+    {
+      ti <- ti + 1
+      if (v == 'Vague' & tp == 'Low'){mycol <- rgb(1, 0, 0)
+      mycoltrnsp <- rgb(1, 0, 0, .2)}
+      if (v == 'Precise' & tp == 'High'){mycol <- rgb(0, 0, 1)
+      mycoltrnsp <- rgb(0,0,1,.2)}
+      if (v == 'Vague' & tp == 'High'){mycol <- rgb(1, 191/255, 0)
+      mycoltrnsp <- rgb(1, 191/255, 0, .2)}
+      if (v == 'Precise' & tp == 'Low'){mycol <- rgb(0, 1, 128/255)
+      mycoltrnsp <- rgb(0, 1, 128/255, .2)}
+      onesect <- AccID3sim[AccID3sim$Vagueness == v & AccID3sim$TimePressure == tp & AccID3sim$V3scld >= LowestV3 & AccID3sim$V3scld <= HighestV3,]
+      acc <- c()
+      sdacc <- c()
+      Ntrial <- c()
+      for (v3 in v3vec)
+      {
+        mask <- onesect$V3scld > v3 - Window & onesect$V3scld < v3 + Window
+        n <- sum(onesect$Ntrial[mask])
+        p <- weighted.mean(onesect$acc[mask], onesect$Ntrial[mask])
+        Ntrial <- rbind(Ntrial, n)
+        acc <- rbind(acc, p)
+        sdacc <- rbind(sdacc, sqrt(p*(100-p)/n))
+      }
+      if (ti == 1)
+      {plot(v3vec, acc, col = mycol, 
+            xlim = c(min(v3vec), max(v3vec)), ylim = c(65, 75), xlab=' ', ylab=' ', 
+            type = "n", axes = FALSE, frame.plot = FALSE)
+        axis(1, at = c(seq(0, 1, .2)),  tck = -0.02, padj = -1, cex.axis = 1)
+        axis(2, tck = -0.02, at = seq(65, 74, 3), padj = 1, cex.axis = 1)
+        title(ylab = '% Correct | V1, V2', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+        title(xlab = "Scaled V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+      }
+      # polygon(c(v3vec, rev(v3vec)),c(acc+sdacc, rev(acc-sdacc)), border = NA, col = mycoltrnsp)
+      lines(v3vec, acc, col = mycol, lwd = 2)
+      # mask <- v3vec > .2 & v3vec < .8
+      # test <- lm(acc[mask] ~ v3vec[mask], weights = Ntrial[mask])
+      # abline(test, col = mycol)
+    }
+  }
+  dev.copy(pdf, file.path(fitout_dir, sprintf('Model%i_Predict_V3scldtomin_SldWndwWght_ID3.pdf', mdli)), height=4.4, width=7.7)
+  dev.off()
+  ## Narrow bins of variance
+  Window <- 0.25
+  Bindow <- .07
+  LowestV3 <- 0
+  HighestV3 <- 1
+  NtrialThresh <- 20
+  t_values <- c('Low', 'High')
+  v3vec <- seq(LowestV3, HighestV3, by = .03)
+  sdvec <- seq(0, .35, by = .07)
+  # Define the color matrix
+  colors_cool <- c("blue", "cyan", "green", "gold", "orange","red")
+  par(mfrow = c(1, 2))
+  ti <- 0
+  for (t in t_values) {
+    ti <- ti + 1
+    # Filter data
+    dat <- AccID3sim[AccID3sim$V3scld <= HighestV3 & AccID3sim$V3scld >= LowestV3 & AccID3sim$TimePressure == t,]
+    # Initialize matrices
+    Ntrial <- matrix(NA, nrow = length(sdvec), ncol = length(v3vec))
+    choice <- matrix(NA, nrow = length(sdvec), ncol = length(v3vec))
+    choicese <- matrix(NA, nrow = length(sdvec), ncol = length(v3vec))
+    sdbid3scld <- matrix(NA, nrow = length(sdvec), ncol = length(v3vec))
+    for (vi in seq_along(v3vec)) {
+      for (ri in seq_along(sdvec)) {
+        v3 <- v3vec[vi]
+        r <- sdvec[ri]
+        maskv3 <- dat$V3scld >= (v3 - Window) & dat$V3scld <= (v3 + Window)
+        maskr3 <- dat$sdV3scld >= (r - Bindow) & dat$sdV3scld <= (r + Bindow)
+        section <- dat[maskv3 & maskr3, ]
+        Ntrial[ri, vi] <- sum(section$Ntrial)
+        if (Ntrial[ri, vi] > NtrialThresh)
+        {choice[ri, vi] <- mean(section$acc)
+        choicese[ri, vi] <- sd(section$acc) / sqrt(length(section$acc))
+        sdbid3scld[ri, vi] <- mean(section$sdV3scld)}
+      }
+    }
+    # Plotting
+    if (ti == 1){cmap <- colors_cool #mycols[1:length(sdvec) + length(mycols)-length(sdvec)]
+    cmap1 <- cmap}
+    if (ti == 2){cmap <- colors_cool #mycols[1:length(sdvec)]
+    cmap2 <- cmap}
+    plot(v3vec, choice[1, ], type = "n", ylim = c(60, 75),  xlab=' ', ylab=' ', 
+         axes = FALSE, frame.plot = FALSE, main = sprintf("Time limit %s", t))
+    axis(1, at = c(seq(LowestV3, HighestV3, .2)),  tck = -0.02, padj = -1, cex.axis = 1)
+    axis(2, tck = -0.02, at = seq(55, 75, 5), padj = 1, cex.axis = 1)
+    title(ylab = '% Correct | V1, V2', mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+    title(xlab = "Scaled V3", mgp = c(1.5,0,0), font.lab = 1, cex.lab = 1)
+    for (ri in seq_along(sdvec)) {
+      thresh <- Ntrial[ri,] > NtrialThresh
+      lines(v3vec[thresh], choice[ri, thresh], type = "l", col = cmap[ri], pch = 20, cex = .5, lwd = 2)
+    }
+  }
+  # legend('topleft', rep(c('0','.07','.14','.21','.28','.35'),2), lty = 1, ncol = 2,  col = c(cmap1, cmap2))
+  dev.copy(pdf, file.path(fitout_dir,sprintf('CardinalView_Model%i_V3scld_L%.1fH%.1fv4.pdf', mdli, LowestV3, HighestV3)), height=4.4, width=7.7)
+  dev.off()
+}
+```
+
 ## Revealing linear trends as post-hoc test after model fitting
 ```{r}
 LowestV3 <- .2

@@ -169,7 +169,7 @@ mysavefig(h, filename, plot_dir, 12, [6, 8]);
 
 %% Test a cardinal view of V3 magnitude - V3 variance 
 % filename = sprintf('V3mag100_var101_Choice_Ovlp');
-filename = sprintf('V3mag50_var6_Choice_Ovlp');
+filename = sprintf('V3mag50_var6_Choice_Ovlp_II');
 matfile = fullfile(sim_dir, [filename, '.mat']);
 products = {'Probability','Overlap'}; % 'Coeff_of_Var',
 V1mean = 88;
@@ -194,17 +194,22 @@ if ~exist(matfile, 'file')
         sdV3 = eps3(i)*ones(size(V3));
         dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
         pars = [eta,eta,eta, 1, 1, 1];
+        tmp1a = nan([reps, numel(V3), 3]);
+        tmp2a = nan([reps, numel(V3)]);
         tmp1b = nan([reps, numel(V3), 3]);
         tmp2b = nan([reps, numel(V3)]);
         parfor ri = 1:reps
             fprintf('Early noise, rep %i\n', ri);
+            [tmp1a(ri,:,:), tmp2a(ri,:), ~] = dnDNM(dat, pars, 'none', products); % no-constraint model
             [tmp1b(ri,:,:), tmp2b(ri,:), ~] = dnDNM(dat, pars, 'biological', products); % biological model
             % output: probs, Ovlps, CVs
         end
+        probsa(i,:,:) = squeeze(mean(tmp1a, 1));
+        Ovlpsa(i,:) = squeeze(mean(tmp2a, 1));
         probsb(i,:,:) = squeeze(mean(tmp1b, 1));
         Ovlpsb(i,:) = squeeze(mean(tmp2b, 1));
     end
-    save(matfile, "probsb", "Ovlpsb");
+    save(matfile, "probsa", "Ovlpsa", "probsb", "Ovlpsb");
 else
     load(matfile);
 end
@@ -216,6 +221,7 @@ ncols = round(numel(exmpls)*1.2);
 reds = flip([ones(ncols,1), linspace(0,1,ncols)', linspace(0,1,ncols)']); % Gradient from red to white
 subplot(2,1,1); hold on;
 for ri = 1:numel(exmpls)
+    plot(V3, Ovlpsa(exmpls(ri),:), ':', "Color", reds(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
     plot(V3, Ovlpsb(exmpls(ri),:), '-', "Color", reds(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
 end
 plot([V1mean, V2mean], [1, 1]*min(Ovlpsb(:)), 'v', 'MarkerFaceColor', [.7,.7,.7]);
@@ -224,7 +230,8 @@ xlabel('V3');
 xlim([min(V3), max(V3)]);
 mysavefig(h, filename, plot_dir, 12, figsz);
 
-ratio = probsb(:,:,1)./(probsb(:,:,1) + probsb(:,:,2))*100;
+ratioa = probsa(:,:,1)./(probsa(:,:,1) + probsa(:,:,2))*100;
+ratiob = probsb(:,:,1)./(probsb(:,:,1) + probsb(:,:,2))*100;
 x = V3/V2mean;
 lt = 0.2;
 rt = 0.8;
@@ -233,8 +240,9 @@ slope = [];
 lgd = [];
 subplot(2,1,2); hold on;
 for ri = 1:numel(exmpls)
-    lgd(ri) = plot(V3, ratio(exmpls(ri),:), '-', "Color", reds(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
-    coefficients = polyfit(x(mask), ratio(exmpls(ri),mask), 1);
+    plot(V3, ratioa(exmpls(ri),:), ':', "Color", reds(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
+    lgd(ri) = plot(V3, ratiob(exmpls(ri),:), '-', "Color", reds(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
+    coefficients = polyfit(x(mask), ratiob(exmpls(ri),mask), 1);
     slope(ri) = coefficients(1);
 end
 plot([V1mean, V2mean], [1, 1]*61, 'v', 'MarkerFaceColor', [.7,.7,.7]);
@@ -280,7 +288,6 @@ if ~exist(matfile, 'file')
         fprintf('eta3 %i/%i\n', i, numel(eta3s));
         dat = table(V1,V2,V3,sdV1,sdV2,sdV3);
         pars = [eta1,eta2,eta3s(i), 1, 1, 1];
-        tmp1b = nan([reps, numel(V3), 3]);
         tmp2b = nan([reps, numel(V3)]);
         parfor ri = 1:reps
             fprintf('Late noise, rep %i\n', ri);
@@ -308,7 +315,8 @@ ylabel('% Overlap | V1, V2');
 xlabel('V3');
 xlim([min(V3), max(V3)]);
 mysavefig(h, filename, plot_dir, 12, figsz);
-ratio = probsb(:,:,1)./(probsb(:,:,1) + probsb(:,:,2))*100;
+
+ratiob = probsb(:,:,1)./(probsb(:,:,1) + probsb(:,:,2))*100;
 x = V3/V2mean;
 lt = 0.2;
 rt = 0.8;
@@ -317,11 +325,11 @@ slope = [];
 lgd = [];
 subplot(2,1,2); hold on;
 for ri = 1:numel(exmpls)
-    lgd(ri) = plot(V3, ratio(exmpls(ri),:), '-', "Color", blues(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
-    coefficients = polyfit(x(mask), ratio(exmpls(ri),mask), 1);
+    lgd(ri) = plot(V3, ratiob(exmpls(ri),:), '-', "Color", blues(ri + (ncols-numel(exmpls)),:), 'LineWidth', 2);
+    coefficients = polyfit(x(mask), ratiob(exmpls(ri),mask), 1);
     slope(ri) = coefficients(1);
 end
-plot([V1mean, V2mean], [1, 1]*min(ratio(:)), 'v', 'MarkerFaceColor', [.7,.7,.7]);
+plot([V1mean, V2mean], [1, 1]*min(ratiob(:)), 'v', 'MarkerFaceColor', [.7,.7,.7]);
 numericVector = eta3s(exmpls);
 cellArray = arrayfun(@(x) sprintf('%.1f', x), numericVector, 'UniformOutput', false);
 legend(lgd, cellArray, 'Location', 'best');
