@@ -187,6 +187,8 @@ sdV2 = eps2*ones(size(V3));
 eta = 0;
 % simulation
 if ~exist(matfile, 'file')
+    probsa = nan([numel(eps3), numel(V3), 3]);
+    Ovlpsa = nan([numel(eps3), numel(V3)]);
     probsb = nan([numel(eps3), numel(V3), 3]);
     Ovlpsb = nan([numel(eps3), numel(V3)]);
     for i = 1:numel(eps3)
